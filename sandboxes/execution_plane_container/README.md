@@ -2,7 +2,8 @@
 
 Reserved home for container-backed isolation adapters.
 
-Wave 1 status:
+Current status:
 
 - topology placeholder only
-- honest isolation documentation required before implementation
+- no active container-backed sandbox is shipped from this package home yet
+- local, SSH, and guest placement must not be described as container isolation

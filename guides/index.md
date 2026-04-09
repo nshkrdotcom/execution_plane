@@ -1,9 +1,10 @@
 # Guide Index
 
 Execution Plane is the lower runtime workspace in the Brain / Spine /
-Execution Plane architecture. Wave 1 freezes the packet and topology; Waves 2
-and 3 land the minimum executable substrate and the first proven family-kit
-lanes on those frozen contracts.
+Execution Plane architecture. Wave 1 freezes the packet and topology; Waves 2,
+3, 6, and 7 land the executable lower substrate, the first proven family-kit
+lanes, long-lived process transport, and truthful placement breadth on those
+frozen contracts.
 
 ## Recommended Reading Order
 
@@ -31,17 +32,20 @@ lanes on those frozen contracts.
     and
     [`prompts/03_minimal_viable_http_and_process_lanes_prove_out_implementation_prompt.md`](../prompts/03_minimal_viable_http_and_process_lanes_prove_out_implementation_prompt.md)
 
-## Wave 2 And Wave 3 Outcomes
+## Closed Runtime Outcomes
 
-The closed minimal substrate and prove-out wave leave the repo with:
+The closed substrate, session, and placement-breadth waves leave the repo with:
 
 - a working execution-plane kernel on the final contracts
 - the migrated narrow placement seam
+- attachable long-lived process sessions on the same lower substrate
+- local, SSH, and guest placement helpers below higher family kits
 - unary HTTP, basic process, and minimal unary JSON-RPC execution
 - frozen helper surfaces for downstream unary HTTP, one-shot process, and unary JSON-RPC adoption
 - minimal-lane contract corrections exposed by real downstream prove-out
 - raw execution fact emission and terminal outcomes
 - conformance coverage for the lower substrate slice
+- honest isolation docs that distinguish transport placement from stronger sandbox backends
 
 It still must not:
 
@@ -58,6 +62,8 @@ Minimal first-cut package homes:
 - [`protocols/execution_plane_http`](../protocols/execution_plane_http/README.md)
 - [`protocols/execution_plane_jsonrpc`](../protocols/execution_plane_jsonrpc/README.md)
 - [`placements/execution_plane_local`](../placements/execution_plane_local/README.md)
+- [`placements/execution_plane_ssh`](../placements/execution_plane_ssh/README.md)
+- [`placements/execution_plane_guest`](../placements/execution_plane_guest/README.md)
 - [`runtimes/execution_plane_process`](../runtimes/execution_plane_process/README.md)
 - [`conformance/execution_plane_testkit`](../conformance/execution_plane_testkit/README.md)
 
@@ -65,7 +71,5 @@ Reserved future package homes:
 
 - [`streaming/execution_plane_sse`](../streaming/execution_plane_sse/README.md)
 - [`streaming/execution_plane_websocket`](../streaming/execution_plane_websocket/README.md)
-- [`placements/execution_plane_ssh`](../placements/execution_plane_ssh/README.md)
-- [`placements/execution_plane_guest`](../placements/execution_plane_guest/README.md)
 - [`sandboxes/execution_plane_container`](../sandboxes/execution_plane_container/README.md)
 - [`sandboxes/execution_plane_microvm`](../sandboxes/execution_plane_microvm/README.md)

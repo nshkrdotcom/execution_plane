@@ -3,8 +3,12 @@
 Owns process launch, stdio, PTY, and long-lived process-session mechanics below
 family kits.
 
-Wave 2 status:
+Closed-wave status:
 
-- active for basic local one-shot process execution
-- Wave 6 adds `ExecutionPlane.Process.Transport` as the Execution Plane-owned long-lived session seam
-- local PTY/stdin attach and session lifecycle now flow through that lower transport surface
+- active for one-shot local process execution
+- active for `ExecutionPlane.Process.Transport` as the Execution Plane-owned
+  long-lived process/session seam
+- local PTY/stdin attach, lease-aware transport metadata, and session lifecycle
+  now flow through that lower transport surface
+- the same transport substrate is exercised under local, SSH, and guest
+  placement adapters without moving service-runtime semantics into this repo

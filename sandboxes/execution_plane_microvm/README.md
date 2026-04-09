@@ -2,7 +2,8 @@
 
 Reserved home for microVM-backed isolation adapters.
 
-Wave 1 status:
+Current status:
 
 - topology placeholder only
-- honest isolation documentation required before implementation
+- no active microVM-backed sandbox is shipped from this package home yet
+- stronger isolation claims belong here only after a real backend exists

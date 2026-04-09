@@ -10,11 +10,12 @@ Execution Plane is the lower runtime workspace in the Brain / Spine / Execution 
 - Spine: `jido_integration`
 - Execution Plane: this repo
 
-Waves 2 and 3 turn the Wave 1 shell into the minimum executable substrate and
-the first proven family-kit lanes: the contract packet stays frozen, the
-kernel, placement, HTTP, process, and minimal JSON-RPC packages execute on the
-final contracts, and the repo now exposes frozen helper surfaces for unary
-HTTP, one-shot process execution, and minimal unary JSON-RPC adoption.
+Waves 2, 3, 6, and 7 turn the Wave 1 shell into the executable lower substrate
+used across the stack: the contract packet stays frozen, the kernel, placement,
+HTTP, process, and minimal JSON-RPC packages execute on the final contracts,
+and the repo now exposes frozen helper surfaces for unary HTTP, one-shot
+process execution, long-lived process transport, and truthful local, SSH, and
+guest placement breadth.
 
 ## Documentation Menu
 
@@ -70,18 +71,22 @@ HTTP, one-shot process execution, and minimal unary JSON-RPC adoption.
 
 ## Workspace Status
 
-Waves 2 and 3 now own:
+Waves 2, 3, 6, and 7 now own:
 
 - the versioned contract packet
 - route validation and dispatch planning
 - timeout coordination and raw-fact emission in `execution_plane_kernel`
 - unary HTTP execution in `execution_plane_http`
 - basic local process execution in `execution_plane_process`
+- long-lived process transport and attachable process sessions in `execution_plane_process`
 - minimal unary JSON-RPC over the process runtime in `execution_plane_jsonrpc`
 - frozen helper surfaces in `ExecutionPlane.HTTP`, `ExecutionPlane.Process`, and `ExecutionPlane.JsonRpc`
 - prove-out corrections to the minimal-lane intent contracts exposed by downstream adoption
 - the narrow placement seam in `execution_plane_local`
+- SSH-backed placement helpers in `execution_plane_ssh`
+- guest-backed placement helpers in `execution_plane_guest`
 - conformance fixtures and lower-substrate execution coverage in `execution_plane_testkit`
+- honest documentation that container and microVM package homes are not active sandbox guarantees yet
 
 The minimum executable package homes for the substrate slice are:
 
@@ -90,6 +95,8 @@ The minimum executable package homes for the substrate slice are:
 - `protocols/execution_plane_http`
 - `protocols/execution_plane_jsonrpc`
 - `placements/execution_plane_local`
+- `placements/execution_plane_ssh`
+- `placements/execution_plane_guest`
 - `runtimes/execution_plane_process`
 - `conformance/execution_plane_testkit`
 
@@ -97,8 +104,6 @@ Reserved package homes for later waves are still tracked so topology and ownersh
 
 - `streaming/execution_plane_sse`
 - `streaming/execution_plane_websocket`
-- `placements/execution_plane_ssh`
-- `placements/execution_plane_guest`
 - `sandboxes/execution_plane_container`
 - `sandboxes/execution_plane_microvm`
 
@@ -119,10 +124,11 @@ Wave 3 proves the covered minimal-lane adoption used by `pristine`,
 `cli_subprocess_core`, `codex_sdk`, and `reqllm_next`, and freezes the helper
 surfaces those repos consume instead of re-owning transport.
 
-Wave 2 also retires `/home/home/p/g/n/external_runtime_transport` as the active
-owner for the covered minimal substrate slice. That repo remains only as the
-compatibility or not-yet-migrated shell for capabilities outside the closed
-minimal lane.
+Wave 7 closes the remaining active-owner gap from
+`/home/home/p/g/n/external_runtime_transport`. That repo now remains only as an
+archival compatibility shell over the Execution Plane transport surface; it is
+no longer an active owner for service-runtime placement or long-lived transport
+mechanics.
 
 ## License
 

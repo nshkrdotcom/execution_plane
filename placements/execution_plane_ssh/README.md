@@ -1,8 +1,11 @@
 # `placements/execution_plane_ssh`
 
-Reserved home for SSH-backed placement semantics.
+Owns SSH-backed placement semantics below higher family kits and above the
+process transport substrate.
 
-Wave 1 status:
+Wave 7 status:
 
-- topology placeholder only
-- implementation deferred to later waves
+- active for truthful remote-shell placement
+- models remote path semantics and adapter capabilities without turning SSH into
+  a stronger sandbox claim than it is
+- keeps service-runtime readiness, health, and lease meaning above this layer

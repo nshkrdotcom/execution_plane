@@ -43,6 +43,8 @@ defmodule ExecutionPlane.MixProject do
       "streaming/execution_plane_sse/lib",
       "streaming/execution_plane_websocket/lib",
       "placements/execution_plane_local/lib",
+      "placements/execution_plane_ssh/lib",
+      "placements/execution_plane_guest/lib",
       "runtimes/execution_plane_process/lib",
       "conformance/execution_plane_testkit/lib"
     ]
@@ -58,6 +60,8 @@ defmodule ExecutionPlane.MixProject do
       "streaming/execution_plane_sse/lib",
       "streaming/execution_plane_websocket/lib",
       "placements/execution_plane_local/lib",
+      "placements/execution_plane_ssh/lib",
+      "placements/execution_plane_guest/lib",
       "runtimes/execution_plane_process/lib",
       "conformance/execution_plane_testkit/lib"
     ]
@@ -65,7 +69,6 @@ defmodule ExecutionPlane.MixProject do
 
   defp deps do
     [
-      {:external_runtime_transport, "~> 0.1.0"},
       {:erlexec, "~> 2.2"},
       {:finch, "~> 0.19"},
       {:jason, "~> 1.4"},

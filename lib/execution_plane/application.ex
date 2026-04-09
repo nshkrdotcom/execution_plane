@@ -7,7 +7,10 @@ defmodule ExecutionPlane.Application do
 
   @impl true
   def start(_type, _args) do
-    children = []
+    children = [
+      {Task.Supervisor, name: ExecutionPlane.TaskSupervisor}
+    ]
+
     opts = [strategy: :one_for_one, name: ExecutionPlane.Supervisor]
     Supervisor.start_link(children, opts)
   end
