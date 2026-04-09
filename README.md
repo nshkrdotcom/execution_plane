@@ -50,4 +50,4 @@ HexDocs configuration includes the repository logo at [`assets/execution_plane.s
 
 ## License
 
-Apache-2.0
+MIT

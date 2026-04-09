@@ -50,7 +50,7 @@ defmodule ExecutionPlane.MixProject do
   defp package do
     [
       maintainers: ["nshkrdotcom"],
-      licenses: ["Apache-2.0"],
+      licenses: ["MIT"],
       links: %{
         "GitHub" => @source_url
       },
