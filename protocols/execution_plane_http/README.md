@@ -3,7 +3,7 @@
 Owns lower HTTP execution primitives and HTTP-family intent handling below
 semantic family kits.
 
-Wave 1 status:
+Wave 2 status:
 
-- active as a minimal skeleton
-- request-shape details remain provisional until Wave 3 prove-out
+- active for unary HTTP request/response execution
+- request-shape details still remain provisional until Wave 3 prove-out

@@ -63,7 +63,7 @@ defmodule ExecutionPlane.Testkit.ContractFixtures do
       route_template_ref: "route-template://http",
       credential_handle_refs: ["cred://1"],
       attempt_ref: "attempt://1",
-      deadline_at: "2026-04-08T12:00:00Z",
+      deadline_at: "2026-04-10T12:00:00Z",
       cancellation_ref: "cancel://1",
       requested_capabilities: ["http.unary"],
       extensions: %{"wave" => 1}
@@ -91,7 +91,7 @@ defmodule ExecutionPlane.Testkit.ContractFixtures do
         execution_intent_envelope()
         |> Map.from_struct()
         |> Map.put(:family, "process")
-        |> Map.put(:protocol, "jsonrpc")
+        |> Map.put(:protocol, "process")
         |> ExecutionIntentEnvelope.new!(),
       command: "codex",
       argv: ["exec", "--json"],
@@ -121,6 +121,11 @@ defmodule ExecutionPlane.Testkit.ContractFixtures do
 
   @spec execution_route() :: ExecutionRoute.t()
   def execution_route do
+    http_execution_route()
+  end
+
+  @spec http_execution_route() :: ExecutionRoute.t()
+  def http_execution_route do
     ExecutionRoute.new!(%{
       route_id: "route-1",
       family: "http",
@@ -133,6 +138,37 @@ defmodule ExecutionPlane.Testkit.ContractFixtures do
     })
   end
 
+  @spec process_execution_route() :: ExecutionRoute.t()
+  def process_execution_route do
+    ExecutionRoute.new!(%{
+      route_id: "route-process-1",
+      family: "process",
+      protocol: "process",
+      transport_family: "process",
+      placement_family: "local",
+      resolved_target: %{"target_id" => "local-runtime"},
+      resolved_budget: %{"timeout_ms" => 5_000},
+      lineage: lineage(route_id: "route-process-1")
+    })
+  end
+
+  @spec jsonrpc_execution_route() :: ExecutionRoute.t()
+  def jsonrpc_execution_route do
+    ExecutionRoute.new!(%{
+      route_id: "route-jsonrpc-1",
+      family: "process",
+      protocol: "jsonrpc",
+      transport_family: "process",
+      placement_family: "local",
+      resolved_target: %{
+        "target_id" => "local-jsonrpc",
+        "execution_surface" => %{"surface_kind" => "local_subprocess"}
+      },
+      resolved_budget: %{"timeout_ms" => 5_000},
+      lineage: lineage(route_id: "route-jsonrpc-1")
+    })
+  end
+
   @spec attach_grant() :: AttachGrant.t()
   def attach_grant do
     AttachGrant.new!(%{
@@ -140,7 +176,7 @@ defmodule ExecutionPlane.Testkit.ContractFixtures do
       attach_mode: "read_write",
       attach_surface: %{"surface_kind" => "stdio"},
       working_directory: "/tmp/workspace",
-      expires_at: "2026-04-08T12:10:00Z",
+      expires_at: "2026-04-10T12:10:00Z",
       granted_capabilities: ["attach.read", "attach.write"]
     })
   end
@@ -151,7 +187,7 @@ defmodule ExecutionPlane.Testkit.ContractFixtures do
       handle_ref: "cred://1",
       kind: "oauth_bearer",
       audience: "github_api",
-      expires_at: "2026-04-08T12:00:00Z",
+      expires_at: "2026-04-10T12:00:00Z",
       rotation_policy: "short_lived"
     })
   end
@@ -160,10 +196,10 @@ defmodule ExecutionPlane.Testkit.ContractFixtures do
   def execution_event do
     ExecutionEvent.new!(%{
       event_id: "event-1",
-      route_id: execution_route().route_id,
+      route_id: http_execution_route().route_id,
       event_type: "transport.connected",
-      timestamp: "2026-04-08T11:55:00Z",
-      lineage: lineage(route_id: execution_route().route_id, event_id: "event-1"),
+      timestamp: "2026-04-10T11:55:00Z",
+      lineage: lineage(route_id: http_execution_route().route_id, event_id: "event-1"),
       payload: %{"phase" => "connected"}
     })
   end

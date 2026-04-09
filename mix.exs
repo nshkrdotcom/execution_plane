@@ -27,7 +27,7 @@ defmodule ExecutionPlane.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger],
+      extra_applications: [:inets, :logger, :ssl],
       mod: {ExecutionPlane.Application, []}
     ]
   end
@@ -61,6 +61,8 @@ defmodule ExecutionPlane.MixProject do
 
   defp deps do
     [
+      {:erlexec, "~> 2.2"},
+      {:jason, "~> 1.4"},
       {:ex_doc, "~> 0.37", only: :dev, runtime: false}
     ]
   end
@@ -83,6 +85,8 @@ defmodule ExecutionPlane.MixProject do
         "prompts/00_master_orchestrator_prompt.md",
         "prompts/01_contract_packet_and_execution_plane_foundation_checklist.md",
         "prompts/01_contract_packet_and_execution_plane_foundation_implementation_prompt.md",
+        "prompts/02_execution_plane_kernel_and_minimal_topology_checklist.md",
+        "prompts/02_execution_plane_kernel_and_minimal_topology_implementation_prompt.md",
         {"core/execution_plane_contracts/README.md", filename: "execution_plane_contracts"},
         {"core/execution_plane_kernel/README.md", filename: "execution_plane_kernel"},
         {"protocols/execution_plane_http/README.md", filename: "execution_plane_http"},
@@ -125,7 +129,9 @@ defmodule ExecutionPlane.MixProject do
         Prompts: [
           "prompts/00_master_orchestrator_prompt.md",
           "prompts/01_contract_packet_and_execution_plane_foundation_checklist.md",
-          "prompts/01_contract_packet_and_execution_plane_foundation_implementation_prompt.md"
+          "prompts/01_contract_packet_and_execution_plane_foundation_implementation_prompt.md",
+          "prompts/02_execution_plane_kernel_and_minimal_topology_checklist.md",
+          "prompts/02_execution_plane_kernel_and_minimal_topology_implementation_prompt.md"
         ],
         "Package Homes": [
           "core/execution_plane_contracts/README.md",

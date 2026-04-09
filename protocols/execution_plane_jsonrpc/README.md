@@ -3,7 +3,7 @@
 Owns lower JSON-RPC framing and control-lane handling below provider or family
 semantics.
 
-Wave 1 status:
+Wave 2 status:
 
-- active as a minimal skeleton
+- active for unary JSON-RPC request/response over the process runtime
 - transport-binding details remain provisional until Wave 3 prove-out

@@ -67,7 +67,7 @@ defmodule ExecutionPlane.Contracts.FailureClass do
     timeout: %{
       primary_owner: :execution_plane,
       retryable?: true,
-      durable_truth_relevance: :durable_truth
+      durable_truth_relevance: :raw_fact_only
     }
   ]
 

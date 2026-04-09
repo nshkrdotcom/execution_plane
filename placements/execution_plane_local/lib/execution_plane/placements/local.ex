@@ -1,11 +1,16 @@
 defmodule ExecutionPlane.Placements.Local do
   @moduledoc """
-  Minimal Wave 1 local-placement shell.
+  Same-node placement semantics for the execution-plane substrate.
   """
+
+  alias ExecutionPlane.Placements.Surface
 
   @spec placement_family() :: String.t()
   def placement_family, do: "local"
 
   @spec supported_surface_kinds() :: [String.t(), ...]
   def supported_surface_kinds, do: ["local_subprocess"]
+
+  @spec supports_surface?(Surface.t() | map() | keyword() | String.t() | atom()) :: boolean()
+  def supports_surface?(surface), do: Surface.placement_family(surface) == placement_family()
 end

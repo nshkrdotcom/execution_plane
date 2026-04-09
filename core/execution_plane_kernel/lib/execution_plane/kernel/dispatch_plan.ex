@@ -3,7 +3,16 @@ defmodule ExecutionPlane.Kernel.DispatchPlan do
   Minimal Wave 1 dispatch plan produced from a validated route and lower intent.
   """
 
-  defstruct [:route_id, :family, :protocol, :protocol_module, :route, :intent]
+  defstruct [
+    :route_id,
+    :family,
+    :protocol,
+    :protocol_module,
+    :route,
+    :intent,
+    :placement_surface,
+    :timeout_ms
+  ]
 
   @type t :: %__MODULE__{
           route_id: String.t(),
@@ -11,6 +20,8 @@ defmodule ExecutionPlane.Kernel.DispatchPlan do
           protocol: String.t(),
           protocol_module: module(),
           route: struct(),
-          intent: struct()
+          intent: struct(),
+          placement_surface: struct() | nil,
+          timeout_ms: pos_integer()
         }
 end

@@ -1,8 +1,8 @@
 # Guide Index
 
 Execution Plane is the lower runtime workspace in the Brain / Spine /
-Execution Plane architecture. Wave 1 is intentionally about contract and
-surface freeze, not broad runtime extraction.
+Execution Plane architecture. Wave 1 freezes the packet and topology; Wave 2
+lands the minimum executable substrate on those frozen contracts.
 
 ## Recommended Reading Order
 
@@ -19,22 +19,26 @@ surface freeze, not broad runtime extraction.
     [`prompts/01_contract_packet_and_execution_plane_foundation_checklist.md`](../prompts/01_contract_packet_and_execution_plane_foundation_checklist.md)
     and
     [`prompts/01_contract_packet_and_execution_plane_foundation_implementation_prompt.md`](../prompts/01_contract_packet_and_execution_plane_foundation_implementation_prompt.md)
+11. the Wave 2 checklist and prompt:
+    [`prompts/02_execution_plane_kernel_and_minimal_topology_checklist.md`](../prompts/02_execution_plane_kernel_and_minimal_topology_checklist.md)
+    and
+    [`prompts/02_execution_plane_kernel_and_minimal_topology_implementation_prompt.md`](../prompts/02_execution_plane_kernel_and_minimal_topology_implementation_prompt.md)
 
-## Wave 1 Outcomes
+## Wave 2 Outcomes
 
-Wave 1 must leave the repo with:
+Wave 2 leaves the repo with:
 
-- tracked workspace package homes
-- the normative packet docs in-repo
-- versioned contract modules and failure taxonomy scaffolding
-- lineage continuity fixtures and tests
-- professional docs menus
+- a working execution-plane kernel on the final contracts
+- the migrated narrow placement seam
+- unary HTTP, basic process, and minimal unary JSON-RPC execution
+- raw execution fact emission and terminal outcomes
+- conformance coverage for the lower substrate slice
 
-It must not:
+It still must not:
 
-- start broad lower-runtime extraction ahead of the freeze
 - invent alternate ownership semantics
 - expose raw lower packages as product APIs in higher repos
+- preserve `external_runtime_transport` as an active owner for the covered slice
 
 ## Package Homes
 

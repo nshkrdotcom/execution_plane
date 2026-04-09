@@ -10,7 +10,9 @@ Execution Plane is the lower runtime workspace in the Brain / Spine / Execution 
 - Spine: `jido_integration`
 - Execution Plane: this repo
 
-Wave 1 turns this repo from a single-app placeholder into a workspace-style shell with frozen package homes, the normative contract packet, the failure taxonomy, and contract-carriage rules that later waves must honor.
+Wave 2 turns the Wave 1 shell into the minimum executable substrate: the
+contract packet stays frozen, while the kernel, placement, HTTP, process, and
+minimal JSON-RPC packages now execute on the final contracts.
 
 ## Documentation Menu
 
@@ -36,6 +38,11 @@ Wave 1 turns this repo from a single-app placeholder into a workspace-style shel
 - [Wave 1 Checklist](prompts/01_contract_packet_and_execution_plane_foundation_checklist.md)
 - [Wave 1 Implementation Prompt](prompts/01_contract_packet_and_execution_plane_foundation_implementation_prompt.md)
 
+### Wave 2
+
+- [Wave 2 Checklist](prompts/02_execution_plane_kernel_and_minimal_topology_checklist.md)
+- [Wave 2 Implementation Prompt](prompts/02_execution_plane_kernel_and_minimal_topology_implementation_prompt.md)
+
 ### Required ADRs
 
 - [ADR-001](adrs/ADR-001-brain-spine-execution-plane-is-the-top-level-system-split.md)
@@ -50,15 +57,18 @@ Wave 1 turns this repo from a single-app placeholder into a workspace-style shel
 
 ## Workspace Status
 
-Wave 1 freezes:
+Wave 2 now owns:
 
 - the versioned contract packet
-- the failure taxonomy
-- the public-surface and contract-carriage rules
-- the final package topology
-- provisionally, the family-facing minimal-lane intent shapes pending Wave 3 prove-out
+- route validation and dispatch planning
+- timeout coordination and raw-fact emission in `execution_plane_kernel`
+- unary HTTP execution in `execution_plane_http`
+- basic local process execution in `execution_plane_process`
+- minimal unary JSON-RPC over the process runtime in `execution_plane_jsonrpc`
+- the narrow placement seam in `execution_plane_local`
+- conformance fixtures and lower-substrate execution coverage in `execution_plane_testkit`
 
-The minimal executable package homes now tracked in this repo are:
+The minimum executable package homes for the substrate slice are:
 
 - `core/execution_plane_contracts`
 - `core/execution_plane_kernel`
@@ -68,7 +78,7 @@ The minimal executable package homes now tracked in this repo are:
 - `runtimes/execution_plane_process`
 - `conformance/execution_plane_testkit`
 
-Reserved package homes for later waves are also tracked so topology and ownership stop drifting:
+Reserved package homes for later waves are still tracked so topology and ownership stop drifting:
 
 - `streaming/execution_plane_sse`
 - `streaming/execution_plane_websocket`
@@ -89,6 +99,10 @@ mix docs
 
 The Wave 1 repo gate for `execution_plane` is `ROOT_NO_STATIC_ANALYSIS` from
 [`technical/12_repo_quality_gate_command_matrix.md`](technical/12_repo_quality_gate_command_matrix.md).
+
+Wave 2 also retires `/home/home/p/g/n/external_runtime_transport` as the active
+owner for the covered minimal substrate slice. That repo remains only as the
+compatibility/deprecation shell for those moved capabilities.
 
 ## License
 
