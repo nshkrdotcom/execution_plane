@@ -65,7 +65,10 @@ defmodule ExecutionPlane.Contracts.CredentialHandleRef.V1 do
 
     %__MODULE__{
       contract_version: Contracts.validate_contract_version!(attrs, @contract_version),
-      handle_ref: Contracts.fetch_required_stringish!(attrs, :handle_ref),
+      handle_ref:
+        attrs
+        |> Contracts.fetch_value(:handle_ref)
+        |> Contracts.validate_opaque_handle_ref!("handle_ref"),
       kind: Contracts.fetch_required_stringish!(attrs, :kind),
       audience: Contracts.fetch_required_stringish!(attrs, :audience),
       expires_at:

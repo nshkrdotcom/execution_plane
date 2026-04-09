@@ -221,6 +221,18 @@ defmodule ExecutionPlane.Contracts do
     raise ArgumentError, "#{field_name} must be a non-empty string, got: #{inspect(value)}"
   end
 
+  @spec validate_opaque_handle_ref!(term(), String.t()) :: String.t()
+  def validate_opaque_handle_ref!(value, field_name) do
+    value = validate_non_empty_string!(value, field_name)
+
+    if String.contains?(value, "://") or String.starts_with?(value, "urn:") do
+      value
+    else
+      raise ArgumentError,
+            "#{field_name} must be an opaque handle ref, got: #{inspect(value)}"
+    end
+  end
+
   @spec validate_iso8601!(term(), String.t()) :: String.t()
   def validate_iso8601!(value, field_name) do
     value = validate_non_empty_string!(value, field_name)

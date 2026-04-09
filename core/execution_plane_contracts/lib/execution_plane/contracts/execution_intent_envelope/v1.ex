@@ -105,7 +105,7 @@ defmodule ExecutionPlane.Contracts.ExecutionIntentEnvelope.V1 do
           attrs,
           :credential_handle_refs,
           [],
-          &Contracts.validate_non_empty_string!(&1, "credential_handle_ref")
+          &Contracts.validate_opaque_handle_ref!(&1, "credential_handle_ref")
         ),
       attempt_ref: Contracts.fetch_optional_stringish!(attrs, :attempt_ref),
       deadline_at:
