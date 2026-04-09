@@ -40,6 +40,8 @@ defmodule ExecutionPlane.MixProject do
       "core/execution_plane_kernel/lib",
       "protocols/execution_plane_http/lib",
       "protocols/execution_plane_jsonrpc/lib",
+      "streaming/execution_plane_sse/lib",
+      "streaming/execution_plane_websocket/lib",
       "placements/execution_plane_local/lib",
       "runtimes/execution_plane_process/lib",
       "conformance/execution_plane_testkit/lib"
@@ -53,6 +55,8 @@ defmodule ExecutionPlane.MixProject do
       "core/execution_plane_kernel/lib",
       "protocols/execution_plane_http/lib",
       "protocols/execution_plane_jsonrpc/lib",
+      "streaming/execution_plane_sse/lib",
+      "streaming/execution_plane_websocket/lib",
       "placements/execution_plane_local/lib",
       "runtimes/execution_plane_process/lib",
       "conformance/execution_plane_testkit/lib"
@@ -61,8 +65,12 @@ defmodule ExecutionPlane.MixProject do
 
   defp deps do
     [
+      {:external_runtime_transport, "~> 0.1.0"},
       {:erlexec, "~> 2.2"},
+      {:finch, "~> 0.19"},
       {:jason, "~> 1.4"},
+      {:mint_web_socket, "~> 1.0"},
+      {:server_sent_events, "~> 0.2"},
       {:ex_doc, "~> 0.37", only: :dev, runtime: false}
     ]
   end

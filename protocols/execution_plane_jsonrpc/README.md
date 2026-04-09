@@ -3,7 +3,8 @@
 Owns lower JSON-RPC framing and control-lane handling below provider or family
 semantics.
 
-Wave 2 status:
+Wave 6 status:
 
 - active for unary JSON-RPC request/response over the process runtime
-- transport-binding details remain provisional until Wave 3 prove-out
+- `ExecutionPlane.Protocols.JsonRpc.Adapter` now owns the shared persistent JSON-RPC framing adapter
+- family kits keep protocol-session orchestration above this lower framing seam

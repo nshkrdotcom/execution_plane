@@ -1,8 +1,9 @@
 # `streaming/execution_plane_websocket`
 
-Reserved home for lower WebSocket session and reconnect semantics.
+Lower WebSocket session and handshake lifecycle package.
 
-Wave 1 status:
+Wave 6 status:
 
-- topology placeholder only
-- implementation deferred to later waves
+- `ExecutionPlane.WebSocket.stream/4` owns handshake, receive, ping/pong, timeout, and close handling
+- semantic families keep provider frame decoding above this package
+- reconnect and resume policy stay contract-driven above the lower socket lifecycle

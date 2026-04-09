@@ -98,6 +98,15 @@ defmodule ExecutionPlane.Runtimes.Process do
              failure: Failure.new!(%{failure_class: :launch_failed, reason: "cwd not found"})
            }}
 
+        {:error, {:send_failed, reason}} ->
+          {:error,
+           %{
+             family: family(),
+             raw_payload: %{send_failed: reason},
+             metrics: duration_metrics(start_ms),
+             failure: Failure.new!(%{failure_class: :launch_failed, reason: "send failed"})
+           }}
+
         {:error, reason} ->
           {:error,
            %{
@@ -362,7 +371,9 @@ defmodule ExecutionPlane.Runtimes.Process do
   defp normalize_run_input(stdin) do
     {:ok, normalize_payload(stdin)}
   rescue
-    error -> {:error, {:send_failed, error}}
+    error -> {:error, {:send_failed, {:invalid_input, error}}}
+  catch
+    kind, reason -> {:error, {:send_failed, {kind, reason}}}
   end
 
   defp send_run_payload(pid, payload) do

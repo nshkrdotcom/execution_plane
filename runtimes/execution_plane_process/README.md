@@ -6,4 +6,5 @@ family kits.
 Wave 2 status:
 
 - active for basic local one-shot process execution
-- attach and reconnect semantics are contract-frozen first, not fully implemented
+- Wave 6 adds `ExecutionPlane.Process.Transport` as the Execution Plane-owned long-lived session seam
+- local PTY/stdin attach and session lifecycle now flow through that lower transport surface
