@@ -1,8 +1,9 @@
 # Guide Index
 
 Execution Plane is the lower runtime workspace in the Brain / Spine /
-Execution Plane architecture. Wave 1 freezes the packet and topology; Wave 2
-lands the minimum executable substrate on those frozen contracts.
+Execution Plane architecture. Wave 1 freezes the packet and topology; Waves 2
+and 3 land the minimum executable substrate and the first proven family-kit
+lanes on those frozen contracts.
 
 ## Recommended Reading Order
 
@@ -10,27 +11,35 @@ lands the minimum executable substrate on those frozen contracts.
 2. [`technical/01_north_star_architecture.md`](../technical/01_north_star_architecture.md)
 3. [`technical/02_repo_topology_and_package_map.md`](../technical/02_repo_topology_and_package_map.md)
 4. [`technical/03_shared_contracts_and_lineage.md`](../technical/03_shared_contracts_and_lineage.md)
-5. [`technical/07_brain_spine_and_harness_alignment.md`](../technical/07_brain_spine_and_harness_alignment.md)
-6. [`JIDO_BRAIN_CONTRACT_CONTEXT/README.md`](../JIDO_BRAIN_CONTRACT_CONTEXT/README.md)
-7. [`technical/10_subset_complete_big_bang_execution_model.md`](../technical/10_subset_complete_big_bang_execution_model.md)
-8. [`technical/11_surface_exposure_and_contract_carriage_matrix.md`](../technical/11_surface_exposure_and_contract_carriage_matrix.md)
-9. [`technical/12_repo_quality_gate_command_matrix.md`](../technical/12_repo_quality_gate_command_matrix.md)
-10. the Wave 1 checklist and prompt:
+5. [`technical/04_http_graphql_and_realtime_family_design.md`](../technical/04_http_graphql_and_realtime_family_design.md)
+6. [`technical/05_process_and_agent_session_family_design.md`](../technical/05_process_and_agent_session_family_design.md)
+7. [`technical/07_brain_spine_and_harness_alignment.md`](../technical/07_brain_spine_and_harness_alignment.md)
+8. [`JIDO_BRAIN_CONTRACT_CONTEXT/README.md`](../JIDO_BRAIN_CONTRACT_CONTEXT/README.md)
+9. [`technical/10_subset_complete_big_bang_execution_model.md`](../technical/10_subset_complete_big_bang_execution_model.md)
+10. [`technical/11_surface_exposure_and_contract_carriage_matrix.md`](../technical/11_surface_exposure_and_contract_carriage_matrix.md)
+11. [`technical/12_repo_quality_gate_command_matrix.md`](../technical/12_repo_quality_gate_command_matrix.md)
+12. the Wave 1 checklist and prompt:
     [`prompts/01_contract_packet_and_execution_plane_foundation_checklist.md`](../prompts/01_contract_packet_and_execution_plane_foundation_checklist.md)
     and
     [`prompts/01_contract_packet_and_execution_plane_foundation_implementation_prompt.md`](../prompts/01_contract_packet_and_execution_plane_foundation_implementation_prompt.md)
-11. the Wave 2 checklist and prompt:
+13. the Wave 2 checklist and prompt:
     [`prompts/02_execution_plane_kernel_and_minimal_topology_checklist.md`](../prompts/02_execution_plane_kernel_and_minimal_topology_checklist.md)
     and
     [`prompts/02_execution_plane_kernel_and_minimal_topology_implementation_prompt.md`](../prompts/02_execution_plane_kernel_and_minimal_topology_implementation_prompt.md)
+14. the Wave 3 checklist and prompt:
+    [`prompts/03_minimal_viable_http_and_process_lanes_prove_out_checklist.md`](../prompts/03_minimal_viable_http_and_process_lanes_prove_out_checklist.md)
+    and
+    [`prompts/03_minimal_viable_http_and_process_lanes_prove_out_implementation_prompt.md`](../prompts/03_minimal_viable_http_and_process_lanes_prove_out_implementation_prompt.md)
 
-## Wave 2 Outcomes
+## Wave 2 And Wave 3 Outcomes
 
-Wave 2 leaves the repo with:
+The closed minimal substrate and prove-out wave leave the repo with:
 
 - a working execution-plane kernel on the final contracts
 - the migrated narrow placement seam
 - unary HTTP, basic process, and minimal unary JSON-RPC execution
+- frozen helper surfaces for downstream unary HTTP, one-shot process, and unary JSON-RPC adoption
+- minimal-lane contract corrections exposed by real downstream prove-out
 - raw execution fact emission and terminal outcomes
 - conformance coverage for the lower substrate slice
 

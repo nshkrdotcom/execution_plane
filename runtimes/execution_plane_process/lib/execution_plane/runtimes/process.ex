@@ -32,18 +32,25 @@ defmodule ExecutionPlane.Runtimes.Process do
         } = plan,
         _opts
       ) do
+    start_ms = System.monotonic_time(:millisecond)
+
     if supports_surface?(surface) do
       case run(
              command: intent.command,
              argv: intent.argv,
              cwd: intent.cwd,
              env: intent.env_projection,
+             clear_env?: intent.clear_env,
+             user: intent.user,
+             stdin: intent.stdin,
+             stderr: intent.stderr_mode |> normalize_stderr_mode(),
+             close_stdin: intent.close_stdin,
              timeout: plan.timeout_ms,
              surface_kind: surface.surface_kind
            ) do
         {:ok, %RunResult{} = result} ->
           payload = run_result_payload(result)
-          metrics = %{"duration_ms" => System.monotonic_time(:millisecond)}
+          metrics = duration_metrics(start_ms)
 
           if Exit.successful?(result.exit) do
             {:ok, %{family: family(), raw_payload: payload, metrics: metrics, failure: nil}}
@@ -56,7 +63,7 @@ defmodule ExecutionPlane.Runtimes.Process do
            %{
              family: family(),
              raw_payload: context,
-             metrics: %{},
+             metrics: duration_metrics(start_ms),
              failure: Failure.new!(%{failure_class: :timeout, reason: "execution timed out"})
            }}
 
@@ -65,7 +72,7 @@ defmodule ExecutionPlane.Runtimes.Process do
            %{
              family: family(),
              raw_payload: %{surface_kind: surface_kind},
-             metrics: %{},
+             metrics: duration_metrics(start_ms),
              failure:
                Failure.new!(%{
                  failure_class: :placement_unavailable,
@@ -78,7 +85,7 @@ defmodule ExecutionPlane.Runtimes.Process do
            %{
              family: family(),
              raw_payload: %{command: command},
-             metrics: %{},
+             metrics: duration_metrics(start_ms),
              failure: Failure.new!(%{failure_class: :launch_failed, reason: "command not found"})
            }}
 
@@ -87,7 +94,7 @@ defmodule ExecutionPlane.Runtimes.Process do
            %{
              family: family(),
              raw_payload: %{cwd: cwd},
-             metrics: %{},
+             metrics: duration_metrics(start_ms),
              failure: Failure.new!(%{failure_class: :launch_failed, reason: "cwd not found"})
            }}
 
@@ -96,7 +103,7 @@ defmodule ExecutionPlane.Runtimes.Process do
            %{
              family: family(),
              raw_payload: %{error: inspect(reason)},
-             metrics: %{},
+             metrics: duration_metrics(start_ms),
              failure:
                Failure.new!(%{failure_class: :launch_failed, reason: "process launch failed"})
            }}
@@ -106,7 +113,7 @@ defmodule ExecutionPlane.Runtimes.Process do
        %{
          family: family(),
          raw_payload: %{surface_kind: surface && surface.surface_kind},
-         metrics: %{},
+         metrics: duration_metrics(start_ms),
          failure:
            Failure.new!(%{
              failure_class: :placement_unavailable,
@@ -538,6 +545,14 @@ defmodule ExecutionPlane.Runtimes.Process do
   defp kill_process_group(_os_pid, _signal), do: :ok
   defp normalize_surface_kind(value) when is_atom(value), do: Atom.to_string(value)
   defp normalize_surface_kind(value) when is_binary(value), do: value
+
+  defp normalize_stderr_mode(mode) when mode in [:separate, :stdout], do: mode
+  defp normalize_stderr_mode("stdout"), do: :stdout
+  defp normalize_stderr_mode(_mode), do: :separate
+
+  defp duration_metrics(start_ms) do
+    %{"duration_ms" => System.monotonic_time(:millisecond) - start_ms}
+  end
 
   defp normalize_payload(message) when is_binary(message), do: message
   defp normalize_payload(message) when is_map(message), do: Jason.encode!(message)

@@ -146,6 +146,15 @@ defmodule ExecutionPlane.Contracts do
     end
   end
 
+  @spec fetch_optional_boolean!(map() | keyword(), atom(), boolean()) :: boolean()
+  def fetch_optional_boolean!(attrs, key, default \\ false) do
+    case fetch_value(attrs, key) do
+      nil -> default
+      value when is_boolean(value) -> value
+      other -> raise ArgumentError, "#{key} must be a boolean, got: #{inspect(other)}"
+    end
+  end
+
   @spec validate_contract_version!(map() | keyword(), String.t()) :: String.t()
   def validate_contract_version!(attrs, expected_version) do
     version = fetch_optional_stringish!(attrs, :contract_version, expected_version)

@@ -10,9 +10,11 @@ Execution Plane is the lower runtime workspace in the Brain / Spine / Execution 
 - Spine: `jido_integration`
 - Execution Plane: this repo
 
-Wave 2 turns the Wave 1 shell into the minimum executable substrate: the
-contract packet stays frozen, while the kernel, placement, HTTP, process, and
-minimal JSON-RPC packages now execute on the final contracts.
+Waves 2 and 3 turn the Wave 1 shell into the minimum executable substrate and
+the first proven family-kit lanes: the contract packet stays frozen, the
+kernel, placement, HTTP, process, and minimal JSON-RPC packages execute on the
+final contracts, and the repo now exposes frozen helper surfaces for unary
+HTTP, one-shot process execution, and minimal unary JSON-RPC adoption.
 
 ## Documentation Menu
 
@@ -22,6 +24,8 @@ minimal JSON-RPC packages now execute on the final contracts.
 - [North-Star Architecture](technical/01_north_star_architecture.md)
 - [Repo Topology And Package Map](technical/02_repo_topology_and_package_map.md)
 - [Shared Contracts And Lineage](technical/03_shared_contracts_and_lineage.md)
+- [HTTP, GraphQL, And Realtime Family Design](technical/04_http_graphql_and_realtime_family_design.md)
+- [Process And Agent Session Family Design](technical/05_process_and_agent_session_family_design.md)
 - [Brain, Spine, And Harness Alignment](technical/07_brain_spine_and_harness_alignment.md)
 - [Subset-Complete Big-Bang Execution Model](technical/10_subset_complete_big_bang_execution_model.md)
 - [Surface Exposure And Contract Carriage Matrix](technical/11_surface_exposure_and_contract_carriage_matrix.md)
@@ -43,11 +47,20 @@ minimal JSON-RPC packages now execute on the final contracts.
 - [Wave 2 Checklist](prompts/02_execution_plane_kernel_and_minimal_topology_checklist.md)
 - [Wave 2 Implementation Prompt](prompts/02_execution_plane_kernel_and_minimal_topology_implementation_prompt.md)
 
+### Wave 3
+
+- [Wave 3 Checklist](prompts/03_minimal_viable_http_and_process_lanes_prove_out_checklist.md)
+- [Wave 3 Implementation Prompt](prompts/03_minimal_viable_http_and_process_lanes_prove_out_implementation_prompt.md)
+
 ### Required ADRs
 
 - [ADR-001](adrs/ADR-001-brain-spine-execution-plane-is-the-top-level-system-split.md)
 - [ADR-002](adrs/ADR-002-create-execution_plane-as-a-new-workspace-repo.md)
 - [ADR-003](adrs/ADR-003-share-lineage-and-route-contracts-not-one-mega-struct.md)
+- [ADR-004](adrs/ADR-004-pristine-remains-the-http-family-kit.md)
+- [ADR-006](adrs/ADR-006-reqllm_next-adopts-the-shared-http-and-realtime-family.md)
+- [ADR-007](adrs/ADR-007-cli_subprocess_core-remains-the-cli-family-kit-above-execution-plane.md)
+- [ADR-008](adrs/ADR-008-provider-sdks-keep-provider-semantics-and-drop-runtime-ownership.md)
 - [ADR-009](adrs/ADR-009-asm-remains-the-agent-session-kernel-and-jido_harness-remains-a-facade.md)
 - [ADR-011](adrs/ADR-011-jido_integration-is-the-spine-and-jido_os-is-the-brain.md)
 - [ADR-012](adrs/ADR-012-no-staged-compatibility-shims-or-intermediate-public-apis.md)
@@ -57,7 +70,7 @@ minimal JSON-RPC packages now execute on the final contracts.
 
 ## Workspace Status
 
-Wave 2 now owns:
+Waves 2 and 3 now own:
 
 - the versioned contract packet
 - route validation and dispatch planning
@@ -65,6 +78,8 @@ Wave 2 now owns:
 - unary HTTP execution in `execution_plane_http`
 - basic local process execution in `execution_plane_process`
 - minimal unary JSON-RPC over the process runtime in `execution_plane_jsonrpc`
+- frozen helper surfaces in `ExecutionPlane.HTTP`, `ExecutionPlane.Process`, and `ExecutionPlane.JsonRpc`
+- prove-out corrections to the minimal-lane intent contracts exposed by downstream adoption
 - the narrow placement seam in `execution_plane_local`
 - conformance fixtures and lower-substrate execution coverage in `execution_plane_testkit`
 
@@ -97,12 +112,17 @@ mix test
 mix docs
 ```
 
-The Wave 1 repo gate for `execution_plane` is `ROOT_NO_STATIC_ANALYSIS` from
+The repo gate for `execution_plane` is `ROOT_NO_STATIC_ANALYSIS` from
 [`technical/12_repo_quality_gate_command_matrix.md`](technical/12_repo_quality_gate_command_matrix.md).
+
+Wave 3 proves the covered minimal-lane adoption used by `pristine`,
+`cli_subprocess_core`, `codex_sdk`, and `reqllm_next`, and freezes the helper
+surfaces those repos consume instead of re-owning transport.
 
 Wave 2 also retires `/home/home/p/g/n/external_runtime_transport` as the active
 owner for the covered minimal substrate slice. That repo remains only as the
-compatibility/deprecation shell for those moved capabilities.
+compatibility or not-yet-migrated shell for capabilities outside the closed
+minimal lane.
 
 ## License
 

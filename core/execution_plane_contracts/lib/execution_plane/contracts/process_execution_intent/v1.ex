@@ -17,7 +17,12 @@ defmodule ExecutionPlane.Contracts.ProcessExecutionIntent.V1 do
     :envelope,
     :command,
     :cwd,
+    :stdin,
+    :clear_env,
+    :user,
     :stdio_mode,
+    :stderr_mode,
+    :close_stdin,
     argv: [],
     env_projection: %{},
     execution_surface: %{},
@@ -31,7 +36,12 @@ defmodule ExecutionPlane.Contracts.ProcessExecutionIntent.V1 do
           argv: [String.t()],
           env_projection: map(),
           cwd: String.t() | nil,
+          stdin: term() | nil,
+          clear_env: boolean(),
+          user: String.t() | nil,
           stdio_mode: String.t(),
+          stderr_mode: String.t(),
+          close_stdin: boolean(),
           execution_surface: map(),
           shutdown_policy: map()
         }
@@ -67,7 +77,12 @@ defmodule ExecutionPlane.Contracts.ProcessExecutionIntent.V1 do
       "argv" => intent.argv,
       "env_projection" => Contracts.stringify_keys(intent.env_projection),
       "cwd" => intent.cwd,
+      "stdin" => Contracts.stringify_keys(intent.stdin),
+      "clear_env" => intent.clear_env,
+      "user" => intent.user,
       "stdio_mode" => intent.stdio_mode,
+      "stderr_mode" => intent.stderr_mode,
+      "close_stdin" => intent.close_stdin,
       "execution_surface" => Contracts.stringify_keys(intent.execution_surface),
       "shutdown_policy" => Contracts.stringify_keys(intent.shutdown_policy)
     }
@@ -89,9 +104,24 @@ defmodule ExecutionPlane.Contracts.ProcessExecutionIntent.V1 do
         ),
       env_projection: Contracts.fetch_optional_map!(attrs, :env_projection, %{}),
       cwd: Contracts.fetch_optional_stringish!(attrs, :cwd),
+      stdin: Contracts.fetch_value(attrs, :stdin),
+      clear_env: Contracts.fetch_optional_boolean!(attrs, :clear_env, false),
+      user: Contracts.fetch_optional_stringish!(attrs, :user),
       stdio_mode: Contracts.fetch_required_stringish!(attrs, :stdio_mode),
+      stderr_mode:
+        attrs
+        |> Contracts.fetch_optional_stringish!(:stderr_mode, "separate")
+        |> validate_stderr_mode!(),
+      close_stdin: Contracts.fetch_optional_boolean!(attrs, :close_stdin, true),
       execution_surface: Contracts.fetch_optional_map!(attrs, :execution_surface, %{}),
       shutdown_policy: Contracts.fetch_optional_map!(attrs, :shutdown_policy, %{})
     }
+  end
+
+  defp validate_stderr_mode!("separate"), do: "separate"
+  defp validate_stderr_mode!("stdout"), do: "stdout"
+
+  defp validate_stderr_mode!(mode) do
+    raise ArgumentError, "stderr_mode must be \"separate\" or \"stdout\", got: #{inspect(mode)}"
   end
 end
