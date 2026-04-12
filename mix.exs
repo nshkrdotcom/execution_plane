@@ -18,6 +18,7 @@ defmodule ExecutionPlane.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       description: @description,
+      aliases: aliases(),
       package: package(),
       docs: docs(),
       deps: deps()
@@ -30,6 +31,10 @@ defmodule ExecutionPlane.MixProject do
       extra_applications: [:inets, :logger, :ssl],
       mod: {ExecutionPlane.Application, []}
     ]
+  end
+
+  def cli do
+    []
   end
 
   defp elixirc_paths(:test) do
@@ -223,6 +228,16 @@ defmodule ExecutionPlane.MixProject do
           technical
           test
         )
+    ]
+  end
+
+  defp aliases do
+    [
+      ci: [
+        "format --check-formatted",
+        "compile --warnings-as-errors",
+        "cmd env MIX_ENV=test mix test"
+      ]
     ]
   end
 end

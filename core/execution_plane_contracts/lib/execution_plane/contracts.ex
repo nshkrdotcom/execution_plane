@@ -47,6 +47,8 @@ defmodule ExecutionPlane.Contracts do
     :event_id,
     :idempotency_key
   ]
+  @handoff_statuses [:accepted, :rejected, :unknown]
+  @local_spool_modes [:disabled, :emergency_only]
 
   @type lineage_key ::
           :tenant_id
@@ -59,6 +61,8 @@ defmodule ExecutionPlane.Contracts do
           | :idempotency_key
 
   @type lineage_t :: %{optional(lineage_key()) => String.t(), optional(:extensions) => map()}
+  @type handoff_status :: :accepted | :rejected | :unknown
+  @type local_spool_mode :: :disabled | :emergency_only
 
   @spec contract_versions() :: %{required(atom()) => String.t()}
   def contract_versions, do: @contract_versions
@@ -74,6 +78,39 @@ defmodule ExecutionPlane.Contracts do
 
   @spec canonical_lineage_keys() :: [lineage_key(), ...]
   def canonical_lineage_keys, do: @canonical_lineage_keys
+
+  @spec handoff_statuses() :: [handoff_status(), ...]
+  def handoff_statuses, do: @handoff_statuses
+
+  @spec local_spool_modes() :: [local_spool_mode(), ...]
+  def local_spool_modes, do: @local_spool_modes
+
+  @spec handoff_receipt_id(String.t(), String.t()) :: String.t()
+  def handoff_receipt_id(route_id, handoff_ref)
+      when is_binary(route_id) and is_binary(handoff_ref) do
+    route_id = validate_non_empty_string!(route_id, "handoff_receipt.route_id")
+    handoff_ref = validate_non_empty_string!(handoff_ref, "handoff_receipt.handoff_ref")
+
+    "receipt:#{route_id}:#{handoff_ref}"
+  end
+
+  @spec pressure_fact_id(String.t(), String.t(), non_neg_integer()) :: String.t()
+  def pressure_fact_id(route_id, lane_ref, seq)
+      when is_binary(route_id) and is_binary(lane_ref) and is_integer(seq) and seq >= 0 do
+    fact_id("pressure", route_id, lane_ref, seq)
+  end
+
+  @spec reconnect_fact_id(String.t(), String.t(), non_neg_integer()) :: String.t()
+  def reconnect_fact_id(route_id, lane_ref, seq)
+      when is_binary(route_id) and is_binary(lane_ref) and is_integer(seq) and seq >= 0 do
+    fact_id("reconnect", route_id, lane_ref, seq)
+  end
+
+  @spec lane_churn_fact_id(String.t(), String.t(), non_neg_integer()) :: String.t()
+  def lane_churn_fact_id(route_id, lane_ref, seq)
+      when is_binary(route_id) and is_binary(lane_ref) and is_integer(seq) and seq >= 0 do
+    fact_id("lane_churn", route_id, lane_ref, seq)
+  end
 
   @spec failure_classes() :: [FailureClass.failure_class(), ...]
   def failure_classes, do: FailureClass.values()
@@ -265,6 +302,14 @@ defmodule ExecutionPlane.Contracts do
 
   @spec dump_lineage(lineage_t()) :: map()
   def dump_lineage(lineage) when is_map(lineage), do: stringify_keys(lineage)
+
+  defp fact_id(kind, route_id, lane_ref, seq) do
+    kind = validate_non_empty_string!(kind, "fact.kind")
+    route_id = validate_non_empty_string!(route_id, "fact.route_id")
+    lane_ref = validate_non_empty_string!(lane_ref, "fact.lane_ref")
+
+    "#{kind}:#{route_id}:#{lane_ref}:#{seq}"
+  end
 
   defp normalize_lineage_key!(key) when key in @canonical_lineage_keys, do: key
   defp normalize_lineage_key!(:extensions), do: :extensions
