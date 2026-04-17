@@ -20,6 +20,7 @@ This repo is a workspace-style lower execution-plane repo with these package hom
   /placements/execution_plane_ssh
   /placements/execution_plane_guest
   /runtimes/execution_plane_process
+  /runtimes/execution_plane_operator_terminal
   /sandboxes/execution_plane_container
   /sandboxes/execution_plane_microvm
   /conformance/execution_plane_testkit
@@ -87,6 +88,7 @@ Own:
 - PTY / stdio attach behavior
 - long-lived runtime session mechanics
 - service-backed process execution below family kits
+- separately consumable operator-terminal ingress for operator-facing TUIs
 
 ### Sandbox packages
 
@@ -118,6 +120,7 @@ The first executable wave must at least land:
 - `execution_plane_http`
 - `execution_plane_jsonrpc`
 - `execution_plane_process`
+- `execution_plane_operator_terminal`
 - `execution_plane_local`
 - `execution_plane_testkit`
 

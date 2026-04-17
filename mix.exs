@@ -100,13 +100,6 @@ defmodule ExecutionPlane.MixProject do
         "technical/12_repo_quality_gate_command_matrix.md",
         "JIDO_BRAIN_CONTRACT_CONTEXT/README.md",
         "JIDO_BRAIN_CONTRACT_CONTEXT/01_authority_decision_v1_packet_baseline.md",
-        "prompts/00_master_orchestrator_prompt.md",
-        "prompts/01_contract_packet_and_execution_plane_foundation_checklist.md",
-        "prompts/01_contract_packet_and_execution_plane_foundation_implementation_prompt.md",
-        "prompts/02_execution_plane_kernel_and_minimal_topology_checklist.md",
-        "prompts/02_execution_plane_kernel_and_minimal_topology_implementation_prompt.md",
-        "prompts/03_minimal_viable_http_and_process_lanes_prove_out_checklist.md",
-        "prompts/03_minimal_viable_http_and_process_lanes_prove_out_implementation_prompt.md",
         {"core/execution_plane_contracts/README.md", filename: "execution_plane_contracts"},
         {"core/execution_plane_kernel/README.md", filename: "execution_plane_kernel"},
         {"protocols/execution_plane_http/README.md", filename: "execution_plane_http"},
@@ -117,6 +110,8 @@ defmodule ExecutionPlane.MixProject do
         {"placements/execution_plane_ssh/README.md", filename: "execution_plane_ssh"},
         {"placements/execution_plane_guest/README.md", filename: "execution_plane_guest"},
         {"runtimes/execution_plane_process/README.md", filename: "execution_plane_process"},
+        {"runtimes/execution_plane_operator_terminal/README.md",
+         filename: "execution_plane_operator_terminal"},
         {"sandboxes/execution_plane_container/README.md", filename: "execution_plane_container"},
         {"sandboxes/execution_plane_microvm/README.md", filename: "execution_plane_microvm"},
         {"conformance/execution_plane_testkit/README.md", filename: "execution_plane_testkit"},
@@ -152,15 +147,6 @@ defmodule ExecutionPlane.MixProject do
           "JIDO_BRAIN_CONTRACT_CONTEXT/README.md",
           "JIDO_BRAIN_CONTRACT_CONTEXT/01_authority_decision_v1_packet_baseline.md"
         ],
-        Prompts: [
-          "prompts/00_master_orchestrator_prompt.md",
-          "prompts/01_contract_packet_and_execution_plane_foundation_checklist.md",
-          "prompts/01_contract_packet_and_execution_plane_foundation_implementation_prompt.md",
-          "prompts/02_execution_plane_kernel_and_minimal_topology_checklist.md",
-          "prompts/02_execution_plane_kernel_and_minimal_topology_implementation_prompt.md",
-          "prompts/03_minimal_viable_http_and_process_lanes_prove_out_checklist.md",
-          "prompts/03_minimal_viable_http_and_process_lanes_prove_out_implementation_prompt.md"
-        ],
         "Package Homes": [
           "core/execution_plane_contracts/README.md",
           "core/execution_plane_kernel/README.md",
@@ -172,6 +158,7 @@ defmodule ExecutionPlane.MixProject do
           "placements/execution_plane_ssh/README.md",
           "placements/execution_plane_guest/README.md",
           "runtimes/execution_plane_process/README.md",
+          "runtimes/execution_plane_operator_terminal/README.md",
           "sandboxes/execution_plane_container/README.md",
           "sandboxes/execution_plane_microvm/README.md",
           "conformance/execution_plane_testkit/README.md"

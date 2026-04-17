@@ -17,6 +17,7 @@ defmodule ExecutionPlane do
     ssh: "placements/execution_plane_ssh",
     guest: "placements/execution_plane_guest",
     process: "runtimes/execution_plane_process",
+    operator_terminal: "runtimes/execution_plane_operator_terminal",
     container: "sandboxes/execution_plane_container",
     microvm: "sandboxes/execution_plane_microvm",
     testkit: "conformance/execution_plane_testkit"

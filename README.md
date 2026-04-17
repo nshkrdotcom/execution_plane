@@ -17,6 +17,11 @@ and the repo now exposes frozen helper surfaces for unary HTTP, one-shot
 process execution, long-lived process transport, and truthful local, SSH, and
 guest placement breadth.
 
+The operator-terminal ingress lane is part of the Execution Plane repo, but it
+now lives in a separate add-on package,
+`runtimes/execution_plane_operator_terminal`, so base lower-runtime consumers
+do not inherit `ex_ratatui` unless they explicitly opt into that lane.
+
 ## Documentation Menu
 
 ### Start Here
@@ -36,22 +41,6 @@ guest placement breadth.
 
 - [Brain Contract Context](JIDO_BRAIN_CONTRACT_CONTEXT/README.md)
 - [AuthorityDecision.v1 Packet Baseline](JIDO_BRAIN_CONTRACT_CONTEXT/01_authority_decision_v1_packet_baseline.md)
-
-### Wave 1
-
-- [Master Orchestrator Prompt](prompts/00_master_orchestrator_prompt.md)
-- [Wave 1 Checklist](prompts/01_contract_packet_and_execution_plane_foundation_checklist.md)
-- [Wave 1 Implementation Prompt](prompts/01_contract_packet_and_execution_plane_foundation_implementation_prompt.md)
-
-### Wave 2
-
-- [Wave 2 Checklist](prompts/02_execution_plane_kernel_and_minimal_topology_checklist.md)
-- [Wave 2 Implementation Prompt](prompts/02_execution_plane_kernel_and_minimal_topology_implementation_prompt.md)
-
-### Wave 3
-
-- [Wave 3 Checklist](prompts/03_minimal_viable_http_and_process_lanes_prove_out_checklist.md)
-- [Wave 3 Implementation Prompt](prompts/03_minimal_viable_http_and_process_lanes_prove_out_implementation_prompt.md)
 
 ### Required ADRs
 
@@ -79,6 +68,7 @@ Waves 2, 3, 6, and 7 now own:
 - unary HTTP execution in `execution_plane_http`
 - basic local process execution in `execution_plane_process`
 - long-lived process transport and attachable process sessions in `execution_plane_process`
+- operator-terminal ingress in `execution_plane_operator_terminal`
 - minimal unary JSON-RPC over the process runtime in `execution_plane_jsonrpc`
 - frozen helper surfaces in `ExecutionPlane.HTTP`, `ExecutionPlane.Process`, and `ExecutionPlane.JsonRpc`
 - prove-out corrections to the minimal-lane intent contracts exposed by downstream adoption
@@ -98,6 +88,7 @@ The minimum executable package homes for the substrate slice are:
 - `placements/execution_plane_ssh`
 - `placements/execution_plane_guest`
 - `runtimes/execution_plane_process`
+- `runtimes/execution_plane_operator_terminal`
 - `conformance/execution_plane_testkit`
 
 Reserved package homes for later waves are still tracked so topology and ownership stop drifting:

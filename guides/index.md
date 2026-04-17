@@ -19,18 +19,9 @@ frozen contracts.
 9. [`technical/10_subset_complete_big_bang_execution_model.md`](../technical/10_subset_complete_big_bang_execution_model.md)
 10. [`technical/11_surface_exposure_and_contract_carriage_matrix.md`](../technical/11_surface_exposure_and_contract_carriage_matrix.md)
 11. [`technical/12_repo_quality_gate_command_matrix.md`](../technical/12_repo_quality_gate_command_matrix.md)
-12. the Wave 1 checklist and prompt:
-    [`prompts/01_contract_packet_and_execution_plane_foundation_checklist.md`](../prompts/01_contract_packet_and_execution_plane_foundation_checklist.md)
-    and
-    [`prompts/01_contract_packet_and_execution_plane_foundation_implementation_prompt.md`](../prompts/01_contract_packet_and_execution_plane_foundation_implementation_prompt.md)
-13. the Wave 2 checklist and prompt:
-    [`prompts/02_execution_plane_kernel_and_minimal_topology_checklist.md`](../prompts/02_execution_plane_kernel_and_minimal_topology_checklist.md)
-    and
-    [`prompts/02_execution_plane_kernel_and_minimal_topology_implementation_prompt.md`](../prompts/02_execution_plane_kernel_and_minimal_topology_implementation_prompt.md)
-14. the Wave 3 checklist and prompt:
-    [`prompts/03_minimal_viable_http_and_process_lanes_prove_out_checklist.md`](../prompts/03_minimal_viable_http_and_process_lanes_prove_out_checklist.md)
-    and
-    [`prompts/03_minimal_viable_http_and_process_lanes_prove_out_implementation_prompt.md`](../prompts/03_minimal_viable_http_and_process_lanes_prove_out_implementation_prompt.md)
+12. [`adrs/ADR-012-no-staged-compatibility-shims-or-intermediate-public-apis.md`](../adrs/ADR-012-no-staged-compatibility-shims-or-intermediate-public-apis.md)
+13. [`adrs/ADR-015-public-surfaces-expose-mapped-family-and-facade-irs-not-raw-execution-plane-packages.md`](../adrs/ADR-015-public-surfaces-expose-mapped-family-and-facade-irs-not-raw-execution-plane-packages.md)
+14. [`adrs/ADR-016-upstream-fixes-are-allowed-within-the-active-wave.md`](../adrs/ADR-016-upstream-fixes-are-allowed-within-the-active-wave.md)
 
 ## Closed Runtime Outcomes
 

@@ -9,6 +9,10 @@ defmodule ExecutionPlaneTest do
   test "tracks the frozen package homes" do
     assert ExecutionPlane.package_homes().contracts == "core/execution_plane_contracts"
     assert ExecutionPlane.package_homes().jsonrpc == "protocols/execution_plane_jsonrpc"
+
+    assert ExecutionPlane.package_homes().operator_terminal ==
+             "runtimes/execution_plane_operator_terminal"
+
     assert ExecutionPlane.package_homes().microvm == "sandboxes/execution_plane_microvm"
   end
 

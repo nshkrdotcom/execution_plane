@@ -12,3 +12,7 @@ Closed-wave status:
   now flow through that lower transport surface
 - the same transport substrate is exercised under local, SSH, and guest
   placement adapters without moving service-runtime semantics into this repo
+
+Operator-facing terminal hosting is not owned here. That lane now lives in the
+separate `runtimes/execution_plane_operator_terminal` package so base process
+consumers do not inherit `ex_ratatui`.
