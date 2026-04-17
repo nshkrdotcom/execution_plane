@@ -3,6 +3,7 @@ defmodule ExecutionPlane.OperatorTerminalTest do
 
   alias ExecutionPlane.OperatorTerminal
   alias ExecutionPlane.OperatorTerminal.TestSupport.App
+  alias ExRatatui.{Event, Runtime}
 
   test "start_link/1 hosts a local operator terminal and exposes list/info state" do
     terminal_id = unique_terminal_id("ops-local")
@@ -32,6 +33,47 @@ defmodule ExecutionPlane.OperatorTerminalTest do
 
     assert :ok = OperatorTerminal.stop(terminal_id)
     refute Process.alive?(terminal)
+  end
+
+  test "normal local quit tears down the operator terminal instead of restarting it" do
+    terminal_id = unique_terminal_id("ops-local-quit")
+
+    on_exit(fn ->
+      assert OperatorTerminal.stop(terminal_id) in [:ok, {:error, :not_found}]
+      :ok
+    end)
+
+    assert {:ok, terminal} =
+             OperatorTerminal.start_link(
+               mod: App,
+               app_opts: [label: "local-terminal", test_mode: {40, 10}],
+               surface_kind: :local_terminal,
+               surface_ref: terminal_id
+             )
+
+    ref = Process.monitor(terminal)
+    backend_pid = :sys.get_state(terminal).backend_pid
+
+    assert :ok =
+             Runtime.inject_event(
+               backend_pid,
+               %Event.Key{code: "q", modifiers: ["ctrl"], kind: "press"}
+             )
+
+    assert_receive {:DOWN, ^ref, :process, ^terminal, :normal}
+
+    refute Process.alive?(terminal)
+    refute Process.alive?(backend_pid)
+    assert OperatorTerminal.info(terminal_id) == nil
+    refute Enum.any?(OperatorTerminal.list(), &(&1.terminal_id == terminal_id))
+
+    case Registry.lookup(ExecutionPlane.OperatorTerminal.Registry, terminal_id) do
+      [] ->
+        :ok
+
+      [{pid, _value}] ->
+        refute Process.alive?(pid)
+    end
   end
 
   test "start_link/1 hosts an SSH operator terminal through the generic ingress family" do

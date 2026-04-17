@@ -27,6 +27,19 @@ defmodule ExecutionPlane.OperatorTerminal.Server do
     )
   end
 
+  @spec child_spec(keyword()) :: Supervisor.child_spec()
+  def child_spec(opts) when is_list(opts) do
+    terminal_id = Keyword.get(opts, :terminal_id)
+
+    %{
+      id: {__MODULE__, terminal_id || make_ref()},
+      start: {__MODULE__, :start_link, [opts]},
+      restart: :temporary,
+      shutdown: 5_000,
+      type: :worker
+    }
+  end
+
   @impl true
   def init(opts) do
     Process.flag(:trap_exit, true)
