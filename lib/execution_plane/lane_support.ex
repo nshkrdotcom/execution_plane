@@ -7,6 +7,7 @@ defmodule ExecutionPlane.LaneSupport do
 
   @required_lineage_keys [
     :tenant_id,
+    :trace_id,
     :request_id,
     :decision_id,
     :boundary_session_id,
@@ -24,6 +25,7 @@ defmodule ExecutionPlane.LaneSupport do
 
     %{
       tenant_id: fetch_or_default(overrides, :tenant_id, "tenant:auto"),
+      trace_id: fetch_or_default(overrides, :trace_id, default_trace_id()),
       request_id: fetch_or_default(overrides, :request_id, "#{family}-request-#{token}"),
       decision_id: fetch_or_default(overrides, :decision_id, "#{family}-decision-#{token}"),
       boundary_session_id:
@@ -52,6 +54,7 @@ defmodule ExecutionPlane.LaneSupport do
       intent_id: fetch_or_default(attrs, :intent_id, "#{family}-intent-#{token}"),
       family: family,
       protocol: protocol,
+      trace_id: fetch_or_default(attrs, :trace_id, lineage.trace_id),
       idempotency_key: lineage.idempotency_key,
       boundary_session_id: lineage.boundary_session_id,
       decision_id: lineage.decision_id,
@@ -130,6 +133,10 @@ defmodule ExecutionPlane.LaneSupport do
 
   defp fetch_or_default(attrs, key, default) do
     Contracts.fetch_value(attrs, key) || default
+  end
+
+  defp default_trace_id do
+    Base.encode16(:crypto.strong_rand_bytes(16), case: :lower)
   end
 
   defp maybe_put_extensions(lineage, nil), do: lineage

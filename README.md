@@ -4,11 +4,11 @@
   <img src="assets/execution_plane.svg" width="200" height="200" alt="Execution Plane logo">
 </p>
 
-Execution Plane is the lower runtime workspace in the Brain / Spine / Execution Plane split:
+Execution Plane is the lower runtime workspace in the active lower-gateway /
+lower-runtime split:
 
-- Brain: `jido_os`
-- Spine: `jido_integration`
-- Execution Plane: this repo
+- lower acceptance gateway: `jido_integration`
+- lower runtime owner: this repo
 
 Waves 2, 3, 6, and 7 turn the Wave 1 shell into the executable lower substrate
 used across the stack: the contract packet stays frozen, the kernel, placement,
@@ -116,10 +116,9 @@ Wave 3 proves the covered minimal-lane adoption used by `pristine`,
 surfaces those repos consume instead of re-owning transport.
 
 Wave 7 closes the remaining active-owner gap from
-`/home/home/p/g/n/external_runtime_transport`. That repo now remains only as an
-archival compatibility shell over the Execution Plane transport surface; it is
-no longer an active owner for service-runtime placement or long-lived transport
-mechanics.
+`/home/home/p/g/n/external_runtime_transport`. That repo is no longer part of
+the active ownership story for service-runtime placement or long-lived
+transport mechanics.
 
 ## License
 

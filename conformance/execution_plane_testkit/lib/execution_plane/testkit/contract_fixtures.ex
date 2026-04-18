@@ -56,6 +56,7 @@ defmodule ExecutionPlane.Testkit.ContractFixtures do
       intent_id: "intent-1",
       family: "http",
       protocol: "http",
+      trace_id: "0123456789abcdef0123456789abcdef",
       idempotency_key: "idem-1",
       boundary_session_id: boundary_session_descriptor().boundary_session_id,
       decision_id: authority_decision().decision_id,
@@ -236,6 +237,7 @@ defmodule ExecutionPlane.Testkit.ContractFixtures do
   def lineage(overrides \\ []) do
     Enum.into(overrides, %{
       tenant_id: authority_decision().tenant_id,
+      trace_id: "0123456789abcdef0123456789abcdef",
       request_id: authority_decision().request_id,
       decision_id: authority_decision().decision_id,
       boundary_session_id: boundary_session_descriptor().boundary_session_id,

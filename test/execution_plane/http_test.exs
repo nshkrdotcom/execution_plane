@@ -25,12 +25,17 @@ defmodule ExecutionPlane.HTTPTest do
                  body: ~s({"ping":"pong"}),
                  timeout_ms: 750
                },
-               lineage: %{request_id: "request-http-1", idempotency_key: "idem-http-1"}
+               lineage: %{
+                 trace_id: "0123456789abcdef0123456789abcdef",
+                 request_id: "request-http-1",
+                 idempotency_key: "idem-http-1"
+               }
              )
 
     assert result.outcome.status == "succeeded"
     assert result.outcome.raw_payload.status_code == 201
     assert result.outcome.raw_payload.body == ~s({"ok":true})
+    assert result.outcome.lineage.trace_id == "0123456789abcdef0123456789abcdef"
     assert result.outcome.lineage.request_id == "request-http-1"
     assert result.outcome.lineage.idempotency_key == "idem-http-1"
     assert result.plan.intent.body == ~s({"ping":"pong"})

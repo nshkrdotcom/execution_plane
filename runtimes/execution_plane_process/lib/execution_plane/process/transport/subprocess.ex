@@ -153,17 +153,13 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
 
   @impl Transport
   def subscribe(transport, pid) when is_pid(transport) and is_pid(pid) do
-    subscribe(transport, pid, :legacy)
+    subscribe_with_tag(transport, pid, pid)
   end
 
   @impl Transport
   def subscribe(transport, pid, tag)
-      when is_pid(transport) and is_pid(pid) and (tag == :legacy or is_reference(tag)) do
-    case safe_call(transport, {:subscribe, pid, tag}) do
-      {:ok, result} -> result
-      {:error, reason} -> transport_error(reason)
-    end
-  end
+      when is_pid(transport) and is_pid(pid) and is_reference(tag),
+      do: subscribe_with_tag(transport, pid, tag)
 
   def subscribe(_transport, _pid, tag) do
     transport_error(Error.invalid_options({:invalid_subscriber, tag}))
@@ -1032,10 +1028,10 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   defp add_bootstrap_subscriber(state, nil), do: {:ok, state}
 
   defp add_bootstrap_subscriber(state, pid) when is_pid(pid),
-    do: {:ok, state |> put_subscriber(pid, :legacy) |> maybe_replay_stderr_to_subscriber(pid)}
+    do: {:ok, state |> put_subscriber(pid, pid) |> maybe_replay_stderr_to_subscriber(pid)}
 
   defp add_bootstrap_subscriber(state, {pid, tag})
-       when is_pid(pid) and (tag == :legacy or is_reference(tag)) do
+       when is_pid(pid) and is_reference(tag) do
     {:ok, state |> put_subscriber(pid, tag) |> maybe_replay_stderr_to_subscriber(pid)}
   end
 
@@ -1285,23 +1281,18 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
 
   defp emit_event(state, _event), do: state
 
-  defp dispatch_event(pid, %{tag: :legacy}, {:message, line}, _event_tag),
-    do: Kernel.send(pid, {:transport_message, line})
+  defp dispatch_event(pid, %{tag: tag}, event, event_tag)
+       when (is_pid(tag) or is_reference(tag)) and is_atom(event_tag) do
+    Kernel.send(pid, {event_tag, tag, event})
+  end
 
-  defp dispatch_event(pid, %{tag: :legacy}, {:data, chunk}, _event_tag),
-    do: Kernel.send(pid, {:transport_data, chunk})
-
-  defp dispatch_event(pid, %{tag: :legacy}, {:error, reason}, _event_tag),
-    do: Kernel.send(pid, {:transport_error, reason})
-
-  defp dispatch_event(pid, %{tag: :legacy}, {:stderr, data}, _event_tag),
-    do: Kernel.send(pid, {:transport_stderr, data})
-
-  defp dispatch_event(pid, %{tag: :legacy}, {:exit, reason}, _event_tag),
-    do: Kernel.send(pid, {:transport_exit, reason})
-
-  defp dispatch_event(pid, %{tag: ref}, event, event_tag) when is_reference(ref),
-    do: Kernel.send(pid, {event_tag, ref, event})
+  defp subscribe_with_tag(transport, pid, tag)
+       when is_pid(transport) and is_pid(pid) and (is_pid(tag) or is_reference(tag)) do
+    case safe_call(transport, {:subscribe, pid, tag}) do
+      {:ok, result} -> result
+      {:error, reason} -> transport_error(reason)
+    end
+  end
 
   defp append_stdout_data(%{overflowed?: true} = state, data) when is_binary(data) do
     case drop_until_next_newline(data) do

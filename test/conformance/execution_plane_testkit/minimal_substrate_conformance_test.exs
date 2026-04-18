@@ -45,6 +45,7 @@ defmodule ExecutionPlane.Testkit.MinimalSubstrateConformanceTest do
     assert result.outcome.family == "http"
     assert result.outcome.raw_payload.status_code == 201
     assert result.outcome.raw_payload.body == ~s({"ok":true})
+    assert result.outcome.lineage.trace_id == route.lineage.trace_id
     assert result.outcome.lineage.request_id == route.lineage.request_id
 
     assert_receive {:simple_http_request, %{headers: headers}}, 1_000
@@ -84,6 +85,7 @@ defmodule ExecutionPlane.Testkit.MinimalSubstrateConformanceTest do
     assert result.outcome.raw_payload.stderr == "stderr-line\n"
     assert result.outcome.raw_payload.exit.code == 3
     assert result.outcome.failure == nil
+    assert result.outcome.lineage.trace_id == route.lineage.trace_id
     assert result.outcome.lineage.route_id == route.route_id
   end
 
@@ -117,6 +119,7 @@ defmodule ExecutionPlane.Testkit.MinimalSubstrateConformanceTest do
     assert result.outcome.family == "process"
     assert result.outcome.raw_payload.response["id"] == "attempt://1"
     assert result.outcome.raw_payload.response["result"]["echo"]["method"] == "session.start"
+    assert result.outcome.lineage.trace_id == route.lineage.trace_id
     assert Enum.map(result.events, & &1.event_type) == ["dispatch.started", "dispatch.completed"]
   end
 

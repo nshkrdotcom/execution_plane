@@ -39,6 +39,7 @@ defmodule ExecutionPlane.Contracts do
 
   @canonical_lineage_keys [
     :tenant_id,
+    :trace_id,
     :request_id,
     :decision_id,
     :boundary_session_id,
@@ -52,6 +53,7 @@ defmodule ExecutionPlane.Contracts do
 
   @type lineage_key ::
           :tenant_id
+          | :trace_id
           | :request_id
           | :decision_id
           | :boundary_session_id
@@ -221,6 +223,7 @@ defmodule ExecutionPlane.Contracts do
       {key, value}, acc ->
         Map.put(acc, key, validate_non_empty_string!(value, "lineage.#{key}"))
     end)
+    |> maybe_backfill_trace_id(required_keys)
     |> then(fn normalized ->
       Enum.each(required_keys, fn key ->
         if is_nil(Map.get(normalized, key)) do
@@ -317,6 +320,7 @@ defmodule ExecutionPlane.Contracts do
   defp normalize_lineage_key!(key) when is_binary(key) do
     case key do
       "tenant_id" -> :tenant_id
+      "trace_id" -> :trace_id
       "request_id" -> :request_id
       "decision_id" -> :decision_id
       "boundary_session_id" -> :boundary_session_id
@@ -331,4 +335,35 @@ defmodule ExecutionPlane.Contracts do
 
   defp normalize_lineage_key!(key),
     do: raise(ArgumentError, "unknown lineage key: #{inspect(key)}")
+
+  defp maybe_backfill_trace_id(lineage, required_keys) do
+    if :trace_id in required_keys and is_nil(Map.get(lineage, :trace_id)) do
+      case Map.get(lineage, :request_id) do
+        request_id when is_binary(request_id) and byte_size(request_id) > 0 ->
+          backfilled_lineage = Map.put(lineage, :trace_id, request_id)
+
+          :telemetry.execute(
+            [:lower_gateway, :trace_id, :backfill],
+            %{count: 1},
+            %{
+              consumer: :execution_plane_contracts,
+              source: :request_id,
+              trace_id: backfilled_lineage.trace_id,
+              tenant_id: Map.get(backfilled_lineage, :tenant_id),
+              request_id: backfilled_lineage.request_id,
+              decision_id: Map.get(backfilled_lineage, :decision_id),
+              boundary_session_id: Map.get(backfilled_lineage, :boundary_session_id),
+              route_id: Map.get(backfilled_lineage, :route_id)
+            }
+          )
+
+          backfilled_lineage
+
+        _other ->
+          lineage
+      end
+    else
+      lineage
+    end
+  end
 end

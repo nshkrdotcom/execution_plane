@@ -8,6 +8,7 @@ defmodule ExecutionPlane.Contracts.ExecutionEvent.V1 do
   @contract_version Contracts.contract_version!(:execution_event_v1)
   @required_lineage_keys [
     :tenant_id,
+    :trace_id,
     :request_id,
     :decision_id,
     :boundary_session_id,

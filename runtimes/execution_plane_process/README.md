@@ -8,6 +8,9 @@ Closed-wave status:
 - active for one-shot local process execution
 - active for `ExecutionPlane.Process.Transport` as the Execution Plane-owned
   long-lived process/session seam
+- active tagged-only mailbox delivery for long-lived transport subscribers:
+  `subscribe/2` tags by subscriber pid and `subscribe/3` tags by explicit
+  reference
 - local PTY/stdin attach, lease-aware transport metadata, and session lifecycle
   now flow through that lower transport surface
 - the same transport substrate is exercised under local, SSH, and guest

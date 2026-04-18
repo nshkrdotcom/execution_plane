@@ -1,8 +1,8 @@
 # Guide Index
 
-Execution Plane is the lower runtime workspace in the Brain / Spine /
-Execution Plane architecture. Wave 1 freezes the packet and topology; Waves 2,
-3, 6, and 7 land the executable lower substrate, the first proven family-kit
+Execution Plane is the lower runtime workspace in the active lower-gateway /
+lower-runtime architecture. Wave 1 freezes the packet and topology; Waves 2, 3,
+6, and 7 land the executable lower substrate, the first proven family-kit
 lanes, long-lived process transport, and truthful placement breadth on those
 frozen contracts.
 

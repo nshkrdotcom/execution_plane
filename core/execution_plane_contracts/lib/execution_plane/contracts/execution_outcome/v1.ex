@@ -9,6 +9,7 @@ defmodule ExecutionPlane.Contracts.ExecutionOutcome.V1 do
   @contract_version Contracts.contract_version!(:execution_outcome_v1)
   @required_lineage_keys [
     :tenant_id,
+    :trace_id,
     :request_id,
     :decision_id,
     :boundary_session_id,

@@ -23,13 +23,17 @@ defmodule ExecutionPlane.Process.Transport.SubprocessTest do
     assert :disconnected == Subprocess.status(transport)
   end
 
-  test "legacy subscribers receive bare transport tuples" do
-    script = create_test_script("printf 'legacy\\n'")
+  test "subscribe/2 uses the subscriber pid as the default delivery tag" do
+    script = create_test_script("printf 'default\\n'")
+    pid = self()
 
-    assert {:ok, _transport} = Subprocess.start(command: script, subscriber: {self(), :legacy})
+    assert {:ok, _transport} = Subprocess.start(command: script, subscriber: pid)
 
-    assert_receive {:transport_message, "legacy"}, 2_000
-    assert_receive {:transport_exit, %ProcessExit{status: :success, code: 0}}, 2_000
+    assert_receive {:execution_plane_process, ^pid, {:message, "default"}}, 2_000
+
+    assert_receive {:execution_plane_process, ^pid,
+                    {:exit, %ProcessExit{status: :success, code: 0}}},
+                   2_000
   end
 
   test "start returns a structured error when the command cannot be spawned" do
@@ -133,7 +137,8 @@ defmodule ExecutionPlane.Process.Transport.SubprocessTest do
     assert is_pid(info.pid)
     assert is_integer(info.os_pid)
     assert info.os_pid > 0
-    assert info.delivery.legacy? == true
+    assert info.delivery.message_shape == :tagged
+    assert info.delivery.default_subscription_tag == :subscriber_pid
     assert info.delivery.tagged_event_tag == :execution_plane_process
 
     assert :ok = Transport.send(transport, "alpha")
@@ -331,8 +336,21 @@ defmodule ExecutionPlane.Process.Transport.SubprocessTest do
                    2_000
   end
 
-  test "extract_event unwraps legacy transport tuples" do
-    assert {:ok, {:message, "legacy"}} = Transport.extract_event({:transport_message, "legacy"})
+  test "extract_event unwraps tagged transport delivery" do
+    pid = self()
+
+    assert {:ok, {:message, "tagged"}} =
+             Transport.extract_event({:execution_plane_process, pid, {:message, "tagged"}})
+
+    assert {:ok, {:message, "tagged"}} =
+             Transport.extract_event({:execution_plane_process, pid, {:message, "tagged"}}, pid)
+
+    assert :error =
+             Transport.extract_event(
+               {:execution_plane_process, make_ref(), {:message, "tagged"}},
+               pid
+             )
+
     assert :error = Transport.extract_event({:unexpected, :message})
   end
 

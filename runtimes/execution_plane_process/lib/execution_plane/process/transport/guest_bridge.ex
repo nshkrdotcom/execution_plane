@@ -216,16 +216,13 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
 
   @impl Transport
   def subscribe(transport, pid) do
-    subscribe(transport, pid, :legacy)
+    subscribe_with_tag(transport, pid, pid)
   end
 
   @impl Transport
   def subscribe(transport, pid, tag)
-      when is_pid(transport) and is_pid(pid) and (tag == :legacy or is_reference(tag)) do
-    GenServer.call(transport, {:subscribe, pid, tag})
-  catch
-    :exit, reason -> transport_error(reason)
-  end
+      when is_pid(transport) and is_pid(pid) and is_reference(tag),
+      do: subscribe_with_tag(transport, pid, tag)
 
   @impl Transport
   def unsubscribe(transport, pid) when is_pid(transport) and is_pid(pid) do
@@ -485,11 +482,11 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
   defp maybe_put_initial_subscriber(state, nil), do: state
 
   defp maybe_put_initial_subscriber(state, pid) when is_pid(pid) do
-    put_subscriber(state, pid, :legacy)
+    put_subscriber(state, pid, pid)
   end
 
   defp maybe_put_initial_subscriber(state, {pid, tag})
-       when is_pid(pid) and (tag == :legacy or is_reference(tag)) do
+       when is_pid(pid) and is_reference(tag) do
     put_subscriber(state, pid, tag)
   end
 
@@ -1070,23 +1067,10 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
 
   defp emit_event(state, _event), do: state
 
-  defp dispatch_event(pid, %{tag: :legacy}, {:message, line}, _event_tag),
-    do: Kernel.send(pid, {:transport_message, line})
-
-  defp dispatch_event(pid, %{tag: :legacy}, {:data, chunk}, _event_tag),
-    do: Kernel.send(pid, {:transport_data, chunk})
-
-  defp dispatch_event(pid, %{tag: :legacy}, {:error, reason}, _event_tag),
-    do: Kernel.send(pid, {:transport_error, reason})
-
-  defp dispatch_event(pid, %{tag: :legacy}, {:stderr, data}, _event_tag),
-    do: Kernel.send(pid, {:transport_stderr, data})
-
-  defp dispatch_event(pid, %{tag: :legacy}, {:exit, reason}, _event_tag),
-    do: Kernel.send(pid, {:transport_exit, reason})
-
-  defp dispatch_event(pid, %{tag: ref}, event, event_tag) when is_reference(ref),
-    do: Kernel.send(pid, {event_tag, ref, event})
+  defp dispatch_event(pid, %{tag: tag}, event, event_tag)
+       when (is_pid(tag) or is_reference(tag)) and is_atom(event_tag) do
+    Kernel.send(pid, {event_tag, tag, event})
+  end
 
   defp buffer_event(state, event) do
     buffered_events =
@@ -1108,8 +1092,14 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
 
   defp maybe_replay_stderr(%{replay_stderr_on_subscribe?: true, stderr_buffer: data} = state, pid)
        when is_binary(data) and data != "" do
-    dispatch_event(pid, %{tag: :legacy}, {:stderr, data}, state.event_tag)
-    state
+    case Map.fetch(state.subscribers, pid) do
+      {:ok, subscriber_info} ->
+        dispatch_event(pid, subscriber_info, {:stderr, data}, state.event_tag)
+        state
+
+      :error ->
+        state
+    end
   end
 
   defp maybe_replay_stderr(state, _pid), do: state
@@ -1135,6 +1125,13 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
         Process.demonitor(ref, [:flush])
         %{state | subscribers: subscribers}
     end
+  end
+
+  defp subscribe_with_tag(transport, pid, tag)
+       when is_pid(transport) and is_pid(pid) and (is_pid(tag) or is_reference(tag)) do
+    GenServer.call(transport, {:subscribe, pid, tag})
+  catch
+    :exit, reason -> transport_error(reason)
   end
 
   defp maybe_send_close_frame(%{status: :connected, socket: socket} = state)

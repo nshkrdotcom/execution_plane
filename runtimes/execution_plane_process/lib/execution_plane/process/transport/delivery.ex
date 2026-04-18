@@ -8,12 +8,14 @@ defmodule ExecutionPlane.Process.Transport.Delivery do
   without depending on internal worker identity.
   """
 
-  defstruct legacy?: true,
-            tagged_event_tag: nil
+  defstruct message_shape: :tagged,
+            tagged_event_tag: nil,
+            default_subscription_tag: :subscriber_pid
 
   @type t :: %__MODULE__{
-          legacy?: true,
-          tagged_event_tag: atom()
+          message_shape: :tagged,
+          tagged_event_tag: atom(),
+          default_subscription_tag: :subscriber_pid
         }
 
   @spec new(atom()) :: t()

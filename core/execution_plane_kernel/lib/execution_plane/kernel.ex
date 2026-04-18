@@ -182,6 +182,18 @@ defmodule ExecutionPlane.Kernel do
       raise ArgumentError, "intent idempotency_key does not match route lineage"
     end
 
+    case envelope.trace_id do
+      nil ->
+        :ok
+
+      trace_id when trace_id == route.lineage.trace_id ->
+        :ok
+
+      other ->
+        raise ArgumentError,
+              "intent trace_id must match route lineage.trace_id, got: #{inspect(other)}"
+    end
+
     :ok
   end
 

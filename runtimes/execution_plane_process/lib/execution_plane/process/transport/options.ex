@@ -67,7 +67,7 @@ defmodule ExecutionPlane.Process.Transport.Options do
             replay_stderr_on_subscribe?: false,
             buffer_events_until_subscribe?: false
 
-  @type subscriber :: pid() | {pid(), Transport.subscription_tag()} | nil
+  @type subscriber :: pid() | {pid(), Transport.explicit_subscription_tag()} | nil
 
   @type t :: %__MODULE__{
           command: String.t(),
@@ -465,7 +465,7 @@ defmodule ExecutionPlane.Process.Transport.Options do
   defp validate_subscriber(nil), do: :ok
   defp validate_subscriber(pid) when is_pid(pid), do: :ok
 
-  defp validate_subscriber({pid, tag}) when is_pid(pid) and (tag == :legacy or is_reference(tag)),
+  defp validate_subscriber({pid, tag}) when is_pid(pid) and is_reference(tag),
     do: :ok
 
   defp validate_subscriber(subscriber), do: {:error, {:invalid_subscriber, subscriber}}

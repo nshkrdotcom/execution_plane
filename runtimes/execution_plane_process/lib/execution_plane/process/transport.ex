@@ -5,21 +5,17 @@ defmodule ExecutionPlane.Process.Transport do
   In addition to the long-lived subscriber-driven transport API, the transport
   layer also owns synchronous non-PTY command execution through `run/2`.
 
-  Legacy subscribers receive bare transport tuples:
+  Subscribers receive tagged events only:
 
-  - `{:transport_message, line}`
-  - `{:transport_data, chunk}`
-  - `{:transport_error, %ExecutionPlane.Process.Transport.Error{}}`
-  - `{:transport_stderr, chunk}`
-  - `{:transport_exit, %ExecutionPlane.ProcessExit{}}`
-
-  Tagged subscribers receive:
-
+  - `{event_tag, subscriber_pid, {:message, line}}` for `subscribe/2`
   - `{event_tag, ref, {:message, line}}`
-  - `{event_tag, ref, {:data, chunk}}`
-  - `{event_tag, ref, {:error, %ExecutionPlane.Process.Transport.Error{}}}`
-  - `{event_tag, ref, {:stderr, chunk}}`
-  - `{event_tag, ref, {:exit, %ExecutionPlane.ProcessExit{}}}`
+  - `{event_tag, tag, {:data, chunk}}`
+  - `{event_tag, tag, {:error, %ExecutionPlane.Process.Transport.Error{}}}`
+  - `{event_tag, tag, {:stderr, chunk}}`
+  - `{event_tag, tag, {:exit, %ExecutionPlane.ProcessExit{}}}`
+
+  where `tag` is the subscriber pid when `subscribe/2` is used and an explicit
+  reference when `subscribe/3` is used.
 
   When `:replay_stderr_on_subscribe?` is enabled at startup, newly attached
   subscribers also receive the retained stderr tail immediately after
@@ -39,8 +35,11 @@ defmodule ExecutionPlane.Process.Transport do
   @typedoc "Opaque transport reference."
   @type t :: pid()
 
-  @typedoc "Legacy subscribers use `:legacy`; tagged subscribers use a reference."
-  @type subscription_tag :: :legacy | reference()
+  @typedoc "Mailbox tag carried on tagged delivery."
+  @type subscription_tag :: pid() | reference()
+
+  @typedoc "Caller-supplied tag for explicit subscriptions."
+  @type explicit_subscription_tag :: reference()
 
   @typedoc "The tagged event atom prefix."
   @type event_tag :: atom()
@@ -49,17 +48,7 @@ defmodule ExecutionPlane.Process.Transport do
   @type surface_kind :: :local_subprocess | :ssh_exec | :guest_bridge
 
   @typedoc "Transport events delivered to subscribers."
-  @type message ::
-          {:transport_message, binary()}
-          | {:transport_data, binary()}
-          | {:transport_error, Error.t()}
-          | {:transport_stderr, binary()}
-          | {:transport_exit, ProcessExit.t()}
-          | {event_tag(), reference(), {:message, binary()}}
-          | {event_tag(), reference(), {:data, binary()}}
-          | {event_tag(), reference(), {:error, Error.t()}}
-          | {event_tag(), reference(), {:stderr, binary()}}
-          | {event_tag(), reference(), {:exit, ProcessExit.t()}}
+  @type message :: {event_tag(), subscription_tag(), extracted_event()}
 
   @typedoc "Normalized transport event payload extracted from a mailbox message."
   @type extracted_event ::
@@ -75,7 +64,7 @@ defmodule ExecutionPlane.Process.Transport do
               {:ok, RunResult.t()} | {:error, {:transport, Error.t()}}
   @callback send(t(), iodata() | map() | list()) :: :ok | {:error, {:transport, Error.t()}}
   @callback subscribe(t(), pid()) :: :ok | {:error, {:transport, Error.t()}}
-  @callback subscribe(t(), pid(), subscription_tag()) ::
+  @callback subscribe(t(), pid(), explicit_subscription_tag()) ::
               :ok | {:error, {:transport, Error.t()}}
   @callback unsubscribe(t(), pid()) :: :ok
   @callback close(t()) :: :ok
@@ -147,24 +136,21 @@ defmodule ExecutionPlane.Process.Transport do
   end
 
   @doc """
-  Subscribes the caller in legacy mode.
+  Subscribes a process using the subscriber pid as the default mailbox tag.
   """
   @spec subscribe(t(), pid()) :: :ok | {:error, {:transport, Error.t()}}
   def subscribe(transport, pid) when is_pid(transport) and is_pid(pid) do
-    subscribe(transport, pid, :legacy)
+    do_subscribe(transport, pid, pid)
   end
 
   @doc """
-  Subscribes a process with an explicit tag mode.
+  Subscribes a process with an explicit reference tag.
   """
-  @spec subscribe(t(), pid(), subscription_tag()) :: :ok | {:error, {:transport, Error.t()}}
+  @spec subscribe(t(), pid(), explicit_subscription_tag()) ::
+          :ok | {:error, {:transport, Error.t()}}
   def subscribe(transport, pid, tag)
-      when is_pid(transport) and is_pid(pid) and (tag == :legacy or is_reference(tag)) do
-    case safe_call(transport, {:subscribe, pid, tag}) do
-      {:ok, result} -> result
-      {:error, reason} -> transport_error(reason)
-    end
-  end
+      when is_pid(transport) and is_pid(pid) and is_reference(tag),
+      do: do_subscribe(transport, pid, tag)
 
   def subscribe(_transport, _pid, tag) do
     transport_error(Error.invalid_options({:invalid_subscriber, tag}))
@@ -341,31 +327,27 @@ defmodule ExecutionPlane.Process.Transport do
   defp has_cwd?(%Command{}), do: false
 
   @doc """
-  Extracts a normalized transport event from a legacy mailbox message.
-
-  Tagged subscribers should use `extract_event/2` so their code does not depend
-  on a specific outer event tag.
+  Extracts a normalized transport event from a tagged mailbox message.
   """
   @spec extract_event(term()) :: {:ok, extracted_event()} | :error
-  def extract_event({:transport_message, line}) when is_binary(line), do: {:ok, {:message, line}}
-  def extract_event({:transport_data, chunk}) when is_binary(chunk), do: {:ok, {:data, chunk}}
-  def extract_event({:transport_error, %Error{} = error}), do: {:ok, {:error, error}}
-  def extract_event({:transport_stderr, chunk}) when is_binary(chunk), do: {:ok, {:stderr, chunk}}
-  def extract_event({:transport_exit, %ProcessExit{} = exit}), do: {:ok, {:exit, exit}}
+  def extract_event({event_tag, _tag, event}) when is_atom(event_tag),
+    do: extract_tagged_event(event)
+
   def extract_event(_message), do: :error
 
   @doc """
-  Extracts a normalized transport event for a tagged subscriber reference.
+  Extracts a normalized transport event for a matching subscriber tag.
 
   This is the stable core-owned way for adapters to consume tagged transport
   delivery without hard-coding the configured outer event atom.
   """
-  @spec extract_event(term(), reference()) :: {:ok, extracted_event()} | :error
-  def extract_event({event_tag, ref, event}, ref) when is_atom(event_tag) do
+  @spec extract_event(term(), subscription_tag()) :: {:ok, extracted_event()} | :error
+  def extract_event({event_tag, tag, event}, tag)
+      when is_atom(event_tag) and (is_pid(tag) or is_reference(tag)) do
     extract_tagged_event(event)
   end
 
-  def extract_event(message, _ref), do: extract_event(message)
+  def extract_event(_message, _tag), do: :error
 
   @doc """
   Returns stable mailbox-delivery metadata for the current transport snapshot.
@@ -384,6 +366,14 @@ defmodule ExecutionPlane.Process.Transport do
   defp extract_tagged_event({:stderr, chunk}) when is_binary(chunk), do: {:ok, {:stderr, chunk}}
   defp extract_tagged_event({:exit, %ProcessExit{} = exit}), do: {:ok, {:exit, exit}}
   defp extract_tagged_event(_event), do: :error
+
+  defp do_subscribe(transport, pid, tag)
+       when is_pid(transport) and is_pid(pid) and (is_pid(tag) or is_reference(tag)) do
+    case safe_call(transport, {:subscribe, pid, tag}) do
+      {:ok, result} -> result
+      {:error, reason} -> transport_error(reason)
+    end
+  end
 
   defp safe_call(transport, message, timeout \\ @default_call_timeout_ms)
 
