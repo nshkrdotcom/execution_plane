@@ -2,11 +2,11 @@ defmodule ExecutionPlane.Process.Transport.SSHExecTest do
   use ExUnit.Case, async: false
 
   alias ExecutionPlane.Command
-  alias ExecutionPlane.ProcessExit
-  alias ExecutionPlane.TestSupport.FakeSSH
   alias ExecutionPlane.Process.Transport
   alias ExecutionPlane.Process.Transport.Error
   alias ExecutionPlane.Process.Transport.RunResult
+  alias ExecutionPlane.ProcessExit
+  alias ExecutionPlane.TestSupport.FakeSSH
 
   test "start/1 streams over the SSH surface and exposes generic plus adapter metadata" do
     ref = make_ref()

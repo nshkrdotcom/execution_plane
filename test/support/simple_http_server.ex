@@ -80,17 +80,23 @@ defmodule ExecutionPlane.TestSupport.SimpleHTTPServer do
   defp content_length(header_block) do
     header_block
     |> String.split("\r\n", trim: true)
-    |> Enum.find_value(0, fn line ->
-      case String.split(line, ":", parts: 2) do
-        [name, value] ->
-          if String.downcase(name) == "content-length" do
-            value |> String.trim() |> String.to_integer()
-          end
+    |> Enum.find_value(0, &content_length_value/1)
+  end
 
-        _other ->
-          nil
-      end
-    end)
+  defp content_length_value(line) do
+    case String.split(line, ":", parts: 2) do
+      [name, value] ->
+        parse_content_length(name, value)
+
+      _other ->
+        nil
+    end
+  end
+
+  defp parse_content_length(name, value) do
+    if String.downcase(name) == "content-length" do
+      value |> String.trim() |> String.to_integer()
+    end
   end
 
   defp reason_phrase(200), do: "OK"

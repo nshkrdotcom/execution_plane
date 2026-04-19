@@ -2,10 +2,10 @@ defmodule ExecutionPlane.TestSupport.GuestLocalAdapter do
   @moduledoc false
 
   alias ExecutionPlane.Command
-  alias ExecutionPlane.Process.Transport.Surface.Adapter
-  alias ExecutionPlane.Process.Transport.Surface.Capabilities
   alias ExecutionPlane.Process.Transport
   alias ExecutionPlane.Process.Transport.Subprocess
+  alias ExecutionPlane.Process.Transport.Surface.Adapter
+  alias ExecutionPlane.Process.Transport.Surface.Capabilities
 
   @behaviour Adapter
   @behaviour Transport

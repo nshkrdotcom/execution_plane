@@ -3,8 +3,8 @@ defmodule ExecutionPlane.TestSupport.FakeGuestBridge do
 
   use GenServer
 
-  alias ExecutionPlane.Process.Transport.Surface.Capabilities
   alias ExecutionPlane.Process.Transport.GuestBridge.Protocol
+  alias ExecutionPlane.Process.Transport.Surface.Capabilities
 
   defstruct server_pid: nil,
             bridge_ref: "bridge-1",

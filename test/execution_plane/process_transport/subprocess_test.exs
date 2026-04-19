@@ -3,9 +3,9 @@ defmodule ExecutionPlane.Process.Transport.SubprocessTest do
 
   import ExUnit.CaptureLog
 
-  alias ExecutionPlane.ProcessExit
   alias ExecutionPlane.Process.Transport
   alias ExecutionPlane.Process.Transport.{Error, Subprocess}
+  alias ExecutionPlane.ProcessExit
 
   test "eager startup streams stdout and a normalized exit to tagged subscribers" do
     ref = make_ref()

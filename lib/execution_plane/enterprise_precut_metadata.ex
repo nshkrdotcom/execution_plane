@@ -279,3 +279,89 @@ defmodule ExecutionPlane.RuntimeEvidenceRef do
         attrs
       )
 end
+
+defmodule ExecutionPlane.ActivitySideEffectIdempotency do
+  @moduledoc """
+  Activity-facing side-effect idempotency contract for Phase 4 durable workflows.
+
+  Mezzanine owns workflow worker execution. Execution Plane owns the lower
+  runtime side effect and dedupes retries by execution intent id and idempotency
+  key.
+  """
+
+  alias ExecutionPlane.EnterprisePrecutMetadataSupport
+
+  @contract_name "ExecutionPlane.ActivitySideEffectIdempotency.v1"
+  @idempotency_scope "intent_id + idempotency_key"
+
+  @fields [
+    :contract_name,
+    :tenant_ref,
+    :actor_ref,
+    :resource_ref,
+    :workflow_ref,
+    :activity_call_ref,
+    :lower_run_ref,
+    :intent_id,
+    :idempotency_key,
+    :authority_packet_ref,
+    :permission_decision_ref,
+    :trace_id,
+    :lease_ref,
+    :lease_evidence_ref,
+    :heartbeat_policy,
+    :timeout_policy,
+    :retry_policy,
+    :runtime_family,
+    :side_effect_ref,
+    :release_manifest_ref
+  ]
+  defstruct @fields
+
+  @type t :: %__MODULE__{}
+
+  @spec contract_name() :: String.t()
+  def contract_name, do: @contract_name
+
+  @spec idempotency_scope() :: String.t()
+  def idempotency_scope, do: @idempotency_scope
+
+  @spec new(map() | keyword()) :: {:ok, t()} | {:error, term()}
+  def new(attrs),
+    do:
+      EnterprisePrecutMetadataSupport.build(
+        __MODULE__,
+        @contract_name,
+        @fields,
+        [
+          :tenant_ref,
+          :actor_ref,
+          :resource_ref,
+          :workflow_ref,
+          :activity_call_ref,
+          :lower_run_ref,
+          :intent_id,
+          :idempotency_key,
+          :authority_packet_ref,
+          :permission_decision_ref,
+          :trace_id,
+          :lease_ref,
+          :lease_evidence_ref,
+          :heartbeat_policy,
+          :timeout_policy,
+          :retry_policy,
+          :runtime_family,
+          :side_effect_ref,
+          :release_manifest_ref
+        ],
+        attrs
+      )
+
+  @spec side_effect_key(t()) :: {String.t(), String.t()}
+  def side_effect_key(%__MODULE__{} = activity),
+    do: {activity.intent_id, activity.idempotency_key}
+
+  @spec same_retry_scope?(t(), t()) :: boolean()
+  def same_retry_scope?(%__MODULE__{} = left, %__MODULE__{} = right),
+    do: side_effect_key(left) == side_effect_key(right)
+end

@@ -73,15 +73,8 @@ defmodule ExecutionPlane.SSE do
       {:ok, _acc} ->
         send(parent, {ref, :done})
 
-      :ok ->
-        send(parent, {ref, :done})
-
-      {:error, reason} ->
+      {:error, reason, _acc} ->
         send(parent, {ref, :transport_error, {:stream_failed, reason}})
-        send(parent, {ref, :done})
-
-      other ->
-        send(parent, {ref, :transport_error, {:stream_failed, other}})
         send(parent, {ref, :done})
     end
   rescue

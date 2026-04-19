@@ -79,6 +79,8 @@ defmodule ExecutionPlane.MixProject do
       {:jason, "~> 1.4"},
       {:mint_web_socket, "~> 1.0"},
       {:server_sent_events, "~> 0.2"},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.37", only: :dev, runtime: false}
     ]
   end
@@ -223,7 +225,10 @@ defmodule ExecutionPlane.MixProject do
       ci: [
         "format --check-formatted",
         "compile --warnings-as-errors",
-        "cmd env MIX_ENV=test mix test"
+        "cmd env MIX_ENV=test mix test",
+        "credo --strict",
+        "cmd env MIX_ENV=test mix dialyzer --force-check",
+        "docs --warnings-as-errors"
       ]
     ]
   end

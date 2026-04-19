@@ -2,10 +2,10 @@ defmodule ExecutionPlane.Process.Transport.GuestBridgeTest do
   use ExUnit.Case, async: false
 
   alias ExecutionPlane.Command
-  alias ExecutionPlane.ProcessExit
-  alias ExecutionPlane.TestSupport.FakeGuestBridge
   alias ExecutionPlane.Process.Transport
   alias ExecutionPlane.Process.Transport.RunResult
+  alias ExecutionPlane.ProcessExit
+  alias ExecutionPlane.TestSupport.FakeGuestBridge
 
   test "run/2 executes over the guest bridge through the generic execution-surface seam" do
     fake_bridge = FakeGuestBridge.new!()

@@ -2,6 +2,7 @@ defmodule ExecutionPlane.Contracts.EnterprisePrecutMetadataTest do
   use ExUnit.Case, async: true
 
   alias ExecutionPlane.{
+    ActivitySideEffectIdempotency,
     AttachGrantContract,
     CancellationMetadata,
     ExecutionActivityMetadata,
@@ -11,12 +12,13 @@ defmodule ExecutionPlane.Contracts.EnterprisePrecutMetadataTest do
   }
 
   @modules [
-    ExecutionActivityMetadata,
-    CancellationMetadata,
-    HeartbeatMetadata,
+    ActivitySideEffectIdempotency,
     AttachGrantContract,
-    StreamLeaseContract,
-    RuntimeEvidenceRef
+    CancellationMetadata,
+    ExecutionActivityMetadata,
+    HeartbeatMetadata,
+    RuntimeEvidenceRef,
+    StreamLeaseContract
   ]
 
   test "loads every M24 execution-plane contract" do
@@ -45,6 +47,36 @@ defmodule ExecutionPlane.Contracts.EnterprisePrecutMetadataTest do
              })
 
     assert metadata.contract_name == "ExecutionPlane.ExecutionActivityMetadata.v1"
+  end
+
+  test "execution side-effect activity dedupes by intent id and idempotency key" do
+    assert ActivitySideEffectIdempotency.contract_name() ==
+             "ExecutionPlane.ActivitySideEffectIdempotency.v1"
+
+    assert ActivitySideEffectIdempotency.idempotency_scope() == "intent_id + idempotency_key"
+
+    assert {:ok, first} =
+             ActivitySideEffectIdempotency.new(execution_side_effect_attrs())
+
+    assert first.lease_ref == "lease-100"
+    assert first.heartbeat_policy == "lease_bound"
+    assert ActivitySideEffectIdempotency.side_effect_key(first) == {"intent-100", "idem-exec-100"}
+
+    assert {:ok, retry} =
+             ActivitySideEffectIdempotency.new(
+               execution_side_effect_attrs(%{activity_call_ref: "act-100-retry"})
+             )
+
+    assert ActivitySideEffectIdempotency.same_retry_scope?(first, retry)
+
+    assert {:error, {:missing_required_fields, missing}} =
+             execution_side_effect_attrs()
+             |> Map.drop([:intent_id, :idempotency_key, :lease_ref])
+             |> ActivitySideEffectIdempotency.new()
+
+    assert :intent_id in missing
+    assert :idempotency_key in missing
+    assert :lease_ref in missing
   end
 
   test "attach grants and stream leases are lease-bound, traceable, and revocable" do
@@ -115,5 +147,32 @@ defmodule ExecutionPlane.Contracts.EnterprisePrecutMetadataTest do
                payload_hash: String.duplicate("a", 64),
                redaction_posture: "operator_summary"
              })
+  end
+
+  defp execution_side_effect_attrs(overrides \\ %{}) do
+    Map.merge(
+      %{
+        tenant_ref: "tenant-acme",
+        actor_ref: "principal-operator",
+        resource_ref: "resource-work-1",
+        workflow_ref: "wf-100",
+        activity_call_ref: "act-100",
+        lower_run_ref: "lower-100",
+        intent_id: "intent-100",
+        idempotency_key: "idem-exec-100",
+        authority_packet_ref: "authpkt-100",
+        permission_decision_ref: "decision-100",
+        trace_id: "trace-100",
+        lease_ref: "lease-100",
+        lease_evidence_ref: "evidence-100",
+        heartbeat_policy: "lease_bound",
+        timeout_policy: "bounded",
+        retry_policy: "safe_idempotent",
+        runtime_family: "beam",
+        side_effect_ref: "side-effect-100",
+        release_manifest_ref: "phase4-v6-milestone29"
+      },
+      overrides
+    )
   end
 end

@@ -1,8 +1,10 @@
 defmodule ExecutionPlane.KernelDispatchTest do
   use ExUnit.Case, async: true
 
+  alias ExecutionPlane.Contracts.ExecutionRoute.V1, as: ExecutionRoute
   alias ExecutionPlane.Kernel
-  alias ExecutionPlane.Protocols.{HTTP, JsonRpc}
+  alias ExecutionPlane.Protocols.HTTP
+  alias ExecutionPlane.Protocols.JsonRpc
   alias ExecutionPlane.Testkit.ContractFixtures
 
   test "build_dispatch/2 resolves the http protocol module from the route" do
@@ -22,7 +24,7 @@ defmodule ExecutionPlane.KernelDispatchTest do
       |> Map.from_struct()
       |> Map.put(:family, "process")
       |> Map.put(:protocol, "jsonrpc")
-      |> ExecutionPlane.Contracts.ExecutionRoute.V1.new!()
+      |> ExecutionRoute.new!()
 
     assert {:ok, plan} = Kernel.build_dispatch(intent, route)
     assert plan.protocol_module == JsonRpc

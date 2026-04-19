@@ -1,6 +1,7 @@
 defmodule ExecutionPlane.Testkit.LineageContinuityTest do
   use ExUnit.Case, async: true
 
+  alias ExecutionPlane.Contracts.ExecutionRoute.V1, as: ExecutionRoute
   alias ExecutionPlane.Testkit.ContractFixtures
 
   test "lineage stays continuous across route, event, and outcome fixtures" do
@@ -37,7 +38,7 @@ defmodule ExecutionPlane.Testkit.LineageContinuityTest do
       ContractFixtures.lineage()
       |> Map.delete(:trace_id)
       |> then(fn lineage ->
-        ExecutionPlane.Contracts.ExecutionRoute.V1.new!(%{
+        ExecutionRoute.new!(%{
           route_id: "route-backfill-1",
           family: "http",
           protocol: "http",

@@ -85,7 +85,7 @@ defmodule ExecutionPlane.WebSocket do
         {:ok, next_ws, payload} ->
           case Mint.WebSocket.stream_request_body(current_conn, ref, payload) do
             {:ok, next_conn} -> {:cont, {:ok, next_conn, next_ws}}
-            {:error, reason} -> {:halt, {:error, reason}}
+            {:error, _next_conn, reason} -> {:halt, {:error, reason}}
           end
 
         {:error, next_ws, reason} ->
@@ -100,9 +100,6 @@ defmodule ExecutionPlane.WebSocket do
     case Mint.WebSocket.recv(conn, 0, timeout) do
       {:ok, conn, responses} ->
         handle_responses(%{state | conn: conn}, responses)
-
-      {:error, _conn, reason, _responses} ->
-        {[{:transport_error, {:receive_failed, reason}}], %{state | done?: true}}
     end
   end
 
@@ -150,12 +147,15 @@ defmodule ExecutionPlane.WebSocket do
         append_frame_item(rest, state, {:frame, {:binary, payload}})
 
       {:ping, payload} ->
-        with {:ok, websocket, pong} <- Mint.WebSocket.encode(state.websocket, {:pong, payload}),
-             {:ok, conn} <- Mint.WebSocket.stream_request_body(state.conn, state.ref, pong) do
-          handle_frames(rest, %{state | conn: conn, websocket: websocket})
-        else
-          {:error, reason} ->
-            {:halt, state, [{:transport_error, {:pong_failed, reason}}]}
+        case Mint.WebSocket.encode(state.websocket, {:pong, payload}) do
+          {:ok, websocket, pong} ->
+            case Mint.WebSocket.stream_request_body(state.conn, state.ref, pong) do
+              {:ok, conn} ->
+                handle_frames(rest, %{state | conn: conn, websocket: websocket})
+
+              {:error, _conn, reason} ->
+                {:halt, state, [{:transport_error, {:pong_failed, reason}}]}
+            end
 
           {:error, _websocket, reason} ->
             {:halt, state, [{:transport_error, {:pong_encode_failed, reason}}]}

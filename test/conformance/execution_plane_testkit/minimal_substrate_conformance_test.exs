@@ -9,8 +9,8 @@ defmodule ExecutionPlane.Testkit.MinimalSubstrateConformanceTest do
   alias ExecutionPlane.Contracts.ProcessExecutionIntent.V1, as: ProcessExecutionIntent
   alias ExecutionPlane.Kernel
   alias ExecutionPlane.Kernel.ExecutionResult
-  alias ExecutionPlane.TestSupport.SimpleHTTPServer
   alias ExecutionPlane.Testkit.ContractFixtures
+  alias ExecutionPlane.TestSupport.SimpleHTTPServer
 
   test "kernel executes unary http on the final contracts and emits raw facts" do
     server =

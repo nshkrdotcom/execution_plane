@@ -1,7 +1,7 @@
 defmodule ExecutionPlane.Process.Transport.CapabilityContractTest do
   use ExUnit.Case, async: true
 
-  alias ExecutionPlane.{Command}
+  alias ExecutionPlane.Command
   alias ExecutionPlane.Process.Transport
   alias ExecutionPlane.Process.Transport.Error
 
