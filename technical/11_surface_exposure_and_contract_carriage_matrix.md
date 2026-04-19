@@ -39,7 +39,9 @@ Without that rule, the Execution Plane will leak upward and the family kits or f
 ## Sandbox And Session Management Surface Rules
 
 - placement, network, filesystem, credential, and approval policy remain distinct concepts even when a single public API hides some complexity
-- attach/reconnect surfaces must map to `BoundarySessionDescriptor.v1`, `AttachGrant.v1`, `ExecutionEvent.v1`, and `ExecutionOutcome.v1` without redefining their ownership
+- attach/reconnect surfaces must map to `BoundarySessionDescriptor.v1`,
+  `ExecutionPlane.AttachGrant.v1`, `ExecutionEvent.v1`, and
+  `ExecutionOutcome.v1` without redefining their ownership
 - public session-management APIs must reveal durable meaning and operator-safe semantics, not raw transport internals
 
 ## Review Rule

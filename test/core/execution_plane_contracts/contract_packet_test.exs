@@ -24,7 +24,11 @@ defmodule ExecutionPlane.Contracts.ContractPacketTest do
       ContractFixtures.credential_handle_ref(),
       ContractFixtures.execution_event(),
       ContractFixtures.execution_outcome(),
-      ContractFixtures.execution_failure_outcome()
+      ContractFixtures.execution_failure_outcome(),
+      ContractFixtures.stream_backpressure(),
+      ContractFixtures.worker_budget(),
+      ContractFixtures.no_bypass_scan(),
+      ContractFixtures.stream_attach_revocation()
     ]
 
     Enum.each(fixtures, fn fixture ->

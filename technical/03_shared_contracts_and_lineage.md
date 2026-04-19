@@ -209,21 +209,119 @@ Core fields:
 - `resolved_budget`
 - `lineage`
 
-### `AttachGrant.v1`
+### `ExecutionPlane.AttachGrant.v1`
 
 Direction:
 
-- Spine -> Execution Plane and facade/session layers
+- governed grant issuer -> Execution Plane and Mezzanine activity surfaces
 
 Core fields:
 
 - `contract_version`
-- `boundary_session_id`
-- `attach_mode`
-- `attach_surface`
-- `working_directory`
+- `tenant_ref`
+- `installation_ref`
+- `workspace_ref`
+- `project_ref`
+- `environment_ref`
+- `principal_ref` or `system_actor_ref`
+- `resource_ref`
+- `authority_packet_ref`
+- `permission_decision_ref`
+- `idempotency_key`
+- `trace_id`
+- `correlation_id`
+- `release_manifest_ref`
+- `attach_grant_ref`
+- `lease_ref`
+- `hazmat_resource_ref`
+- `grant_scope`
 - `expires_at`
-- `granted_capabilities`
+- `revocation_ref`
+
+The legacy narrow `attach_grant.v1` shape is not accepted by the Phase 4
+contract packet.
+
+### `ExecutionPlane.StreamBackpressure.v1`
+
+Purpose:
+
+- records budget pressure, deterministic stream termination reason, heartbeat
+  evidence, and diagnostics refs.
+
+Core fields:
+
+- `contract_version`
+- tenant, installation, workspace, project, environment, actor, resource,
+  authority, permission decision, idempotency, trace, correlation, and release
+  manifest refs
+- `stream_ref`
+- `budget_ref`
+- `pressure_class`
+- `termination_reason`
+- `last_heartbeat_at`
+- `diagnostics_ref`
+
+### `ExecutionPlane.WorkerBudget.v1`
+
+Purpose:
+
+- records worker admission or pressure-shedding evidence without allowing
+  budget bypass.
+
+Core fields:
+
+- `contract_version`
+- tenant, installation, workspace, project, environment, actor, resource,
+  authority, permission decision, idempotency, trace, correlation, and release
+  manifest refs
+- `worker_pool_ref`
+- `budget_ref`
+- `queue_ref`
+- `current_load`
+- `admission_decision_ref`
+- `shed_reason`
+
+### `ExecutionPlane.NoBypassScan.v1`
+
+Purpose:
+
+- records source-boundary proof that public/product/operator code did not
+  import hazmat Execution Plane APIs directly.
+
+Core fields:
+
+- `contract_version`
+- tenant, installation, workspace, project, environment, actor, resource,
+  authority, permission decision, idempotency, trace, correlation, and release
+  manifest refs
+- `scan_ref`
+- `caller_repo`
+- `forbidden_module`
+- `required_facade`
+- `violation_ref`
+- `scan_status`
+- `checked_paths`
+- `violations`
+
+### `ExecutionPlane.StreamAttachRevocation.v1`
+
+Purpose:
+
+- records that an active stream attach terminated after grant or lease
+  revocation.
+
+Core fields:
+
+- `contract_version`
+- tenant, installation, workspace, project, environment, actor, resource,
+  authority, permission decision, idempotency, trace, correlation, and release
+  manifest refs
+- `stream_ref`
+- `attach_grant_ref`
+- `lease_ref`
+- `revocation_ref`
+- `termination_ref`
+- `last_event_position`
 
 ### `CredentialHandleRef.v1`
 
@@ -315,7 +413,11 @@ Each failure class must document:
 | `ExecutionIntentEnvelope.v1` | Spine | no | retries reuse lineage, not in-place mutation |
 | family execution intents | family kit, carried by Spine/Execution Plane | no | semantic payload frozen before dispatch |
 | `ExecutionRoute.v1` | Spine | yes, by replacement | route changes create a new route instance or superseding revision |
-| `AttachGrant.v1` | Spine | no | short-lived grant; expiry creates a new grant |
+| `ExecutionPlane.AttachGrant.v1` | Execution Plane | no | short-lived grant; expiry creates a new grant |
+| `ExecutionPlane.StreamBackpressure.v1` | Execution Plane | yes | stream pressure and termination evidence |
+| `ExecutionPlane.WorkerBudget.v1` | Execution Plane | yes | worker admission and pressure-shedding evidence |
+| `ExecutionPlane.NoBypassScan.v1` | Execution Plane | yes | source-boundary scan proof |
+| `ExecutionPlane.StreamAttachRevocation.v1` | Execution Plane | yes | stream termination after lease or grant revocation |
 | `CredentialHandleRef.v1` | credential system / Spine carriage | no | handle rotation occurs behind the ref |
 | `ExecutionEvent.v1` | Execution Plane | append-only | never edited in place |
 | `ExecutionOutcome.v1` | Execution Plane | no | later durable meaning belongs to Spine, not outcome mutation |
@@ -330,7 +432,8 @@ Each failure class must document:
 ## Attach And Reconnect Rules
 
 - attachability is durable truth in `BoundarySessionDescriptor.v1`
-- attach grants are ephemeral capabilities expressed through `AttachGrant.v1`
+- attach grants are ephemeral capabilities expressed through
+  `ExecutionPlane.AttachGrant.v1`
 - reconnect behavior emits `ExecutionEvent.v1` facts and a terminal or checkpointed `ExecutionOutcome.v1`
 - lower runtime state does not replace the durable descriptor
 

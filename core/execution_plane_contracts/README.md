@@ -9,4 +9,8 @@ Current packet status:
 - canonical owner of the lower-boundary contract structs
 - Wave 5 now enforces opaque credential-handle refs so lower intents carry
   handle-style references instead of raw secret material
+- Phase 4 hardens hazmat attach and stream boundaries with
+  `ExecutionPlane.AttachGrant.v1`, `ExecutionPlane.StreamBackpressure.v1`,
+  `ExecutionPlane.StreamAttachRevocation.v1`, `ExecutionPlane.WorkerBudget.v1`,
+  and `ExecutionPlane.NoBypassScan.v1`
 - minimal-lane family-specific payload shapes remain provisional until Wave 3

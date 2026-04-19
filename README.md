@@ -76,6 +76,8 @@ Waves 2, 3, 6, and 7 now own:
 - SSH-backed placement helpers in `execution_plane_ssh`
 - guest-backed placement helpers in `execution_plane_guest`
 - conformance fixtures and lower-substrate execution coverage in `execution_plane_testkit`
+- Phase 4 hazmat attach, stream pressure, stream revocation, worker budget,
+  and no-bypass contracts in `execution_plane_contracts`
 - honest documentation that container and microVM package homes are not active sandbox guarantees yet
 
 The minimum executable package homes for the substrate slice are:

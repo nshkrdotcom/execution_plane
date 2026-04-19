@@ -1,11 +1,11 @@
-defmodule ExecutionPlane.Contracts.AttachGrant.V1 do
+defmodule ExecutionPlane.Contracts.StreamAttachRevocation.V1 do
   @moduledoc """
-  Phase 4 lease-bound attach grant for hazmat stream/session access.
+  Revocation evidence proving an attached stream stopped after grant or lease revocation.
   """
 
   alias ExecutionPlane.Contracts
 
-  @contract_version Contracts.contract_version!(:attach_grant_v1)
+  @contract_version Contracts.contract_version!(:stream_attach_revocation_v1)
 
   defstruct [
     :contract_version,
@@ -23,37 +23,15 @@ defmodule ExecutionPlane.Contracts.AttachGrant.V1 do
     :trace_id,
     :correlation_id,
     :release_manifest_ref,
+    :stream_ref,
     :attach_grant_ref,
     :lease_ref,
-    :hazmat_resource_ref,
-    :grant_scope,
-    :expires_at,
-    :revocation_ref
+    :revocation_ref,
+    :termination_ref,
+    :last_event_position
   ]
 
-  @type t :: %__MODULE__{
-          contract_version: String.t(),
-          tenant_ref: String.t(),
-          installation_ref: String.t(),
-          workspace_ref: String.t(),
-          project_ref: String.t(),
-          environment_ref: String.t(),
-          principal_ref: String.t() | nil,
-          system_actor_ref: String.t() | nil,
-          resource_ref: String.t(),
-          authority_packet_ref: String.t(),
-          permission_decision_ref: String.t(),
-          idempotency_key: String.t(),
-          trace_id: String.t(),
-          correlation_id: String.t(),
-          release_manifest_ref: String.t(),
-          attach_grant_ref: String.t(),
-          lease_ref: String.t(),
-          hazmat_resource_ref: String.t(),
-          grant_scope: map(),
-          expires_at: String.t(),
-          revocation_ref: String.t()
-        }
+  @type t :: %__MODULE__{}
 
   @spec contract_version() :: String.t()
   def contract_version, do: @contract_version
@@ -78,12 +56,7 @@ defmodule ExecutionPlane.Contracts.AttachGrant.V1 do
   end
 
   @spec dump(t()) :: map()
-  def dump(%__MODULE__{} = grant) do
-    grant
-    |> Map.from_struct()
-    |> Map.update!(:grant_scope, &Contracts.stringify_keys/1)
-    |> stringify_contract()
-  end
+  def dump(%__MODULE__{} = event), do: event |> Map.from_struct() |> stringify_contract()
 
   defp build(attrs) do
     attrs = Contracts.normalize_attrs(attrs)
@@ -106,15 +79,12 @@ defmodule ExecutionPlane.Contracts.AttachGrant.V1 do
       trace_id: Contracts.fetch_required_stringish!(attrs, :trace_id),
       correlation_id: Contracts.fetch_required_stringish!(attrs, :correlation_id),
       release_manifest_ref: Contracts.fetch_required_stringish!(attrs, :release_manifest_ref),
+      stream_ref: Contracts.fetch_required_stringish!(attrs, :stream_ref),
       attach_grant_ref: Contracts.fetch_required_stringish!(attrs, :attach_grant_ref),
       lease_ref: Contracts.fetch_required_stringish!(attrs, :lease_ref),
-      hazmat_resource_ref: Contracts.fetch_required_stringish!(attrs, :hazmat_resource_ref),
-      grant_scope: Contracts.fetch_required_map!(attrs, :grant_scope),
-      expires_at:
-        attrs
-        |> Contracts.fetch_required_stringish!(:expires_at)
-        |> Contracts.validate_iso8601!("expires_at"),
-      revocation_ref: Contracts.fetch_required_stringish!(attrs, :revocation_ref)
+      revocation_ref: Contracts.fetch_required_stringish!(attrs, :revocation_ref),
+      termination_ref: Contracts.fetch_required_stringish!(attrs, :termination_ref),
+      last_event_position: Contracts.fetch_required_non_neg_integer!(attrs, :last_event_position)
     }
   end
 

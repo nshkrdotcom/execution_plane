@@ -14,7 +14,11 @@ defmodule ExecutionPlane.Testkit.ContractFixtures do
   alias ExecutionPlane.Contracts.Failure
   alias ExecutionPlane.Contracts.HttpExecutionIntent.V1, as: HttpExecutionIntent
   alias ExecutionPlane.Contracts.JsonRpcExecutionIntent.V1, as: JsonRpcExecutionIntent
+  alias ExecutionPlane.Contracts.NoBypassScan.V1, as: NoBypassScan
   alias ExecutionPlane.Contracts.ProcessExecutionIntent.V1, as: ProcessExecutionIntent
+  alias ExecutionPlane.Contracts.StreamAttachRevocation.V1, as: StreamAttachRevocation
+  alias ExecutionPlane.Contracts.StreamBackpressure.V1, as: StreamBackpressure
+  alias ExecutionPlane.Contracts.WorkerBudget.V1, as: WorkerBudget
 
   @spec authority_decision() :: AuthorityDecision.t()
   def authority_decision do
@@ -172,14 +176,78 @@ defmodule ExecutionPlane.Testkit.ContractFixtures do
 
   @spec attach_grant() :: AttachGrant.t()
   def attach_grant do
-    AttachGrant.new!(%{
-      boundary_session_id: boundary_session_descriptor().boundary_session_id,
-      attach_mode: "read_write",
-      attach_surface: %{"surface_kind" => "stdio"},
-      working_directory: "/tmp/workspace",
+    phase4_scope()
+    |> Map.merge(%{
+      attach_grant_ref: "attach-grant://tenant-1/stream/1",
+      lease_ref: "lease://1",
+      hazmat_resource_ref: "hazmat://runtime/local-process/stdio",
+      grant_scope: %{
+        "tenant_ref" => "tenant://tenant-1",
+        "resource_ref" => "execution-resource://local-process/1",
+        "capabilities" => ["stream.attach", "stdio.read"]
+      },
       expires_at: "2026-04-10T12:10:00Z",
-      granted_capabilities: ["attach.read", "attach.write"]
+      revocation_ref: "revocation://not-revoked"
     })
+    |> AttachGrant.new!()
+  end
+
+  @spec stream_backpressure() :: StreamBackpressure.t()
+  def stream_backpressure do
+    phase4_scope()
+    |> Map.merge(%{
+      stream_ref: "stream://tenant-1/runtime/1",
+      budget_ref: "budget://tenant-1/stream",
+      pressure_class: "hard_pressure",
+      termination_reason: "budget_exhausted",
+      last_heartbeat_at: "2026-04-10T12:09:00Z",
+      diagnostics_ref: "diagnostics://stream/1"
+    })
+    |> StreamBackpressure.new!()
+  end
+
+  @spec worker_budget() :: WorkerBudget.t()
+  def worker_budget do
+    phase4_scope()
+    |> Map.merge(%{
+      worker_pool_ref: "worker-pool://tenant-1/default",
+      budget_ref: "budget://tenant-1/workers",
+      queue_ref: "queue://tenant-1/runtime",
+      current_load: 1,
+      admission_decision_ref: "admission://tenant-1/decision-1",
+      shed_reason: "none"
+    })
+    |> WorkerBudget.new!()
+  end
+
+  @spec no_bypass_scan() :: NoBypassScan.t()
+  def no_bypass_scan do
+    phase4_scope()
+    |> Map.merge(%{
+      scan_ref: "scan://execution-plane/no-bypass/1",
+      caller_repo: "app_kit",
+      forbidden_module: "ExecutionPlane",
+      required_facade: "AppKit boundary or Mezzanine activity facade",
+      violation_ref: "violation://none",
+      scan_status: "clear",
+      checked_paths: ["lib/app_kit", "core/operator_engine"],
+      violations: []
+    })
+    |> NoBypassScan.new!()
+  end
+
+  @spec stream_attach_revocation() :: StreamAttachRevocation.t()
+  def stream_attach_revocation do
+    phase4_scope()
+    |> Map.merge(%{
+      stream_ref: "stream://tenant-1/runtime/1",
+      attach_grant_ref: "attach-grant://tenant-1/stream/1",
+      lease_ref: "lease://1",
+      revocation_ref: "revocation://lease/1",
+      termination_ref: "termination://stream/1",
+      last_event_position: 4
+    })
+    |> StreamAttachRevocation.new!()
   end
 
   @spec credential_handle_ref() :: CredentialHandleRef.t()
@@ -248,5 +316,23 @@ defmodule ExecutionPlane.Testkit.ContractFixtures do
     })
     |> Enum.reject(fn {_key, value} -> is_nil(value) end)
     |> Map.new()
+  end
+
+  defp phase4_scope do
+    %{
+      tenant_ref: "tenant://tenant-1",
+      installation_ref: "installation://tenant-1/default",
+      workspace_ref: "workspace://repo-1",
+      project_ref: "project://default",
+      environment_ref: "environment://test",
+      principal_ref: "principal://tester",
+      resource_ref: "execution-resource://local-process/1",
+      authority_packet_ref: "authority-packet://decision-1",
+      permission_decision_ref: "permission-decision://decision-1",
+      idempotency_key: execution_intent_envelope().idempotency_key,
+      trace_id: execution_intent_envelope().trace_id,
+      correlation_id: "correlation://request-1",
+      release_manifest_ref: "phase4-v6-milestone6"
+    }
   end
 end

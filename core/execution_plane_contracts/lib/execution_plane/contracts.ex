@@ -17,10 +17,14 @@ defmodule ExecutionPlane.Contracts do
     process_execution_intent_v1: "process_execution_intent.v1",
     jsonrpc_execution_intent_v1: "jsonrpc_execution_intent.v1",
     execution_route_v1: "execution_route.v1",
-    attach_grant_v1: "attach_grant.v1",
+    attach_grant_v1: "ExecutionPlane.AttachGrant.v1",
     credential_handle_ref_v1: "credential_handle_ref.v1",
     execution_event_v1: "execution_event.v1",
-    execution_outcome_v1: "execution_outcome.v1"
+    execution_outcome_v1: "execution_outcome.v1",
+    stream_backpressure_v1: "ExecutionPlane.StreamBackpressure.v1",
+    worker_budget_v1: "ExecutionPlane.WorkerBudget.v1",
+    no_bypass_scan_v1: "ExecutionPlane.NoBypassScan.v1",
+    stream_attach_revocation_v1: "ExecutionPlane.StreamAttachRevocation.v1"
   }
 
   @contract_modules [
@@ -34,7 +38,11 @@ defmodule ExecutionPlane.Contracts do
     ExecutionPlane.Contracts.AttachGrant.V1,
     ExecutionPlane.Contracts.CredentialHandleRef.V1,
     ExecutionPlane.Contracts.ExecutionEvent.V1,
-    ExecutionPlane.Contracts.ExecutionOutcome.V1
+    ExecutionPlane.Contracts.ExecutionOutcome.V1,
+    ExecutionPlane.Contracts.StreamBackpressure.V1,
+    ExecutionPlane.Contracts.WorkerBudget.V1,
+    ExecutionPlane.Contracts.NoBypassScan.V1,
+    ExecutionPlane.Contracts.StreamAttachRevocation.V1
   ]
 
   @canonical_lineage_keys [
@@ -192,6 +200,29 @@ defmodule ExecutionPlane.Contracts do
       value when is_boolean(value) -> value
       other -> raise ArgumentError, "#{key} must be a boolean, got: #{inspect(other)}"
     end
+  end
+
+  @spec fetch_required_non_neg_integer!(map() | keyword(), atom()) :: non_neg_integer()
+  def fetch_required_non_neg_integer!(attrs, key) do
+    case fetch_value(attrs, key) do
+      value when is_integer(value) and value >= 0 ->
+        value
+
+      other ->
+        raise ArgumentError, "#{key} must be a non-negative integer, got: #{inspect(other)}"
+    end
+  end
+
+  @spec fetch_required_actor_refs!(map() | keyword()) :: {String.t() | nil, String.t() | nil}
+  def fetch_required_actor_refs!(attrs) do
+    principal_ref = fetch_optional_stringish!(attrs, :principal_ref)
+    system_actor_ref = fetch_optional_stringish!(attrs, :system_actor_ref)
+
+    if is_nil(principal_ref) and is_nil(system_actor_ref) do
+      raise ArgumentError, "principal_ref or system_actor_ref is required"
+    end
+
+    {principal_ref, system_actor_ref}
   end
 
   @spec validate_contract_version!(map() | keyword(), String.t()) :: String.t()

@@ -71,7 +71,8 @@ defmodule ExecutionPlane.Testkit.LineageContinuityTest do
     attach_grant = ContractFixtures.attach_grant()
     credential_handle_ref = ContractFixtures.credential_handle_ref()
 
-    refute Map.has_key?(attach_grant.attach_surface, "secret")
+    refute Map.has_key?(attach_grant.grant_scope, "secret")
+    assert attach_grant.lease_ref == "lease://1"
     assert credential_handle_ref.handle_ref == "cred://1"
     assert credential_handle_ref.kind == "oauth_bearer"
   end
