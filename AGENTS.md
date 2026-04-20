@@ -1,3 +1,8 @@
+# Monorepo Project Map
+
+- `./mix.exs`: Workspace root for the Execution Plane operator-facing ingress monorepo
+- `./runtimes/execution_plane_operator_terminal/mix.exs`: Execution Plane operator-terminal ingress family for local, SSH, and distributed operator-facing TUIs
+
 # AGENTS.md
 
 ## Temporal developer environment
