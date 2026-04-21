@@ -45,7 +45,7 @@ defmodule ExecutionPlane.Process.Transport do
   @type event_tag :: atom()
 
   @typedoc "Generic execution-surface placement kind."
-  @type surface_kind :: :local_subprocess | :ssh_exec | :guest_bridge
+  @type surface_kind :: :local_subprocess | :ssh_exec | :guest_bridge | :lower_simulation
 
   @typedoc "Transport events delivered to subscribers."
   @type message :: {event_tag(), subscription_tag(), extracted_event()}

@@ -4,6 +4,7 @@ defmodule ExecutionPlane.Process.Transport.Surface.Registry do
   """
 
   @base_adapters %{
+    lower_simulation: ExecutionPlane.Process.Transport.LowerSimulation,
     local_subprocess: ExecutionPlane.Process.Transport.LocalSubprocess,
     ssh_exec: ExecutionPlane.Process.Transport.SSHExec,
     guest_bridge: ExecutionPlane.Process.Transport.GuestBridge
