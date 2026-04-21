@@ -14,6 +14,7 @@ defmodule ExecutionPlane.Testkit.ContractFixtures do
   alias ExecutionPlane.Contracts.Failure
   alias ExecutionPlane.Contracts.HttpExecutionIntent.V1, as: HttpExecutionIntent
   alias ExecutionPlane.Contracts.JsonRpcExecutionIntent.V1, as: JsonRpcExecutionIntent
+  alias ExecutionPlane.Contracts.LowerSimulationEvidence.V1, as: LowerSimulationEvidence
   alias ExecutionPlane.Contracts.NoBypassScan.V1, as: NoBypassScan
   alias ExecutionPlane.Contracts.ProcessExecutionIntent.V1, as: ProcessExecutionIntent
   alias ExecutionPlane.Contracts.StreamAttachRevocation.V1, as: StreamAttachRevocation
@@ -297,6 +298,31 @@ defmodule ExecutionPlane.Testkit.ContractFixtures do
       artifacts: [],
       metrics: %{"latency_ms" => 155},
       failure: Failure.new!(%{failure_class: :launch_failed, reason: "spawn failed"}),
+      lineage: lineage(route_id: execution_route().route_id)
+    })
+  end
+
+  @spec lower_simulation_evidence() :: LowerSimulationEvidence.t()
+  def lower_simulation_evidence do
+    LowerSimulationEvidence.new!(%{
+      scenario_ref: "lower-simulation://http/success",
+      route_id: execution_route().route_id,
+      family: "http",
+      protocol: "http",
+      side_effect_policy: "deny_external_egress",
+      side_effect_result: "not_attempted",
+      outcome_contract_version: ExecutionOutcome.contract_version(),
+      outcome_status: "succeeded",
+      outcome_family: "http",
+      input_fingerprint: %{
+        "sha256" => "sha256:" <> String.duplicate("1", 64),
+        "byte_size" => 128
+      },
+      output_fingerprint: %{
+        "sha256" => "sha256:" <> String.duplicate("2", 64),
+        "byte_size" => 64
+      },
+      raw_payload_shape: ["body", "headers", "status_code"],
       lineage: lineage(route_id: execution_route().route_id)
     })
   end

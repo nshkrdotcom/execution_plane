@@ -269,7 +269,7 @@ defmodule ExecutionPlane.Kernel do
       status: status,
       family: execution.family,
       raw_payload: execution.raw_payload,
-      artifacts: [],
+      artifacts: Map.get(execution, :artifacts, []),
       metrics:
         execution.metrics
         |> Map.put_new("started_at", started_at)

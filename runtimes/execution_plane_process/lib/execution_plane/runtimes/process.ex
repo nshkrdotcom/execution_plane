@@ -6,6 +6,7 @@ defmodule ExecutionPlane.Runtimes.Process do
 
   alias ExecutionPlane.Contracts.Failure
   alias ExecutionPlane.Kernel.DispatchPlan
+  alias ExecutionPlane.LowerSimulation
   alias ExecutionPlane.Placements.Surface
   alias ExecutionPlane.Runtimes.Process.{Exit, RunResult}
 
@@ -34,6 +35,19 @@ defmodule ExecutionPlane.Runtimes.Process do
       ) do
     start_ms = System.monotonic_time(:millisecond)
 
+    case LowerSimulation.execute_if_configured("process", intent, plan.route, start_ms) do
+      :not_configured ->
+        execute_process(intent, surface, plan, start_ms)
+
+      {:ok, execution} ->
+        {:ok, execution}
+
+      {:error, execution} ->
+        {:error, execution}
+    end
+  end
+
+  defp execute_process(intent, surface, plan, start_ms) do
     if supports_surface?(surface) do
       case run(
              command: intent.command,

@@ -5,6 +5,8 @@ defmodule ExecutionPlane.Protocols.HTTP do
 
   alias ExecutionPlane.Contracts
   alias ExecutionPlane.Kernel.DispatchPlan
+  alias ExecutionPlane.LowerSimulation
+
   @spec protocol() :: String.t()
   def protocol, do: "http"
 
@@ -29,10 +31,22 @@ defmodule ExecutionPlane.Protocols.HTTP do
     headers = normalize_headers(intent.headers)
     body = normalize_body(intent.body)
     content_type = content_type(headers, body)
-
-    ensure_http_started()
-
     start_ms = System.monotonic_time(:millisecond)
+
+    case LowerSimulation.execute_if_configured("http", intent, route, start_ms) do
+      :not_configured ->
+        execute_http_request(method, url, headers, content_type, body, timeout_ms, start_ms)
+
+      {:ok, execution} ->
+        {:ok, execution}
+
+      {:error, execution} ->
+        {:error, execution}
+    end
+  end
+
+  defp execute_http_request(method, url, headers, content_type, body, timeout_ms, start_ms) do
+    ensure_http_started()
 
     case do_request(method, url, headers, content_type, body, timeout_ms) do
       {:ok, status_code, response_headers, response_body} ->
