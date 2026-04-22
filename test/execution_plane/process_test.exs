@@ -2,6 +2,7 @@ defmodule ExecutionPlane.ProcessTest do
   use ExUnit.Case, async: false
 
   alias ExecutionPlane.Kernel.ExecutionResult
+  alias ExecutionPlane.LaneSupport
   alias ExecutionPlane.Process
 
   test "run/2 executes local subprocesses with stdin and subprocess controls" do
@@ -15,17 +16,20 @@ defmodule ExecutionPlane.ProcessTest do
       """)
 
     assert {:ok, %ExecutionResult{} = result} =
-             Process.run(%{
-               command: script,
-               argv: [],
-               cwd: Path.dirname(script),
-               env: %{"ONLY_ME" => "env-ok"},
-               clear_env: true,
-               stdin: "payload-without-newline",
-               stderr_mode: "separate",
-               close_stdin: true,
-               timeout_ms: 1_000
-             })
+             Process.run(
+               %{
+                 command: script,
+                 argv: [],
+                 cwd: Path.dirname(script),
+                 env: %{"ONLY_ME" => "env-ok"},
+                 clear_env: true,
+                 stdin: "payload-without-newline",
+                 stderr_mode: "separate",
+                 close_stdin: true,
+                 timeout_ms: 1_000
+               },
+               lineage: %{idempotency_key: "idem-process-1"}
+             )
 
     assert result.outcome.status == "succeeded"
     assert result.outcome.raw_payload.stdout == "env-ok\n"
@@ -37,6 +41,14 @@ defmodule ExecutionPlane.ProcessTest do
     assert result.plan.intent.stderr_mode == "separate"
     assert result.plan.intent.close_stdin == true
     assert File.read!(stdin_path) == "payload-without-newline"
+  end
+
+  test "lane lineage rejects missing idempotency instead of minting it" do
+    assert_raise ArgumentError,
+                 "idempotency_key must be a non-empty string, got: nil",
+                 fn ->
+                   LaneSupport.build_lineage("process", %{attempt_ref: "attempt-missing-idem"})
+                 end
   end
 
   defp write_script(body) do

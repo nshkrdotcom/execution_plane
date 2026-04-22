@@ -32,8 +32,7 @@ defmodule ExecutionPlane.LaneSupport do
         fetch_or_default(overrides, :boundary_session_id, "#{family}-boundary-session-#{token}"),
       attempt_ref: fetch_or_default(overrides, :attempt_ref, "attempt://#{family}/#{token}"),
       route_id: fetch_or_default(overrides, :route_id, "#{family}-route-#{token}"),
-      idempotency_key:
-        fetch_or_default(overrides, :idempotency_key, "#{family}-idempotency-#{token}")
+      idempotency_key: Contracts.fetch_required_stringish!(overrides, :idempotency_key)
     }
     |> maybe_put_extensions(Contracts.fetch_value(overrides, :extensions))
     |> Contracts.normalize_lineage!(@required_lineage_keys)

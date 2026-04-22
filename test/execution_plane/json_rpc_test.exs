@@ -20,7 +20,10 @@ defmodule ExecutionPlane.JsonRpcTest do
                  request: %{"method" => "session.start", "params" => %{"ok" => true}},
                  timeout_ms: 1_000
                },
-               lineage: %{attempt_ref: "attempt-jsonrpc-1"}
+               lineage: %{
+                 attempt_ref: "attempt-jsonrpc-1",
+                 idempotency_key: "idem-jsonrpc-1"
+               }
              )
 
     assert result.outcome.status == "succeeded"

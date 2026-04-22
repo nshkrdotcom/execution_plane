@@ -287,6 +287,10 @@ defmodule ExecutionPlane.Contracts do
       when is_binary(value) and byte_size(value) > 0,
       do: value
 
+  def validate_non_empty_string!(nil, field_name) do
+    raise ArgumentError, "#{field_name} must be a non-empty string, got: nil"
+  end
+
   def validate_non_empty_string!(value, field_name) when is_atom(value),
     do: value |> Atom.to_string() |> validate_non_empty_string!(field_name)
 

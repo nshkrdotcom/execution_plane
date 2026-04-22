@@ -48,4 +48,12 @@ defmodule ExecutionPlane.Contracts.ContractPacketTest do
     assert Contracts.lane_churn_fact_id("route-1", "lane-1", 3) ==
              "lane_churn:route-1:lane-1:3"
   end
+
+  test "required string fields reject nil instead of stringifying it" do
+    assert_raise ArgumentError,
+                 "idempotency_key must be a non-empty string, got: nil",
+                 fn ->
+                   Contracts.fetch_required_stringish!(%{idempotency_key: nil}, :idempotency_key)
+                 end
+  end
 end
