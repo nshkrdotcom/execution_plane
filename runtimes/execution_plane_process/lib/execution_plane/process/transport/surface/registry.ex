@@ -3,6 +3,8 @@ defmodule ExecutionPlane.Process.Transport.Surface.Registry do
   Internal registry of built-in execution-surface adapters.
   """
 
+  alias ExecutionPlane.Contracts.AdapterSelectionPolicy.V1, as: AdapterSelectionPolicy
+
   @base_adapters %{
     lower_simulation: ExecutionPlane.Process.Transport.LowerSimulation,
     local_subprocess: ExecutionPlane.Process.Transport.LocalSubprocess,
@@ -15,6 +17,17 @@ defmodule ExecutionPlane.Process.Transport.Surface.Registry do
   }
 
   @type fetch_error :: {:unsupported_surface_kind, atom() | term()}
+
+  @spec adapter_selection_policy() :: AdapterSelectionPolicy.t()
+  def adapter_selection_policy do
+    AdapterSelectionPolicy.new!(%{
+      selection_surface: "adapter_registry",
+      owner_repo: "execution_plane",
+      config_key: "execution_plane.process_transport.surface_registry",
+      default_value_when_unset: "local_subprocess",
+      fail_closed_action_when_misconfigured: "reject_surface_resolution"
+    })
+  end
 
   @spec supported_surface_kinds() :: [atom(), ...]
   def supported_surface_kinds do

@@ -2,6 +2,18 @@ defmodule ExecutionPlane.Process.Transport.SurfaceTest do
   use ExUnit.Case, async: true
 
   alias ExecutionPlane.Process.Transport.Surface
+  alias ExecutionPlane.Process.Transport.Surface.Registry
+
+  test "registry declares its Phase 6 adapter selection policy" do
+    policy = Registry.adapter_selection_policy()
+
+    assert policy.contract_version == "ExecutionPlane.AdapterSelectionPolicy.v1"
+    assert policy.selection_surface == "adapter_registry"
+    assert policy.owner_repo == "execution_plane"
+    assert policy.config_key == "execution_plane.process_transport.surface_registry"
+    assert policy.default_value_when_unset == "local_subprocess"
+    assert policy.fail_closed_action_when_misconfigured == "reject_surface_resolution"
+  end
 
   test "helper lookups expose capabilities and path semantics without leaking adapter modules" do
     assert {:ok, capabilities} = Surface.capabilities(:local_subprocess)

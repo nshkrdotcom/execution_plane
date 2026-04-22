@@ -4,6 +4,7 @@ defmodule ExecutionPlane.Testkit.ContractFixtures do
   """
 
   alias ExecutionPlane.Contracts.AttachGrant.V1, as: AttachGrant
+  alias ExecutionPlane.Contracts.AdapterSelectionPolicy.V1, as: AdapterSelectionPolicy
   alias ExecutionPlane.Contracts.AuthorityDecision.V1, as: AuthorityDecision
   alias ExecutionPlane.Contracts.BoundarySessionDescriptor.V1, as: BoundarySessionDescriptor
   alias ExecutionPlane.Contracts.CredentialHandleRef.V1, as: CredentialHandleRef
@@ -15,6 +16,7 @@ defmodule ExecutionPlane.Testkit.ContractFixtures do
   alias ExecutionPlane.Contracts.HttpExecutionIntent.V1, as: HttpExecutionIntent
   alias ExecutionPlane.Contracts.JsonRpcExecutionIntent.V1, as: JsonRpcExecutionIntent
   alias ExecutionPlane.Contracts.LowerSimulationEvidence.V1, as: LowerSimulationEvidence
+  alias ExecutionPlane.Contracts.LowerSimulationScenario.V1, as: LowerSimulationScenario
   alias ExecutionPlane.Contracts.NoBypassScan.V1, as: NoBypassScan
   alias ExecutionPlane.Contracts.ProcessExecutionIntent.V1, as: ProcessExecutionIntent
   alias ExecutionPlane.Contracts.StreamAttachRevocation.V1, as: StreamAttachRevocation
@@ -324,6 +326,48 @@ defmodule ExecutionPlane.Testkit.ContractFixtures do
       },
       raw_payload_shape: ["body", "headers", "status_code"],
       lineage: lineage(route_id: execution_route().route_id)
+    })
+  end
+
+  @spec lower_simulation_scenario() :: LowerSimulationScenario.t()
+  def lower_simulation_scenario do
+    LowerSimulationScenario.new!(%{
+      scenario_id: "lower-scenario://execution-plane/http/success",
+      version: "1.0.0",
+      owner_repo: "execution_plane",
+      route_kind: "execution_route",
+      protocol_surface: "http",
+      matcher_class: "deterministic_over_input",
+      status_or_exit_or_response_or_stream_or_chunk_or_fault_shape: %{
+        "status" => "succeeded",
+        "raw_payload_shape" => ["body", "headers", "status_code"]
+      },
+      no_egress_assertion: %{
+        "external_egress" => "deny",
+        "process_spawn" => "deny",
+        "side_effect_result" => "not_attempted"
+      },
+      bounded_evidence_projection: %{
+        "contract_version" => LowerSimulationEvidence.contract_version(),
+        "raw_payload_persistence" => "shape_only",
+        "fingerprints" => ["input", "output"]
+      },
+      input_fingerprint_ref: "fingerprint://execution-plane/input/sha256",
+      cleanup_behavior: %{
+        "runtime_artifacts" => "delete",
+        "durable_payload" => "deny_raw"
+      }
+    })
+  end
+
+  @spec adapter_selection_policy() :: AdapterSelectionPolicy.t()
+  def adapter_selection_policy do
+    AdapterSelectionPolicy.new!(%{
+      selection_surface: "adapter_registry",
+      owner_repo: "execution_plane",
+      config_key: "execution_plane.lower_runtime.adapter_registry",
+      default_value_when_unset: "normal_lower_runtime",
+      fail_closed_action_when_misconfigured: "reject_route_install"
     })
   end
 
