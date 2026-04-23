@@ -78,6 +78,9 @@ Waves 2, 3, 6, and 7 now own:
 - conformance fixtures and lower-substrate execution coverage in `execution_plane_testkit`
 - Phase 4 hazmat attach, stream pressure, stream revocation, worker budget,
   and no-bypass contracts in `execution_plane_contracts`
+- Phase 6 M10 lower no-egress evidence boundaries in
+  `execution_plane_contracts` and `ExecutionPlane.LowerSimulation`, including
+  bounded `ExecutionOutcome.v1` projection and required negative no-egress refs
 - honest documentation that container and microVM package homes are not active sandbox guarantees yet
 
 The minimum executable package homes for the substrate slice are:

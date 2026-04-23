@@ -12,6 +12,7 @@ defmodule ExecutionPlane.LowerSimulation do
   alias ExecutionPlane.Contracts.ExecutionRoute.V1, as: ExecutionRoute
   alias ExecutionPlane.Contracts.Failure
   alias ExecutionPlane.Contracts.LowerSimulationEvidence.V1, as: Evidence
+  alias ExecutionPlane.Contracts.NoEgressPolicy.V1, as: NoEgressPolicy
 
   @scenario_key :lower_simulation
   @supported_statuses ["succeeded", "failed"]
@@ -72,7 +73,7 @@ defmodule ExecutionPlane.LowerSimulation do
         descriptor.metrics
         |> Map.put_new("duration_ms", System.monotonic_time(:millisecond) - started_ms),
       failure: descriptor.failure,
-      artifacts: [evidence_artifact(route, evidence)]
+      artifacts: [evidence_artifact(route, evidence, descriptor.no_egress_policy)]
     }
 
     if descriptor.status == "succeeded", do: {:ok, execution}, else: {:error, execution}
@@ -109,6 +110,7 @@ defmodule ExecutionPlane.LowerSimulation do
          {:ok, raw_payload} <- required_raw_payload(descriptor),
          {:ok, metrics} <- optional_metrics(descriptor),
          {:ok, failure} <- optional_failure(descriptor, status),
+         {:ok, no_egress_policy} <- no_egress_policy(descriptor),
          {:ok, side_effect_policy} <- side_effect_policy(protocol, descriptor) do
       {:ok,
        %{
@@ -117,6 +119,7 @@ defmodule ExecutionPlane.LowerSimulation do
          raw_payload: raw_payload,
          metrics: metrics,
          failure: failure,
+         no_egress_policy: no_egress_policy,
          side_effect_policy: side_effect_policy
        }}
     end
@@ -177,6 +180,17 @@ defmodule ExecutionPlane.LowerSimulation do
     error in ArgumentError -> {:error, {:invalid_lower_simulation_failure, error.message}}
   end
 
+  defp no_egress_policy(descriptor) do
+    descriptor
+    |> Map.fetch("no_egress_policy")
+    |> case do
+      {:ok, policy} -> {:ok, NoEgressPolicy.new!(policy)}
+      :error -> {:error, {:missing_required_lower_simulation_key, "no_egress_policy"}}
+    end
+  rescue
+    error in ArgumentError -> {:error, {:invalid_no_egress_policy, error.message}}
+  end
+
   defp side_effect_policy("http", descriptor) do
     validate_side_effect_policy(descriptor, "deny_external_egress")
   end
@@ -229,11 +243,13 @@ defmodule ExecutionPlane.LowerSimulation do
     |> Enum.sort()
   end
 
-  defp evidence_artifact(route, %Evidence{} = evidence) do
+  defp evidence_artifact(route, %Evidence{} = evidence, %NoEgressPolicy{} = no_egress_policy) do
     %{
       "artifact_ref" => "artifact://execution-plane/lower-simulation/#{route.route_id}",
       "kind" => "lower_simulation_evidence",
       "contract_version" => Evidence.contract_version(),
+      "no_egress_policy_ref" => no_egress_policy.policy_ref,
+      "negative_evidence_refs" => no_egress_policy.required_negative_evidence,
       "evidence" => Evidence.dump(evidence)
     }
   end

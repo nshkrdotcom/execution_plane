@@ -27,6 +27,8 @@ defmodule ExecutionPlane.Contracts.ContractPacketTest do
       ContractFixtures.execution_failure_outcome(),
       ContractFixtures.lower_simulation_scenario(),
       ContractFixtures.lower_simulation_evidence(),
+      ContractFixtures.execution_evidence_boundary(),
+      ContractFixtures.no_egress_policy(),
       ContractFixtures.adapter_selection_policy(),
       ContractFixtures.stream_backpressure(),
       ContractFixtures.worker_budget(),

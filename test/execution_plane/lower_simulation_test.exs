@@ -24,6 +24,7 @@ defmodule ExecutionPlane.LowerSimulationTest do
         "lower_simulation" => %{
           "scenario_ref" => "lower-simulation://http/success",
           "side_effect_policy" => "deny_external_egress",
+          "no_egress_policy" => no_egress_policy(),
           "raw_payload" => %{
             "status_code" => 200,
             "headers" => %{"content-type" => "application/json"},
@@ -52,6 +53,13 @@ defmodule ExecutionPlane.LowerSimulationTest do
     assert evidence["output_fingerprint"]["sha256"] =~ "sha256:"
     refute Map.has_key?(evidence["input_fingerprint"], "body")
     refute Map.has_key?(evidence["output_fingerprint"], "body")
+
+    assert artifact["no_egress_policy_ref"] == "no-egress-policy://execution-plane/lower/v1"
+
+    assert Enum.sort(artifact["negative_evidence_refs"]) == [
+             "attempted_raw_external_saas_write_path",
+             "attempted_unregistered_provider_route"
+           ]
   end
 
   test "invalid http lower simulation fails before egress" do
@@ -90,6 +98,7 @@ defmodule ExecutionPlane.LowerSimulationTest do
         "lower_simulation" => %{
           "scenario_ref" => "lower-simulation://process/success",
           "side_effect_policy" => "deny_process_spawn",
+          "no_egress_policy" => no_egress_policy(),
           "raw_payload" => %{
             "stdout" => ~s({"jsonrpc":"2.0","result":{"ok":true}}),
             "stderr" => "",
@@ -109,9 +118,10 @@ defmodule ExecutionPlane.LowerSimulationTest do
     assert artifact["evidence"]["side_effect_policy"] == "deny_process_spawn"
     assert artifact["evidence"]["side_effect_result"] == "not_attempted"
     refute Map.has_key?(artifact["evidence"]["input_fingerprint"], "stdin")
+    assert artifact["no_egress_policy_ref"] == "no-egress-policy://execution-plane/lower/v1"
   end
 
-  test "invalid process lower simulation fails before process spawn" do
+  test "invalid process lower simulation no-egress policy fails before process spawn" do
     intent =
       ContractFixtures.process_execution_intent()
       |> Map.from_struct()
@@ -126,6 +136,10 @@ defmodule ExecutionPlane.LowerSimulationTest do
         "lower_simulation" => %{
           "scenario_ref" => "lower-simulation://process/invalid",
           "side_effect_policy" => "deny_external_egress",
+          "no_egress_policy" =>
+            no_egress_policy(%{
+              "required_negative_evidence" => ["attempted_unregistered_provider_route"]
+            }),
           "raw_payload" => %{"stdout" => "", "stderr" => "", "exit" => %{"code" => 0}}
         }
       })
@@ -135,6 +149,28 @@ defmodule ExecutionPlane.LowerSimulationTest do
 
     assert result.outcome.failure.failure_class == :route_unresolved
     assert result.outcome.raw_payload.side_effect_result == "blocked_before_dispatch"
-    assert result.outcome.raw_payload.error =~ "deny_process_spawn"
+    assert result.outcome.raw_payload.error =~ "required_negative_evidence"
+  end
+
+  defp no_egress_policy(overrides \\ %{}) do
+    Map.merge(
+      %{
+        "policy_ref" => "no-egress-policy://execution-plane/lower/v1",
+        "owner_repo" => "execution_plane",
+        "mode" => "deny",
+        "enforcement_boundary" => "lower_runtime",
+        "denied_surfaces" => %{
+          "external_egress" => "deny",
+          "process_spawn" => "deny",
+          "unregistered_provider_route" => "deny",
+          "raw_external_saas_write_path" => "deny"
+        },
+        "required_negative_evidence" => [
+          "attempted_unregistered_provider_route",
+          "attempted_raw_external_saas_write_path"
+        ]
+      },
+      overrides
+    )
   end
 end

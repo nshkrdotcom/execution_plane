@@ -9,6 +9,7 @@ defmodule ExecutionPlane.Testkit.ContractFixtures do
   alias ExecutionPlane.Contracts.BoundarySessionDescriptor.V1, as: BoundarySessionDescriptor
   alias ExecutionPlane.Contracts.CredentialHandleRef.V1, as: CredentialHandleRef
   alias ExecutionPlane.Contracts.ExecutionEvent.V1, as: ExecutionEvent
+  alias ExecutionPlane.Contracts.ExecutionEvidenceBoundary.V1, as: ExecutionEvidenceBoundary
   alias ExecutionPlane.Contracts.ExecutionIntentEnvelope.V1, as: ExecutionIntentEnvelope
   alias ExecutionPlane.Contracts.ExecutionOutcome.V1, as: ExecutionOutcome
   alias ExecutionPlane.Contracts.ExecutionRoute.V1, as: ExecutionRoute
@@ -18,6 +19,7 @@ defmodule ExecutionPlane.Testkit.ContractFixtures do
   alias ExecutionPlane.Contracts.LowerSimulationEvidence.V1, as: LowerSimulationEvidence
   alias ExecutionPlane.Contracts.LowerSimulationScenario.V1, as: LowerSimulationScenario
   alias ExecutionPlane.Contracts.NoBypassScan.V1, as: NoBypassScan
+  alias ExecutionPlane.Contracts.NoEgressPolicy.V1, as: NoEgressPolicy
   alias ExecutionPlane.Contracts.ProcessExecutionIntent.V1, as: ProcessExecutionIntent
   alias ExecutionPlane.Contracts.StreamAttachRevocation.V1, as: StreamAttachRevocation
   alias ExecutionPlane.Contracts.StreamBackpressure.V1, as: StreamBackpressure
@@ -327,6 +329,30 @@ defmodule ExecutionPlane.Testkit.ContractFixtures do
       raw_payload_shape: ["body", "headers", "status_code"],
       lineage: lineage(route_id: execution_route().route_id)
     })
+  end
+
+  @spec execution_evidence_boundary() :: ExecutionEvidenceBoundary.t()
+  def execution_evidence_boundary do
+    ExecutionEvidenceBoundary.new!(%{
+      owner_repo: "execution_plane",
+      outcome_ref: "execution-outcome://route-1",
+      bounded_status: "succeeded",
+      bounded_exit_code_or_response_shape: %{
+        "family" => "http",
+        "status_code" => 200,
+        "raw_payload_shape" => ["body", "headers", "status_code"]
+      },
+      input_fingerprint_ref: "fingerprint://execution-plane/input/#{String.duplicate("1", 64)}",
+      claim_check_ref_or_null: nil,
+      redacted_preview_ref_or_null: nil,
+      schema_ref: "schema://execution-plane/execution-evidence-boundary/v1",
+      scan_result: ExecutionEvidenceBoundary.scan_result("passed")
+    })
+  end
+
+  @spec no_egress_policy() :: NoEgressPolicy.t()
+  def no_egress_policy do
+    NoEgressPolicy.default_lower_boundary_policy!()
   end
 
   @spec lower_simulation_scenario() :: LowerSimulationScenario.t()

@@ -13,6 +13,10 @@ Current packet status:
   `ExecutionPlane.AttachGrant.v1`, `ExecutionPlane.StreamBackpressure.v1`,
   `ExecutionPlane.StreamAttachRevocation.v1`, `ExecutionPlane.WorkerBudget.v1`,
   and `ExecutionPlane.NoBypassScan.v1`
+- Phase 6 M10 adds `ExecutionPlane.ExecutionEvidenceBoundary.v1` and
+  `ExecutionPlane.NoEgressPolicy.v1` so lower simulation reports persist only
+  bounded shapes, refs, and scan results while `ExecutionOutcome.v1.raw_payload`
+  remains the raw lower-family outcome.
 - Phase 4 durable workflow activities use
   `ExecutionPlane.ActivitySideEffectIdempotency.v1` to bind tenant, actor,
   workflow, activity, lower run, execution intent, lease evidence, heartbeat
