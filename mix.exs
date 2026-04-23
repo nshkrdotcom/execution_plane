@@ -74,14 +74,14 @@ defmodule ExecutionPlane.MixProject do
 
   defp deps do
     [
-      {:erlexec, "~> 2.2"},
-      {:finch, "~> 0.19"},
+      {:erlexec, "~> 2.3"},
+      {:finch, "~> 0.21"},
       {:jason, "~> 1.4"},
       {:mint_web_socket, "~> 1.0"},
       {:server_sent_events, "~> 0.2"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.37", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.40", only: :dev, runtime: false}
     ]
   end
 
