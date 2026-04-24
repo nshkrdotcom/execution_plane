@@ -195,6 +195,14 @@ defmodule ExecutionPlane.MixProject do
       links: %{
         "GitHub" => @source_url
       },
+      exclude_patterns: [
+        "**/_build/**",
+        "**/deps/**",
+        "**/doc/**",
+        "**/*.beam",
+        "**/*.plt",
+        "**/*.plt.hash"
+      ],
       files: ~w(
           .formatter.exs
           LICENSE
@@ -209,13 +217,12 @@ defmodule ExecutionPlane.MixProject do
           lib
           mix.exs
           placements
-          prompts
           protocols
-          runtimes
+          runtimes/execution_plane_process
+          runtimes/execution_plane_operator_terminal/README.md
           sandboxes
           streaming
           technical
-          test
         )
     ]
   end

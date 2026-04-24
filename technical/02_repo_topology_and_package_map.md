@@ -111,6 +111,28 @@ Owns:
 - failure-class fixtures
 - lineage continuity assertions
 
+## Active Root Package Scope
+
+The root `execution_plane` Mix package compiles:
+
+- `execution_plane_contracts`
+- `execution_plane_kernel`
+- `execution_plane_http`
+- `execution_plane_jsonrpc`
+- `execution_plane_sse`
+- `execution_plane_websocket`
+- `execution_plane_local`
+- `execution_plane_ssh`
+- `execution_plane_guest`
+- `execution_plane_process`
+- `execution_plane_testkit`
+
+The operator-terminal ingress lane lives in this repo but is published from its
+own add-on Mix project at `runtimes/execution_plane_operator_terminal`.
+
+Sandbox homes remain reserved topology homes until their isolation guarantees
+are implemented and tested.
+
 ## Minimal First-Cut Scope
 
 The first executable wave must at least land:
@@ -120,7 +142,6 @@ The first executable wave must at least land:
 - `execution_plane_http`
 - `execution_plane_jsonrpc`
 - `execution_plane_process`
-- `execution_plane_operator_terminal`
 - `execution_plane_local`
 - `execution_plane_testkit`
 

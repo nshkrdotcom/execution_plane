@@ -34,6 +34,17 @@ Run at repo root in this order:
 
 Use this only for repos that do not currently advertise `mix credo` and `mix dialyzer`.
 
+### `ROOT_CI_ALIAS`
+
+Run the repo-owned `mix ci` alias. For `execution_plane`, this expands to:
+
+1. `mix format --check-formatted`
+2. `mix compile --warnings-as-errors`
+3. `MIX_ENV=test mix test`
+4. `mix credo --strict`
+5. `MIX_ENV=test mix dialyzer --force-check`
+6. `mix docs --warnings-as-errors`
+
 ### `ROOT_NO_DOCS`
 
 Run at repo root in this order:
@@ -67,7 +78,7 @@ If a wave reduces the repo to an archival shell and removes tasks or code paths,
 
 | Repo | Exact gate stack | Notes |
 | --- | --- | --- |
-| `execution_plane` | `ROOT_NO_STATIC_ANALYSIS` | this repo currently advertises `mix docs` but not `mix credo` or `mix dialyzer` |
+| `execution_plane` | `ROOT_CI_ALIAS` | root `mix ci` is the source of truth and includes static analysis plus docs warnings-as-errors |
 | `external_runtime_transport` | `ARCHIVAL_ROOT` | use full root stack while code still exists; record any archival-shell task removals explicitly |
 | `pristine` | `MONOREPO_FULL` | use the root `mix monorepo.*` aliases |
 | `prismatic` | `MONOREPO_FULL` | use the root `mix monorepo.*` aliases |

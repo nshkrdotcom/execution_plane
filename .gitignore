@@ -21,3 +21,13 @@ execution_plane-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+# Nested workspace package artifacts
+**/_build/
+**/deps/
+**/doc/
+**/cover/
+**/priv/plts/
+**/*.beam
+**/*.plt
+**/*.plt.hash

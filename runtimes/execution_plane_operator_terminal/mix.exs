@@ -13,6 +13,7 @@ defmodule ExecutionPlane.OperatorTerminal.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       docs: docs(),
+      package: package(),
       description:
         "Execution Plane operator-terminal ingress family for local, SSH, and distributed operator-facing TUIs"
     ]
@@ -34,7 +35,7 @@ defmodule ExecutionPlane.OperatorTerminal.MixProject do
 
   defp deps do
     [
-      {:ex_ratatui, "~> 0.7.1"},
+      {:ex_ratatui, "~> 0.8.0"},
       {:credo, "~> 1.7.18", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4.7", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.40.1", only: :dev, runtime: false}
@@ -49,6 +50,22 @@ defmodule ExecutionPlane.OperatorTerminal.MixProject do
       extras: [
         {"README.md", filename: "readme"}
       ]
+    ]
+  end
+
+  defp package do
+    [
+      maintainers: ["nshkrdotcom"],
+      licenses: ["MIT"],
+      links: %{
+        "GitHub" => @source_url
+      },
+      files: ~w(
+        .formatter.exs
+        README.md
+        lib
+        mix.exs
+      )
     ]
   end
 end

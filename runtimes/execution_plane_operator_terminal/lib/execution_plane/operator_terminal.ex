@@ -60,8 +60,7 @@ defmodule ExecutionPlane.OperatorTerminal do
         {:error, :not_found}
 
       server ->
-        GenServer.stop(server, :normal)
-        :ok
+        safe_stop(server)
     end
   end
 
@@ -111,5 +110,16 @@ defmodule ExecutionPlane.OperatorTerminal do
     GenServer.call(server, :info)
   catch
     :exit, _reason -> nil
+  end
+
+  defp safe_stop(pid) when is_pid(pid) do
+    if Process.alive?(pid), do: stop_live_server(pid), else: {:error, :not_found}
+  end
+
+  defp stop_live_server(server) do
+    GenServer.stop(server, :normal)
+    :ok
+  catch
+    :exit, _reason -> {:error, :not_found}
   end
 end

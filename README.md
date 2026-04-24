@@ -83,23 +83,39 @@ Waves 2, 3, 6, and 7 now own:
   bounded `ExecutionOutcome.v1` projection and required negative no-egress refs
 - honest documentation that container and microVM package homes are not active sandbox guarantees yet
 
-The minimum executable package homes for the substrate slice are:
+The root `execution_plane` Mix package currently compiles these active package
+homes:
+
+- `core/execution_plane_contracts`
+- `core/execution_plane_kernel`
+- `protocols/execution_plane_http`
+- `protocols/execution_plane_jsonrpc`
+- `streaming/execution_plane_sse`
+- `streaming/execution_plane_websocket`
+- `placements/execution_plane_local`
+- `placements/execution_plane_ssh`
+- `placements/execution_plane_guest`
+- `runtimes/execution_plane_process`
+- `conformance/execution_plane_testkit`
+
+The minimum executable substrate slice is narrower than the root package. It is
+the first-cut capability set returned by `ExecutionPlane.minimal_first_cut/0`:
 
 - `core/execution_plane_contracts`
 - `core/execution_plane_kernel`
 - `protocols/execution_plane_http`
 - `protocols/execution_plane_jsonrpc`
 - `placements/execution_plane_local`
-- `placements/execution_plane_ssh`
-- `placements/execution_plane_guest`
 - `runtimes/execution_plane_process`
-- `runtimes/execution_plane_operator_terminal`
 - `conformance/execution_plane_testkit`
 
-Reserved package homes for later waves are still tracked so topology and ownership stop drifting:
+`runtimes/execution_plane_operator_terminal` is a separate add-on Mix package
+inside this repo. It is intentionally not part of the root package so base
+runtime consumers do not inherit terminal UI dependencies.
 
-- `streaming/execution_plane_sse`
-- `streaming/execution_plane_websocket`
+Reserved sandbox package homes are tracked for ownership clarity, but they are
+not active sandbox guarantees yet:
+
 - `sandboxes/execution_plane_container`
 - `sandboxes/execution_plane_microvm`
 
@@ -110,11 +126,13 @@ mix deps.get
 mix format
 mix compile --warnings-as-errors
 mix test
-mix docs
+mix docs --warnings-as-errors
 ```
 
-The repo gate for `execution_plane` is `ROOT_NO_STATIC_ANALYSIS` from
-[`technical/12_repo_quality_gate_command_matrix.md`](technical/12_repo_quality_gate_command_matrix.md).
+The repo gate for `execution_plane` is root `mix ci`, which runs format checks,
+compile warnings-as-errors, tests, Credo, Dialyzer, and docs warnings-as-errors.
+[`technical/12_repo_quality_gate_command_matrix.md`](technical/12_repo_quality_gate_command_matrix.md)
+is kept aligned with that alias.
 
 Wave 3 proves the covered minimal-lane adoption used by `pristine`,
 `cli_subprocess_core`, `codex_sdk`, and `reqllm_next`, and freezes the helper

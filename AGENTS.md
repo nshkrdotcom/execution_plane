@@ -5,6 +5,13 @@
 
 # AGENTS.md
 
+## Execution Plane stack rules
+
+- The root `mix.exs` is the lower runtime substrate package; `runtimes/execution_plane_operator_terminal/mix.exs` is a separate add-on package.
+- Keep active root-compiled homes, add-on homes, and reserved sandbox homes distinct in docs.
+- Do not move family-kit or product semantics into this repo. `cli_subprocess_core`, `pristine`, `prismatic`, and self-hosted runtime kits own their semantic layers above this substrate.
+- The repo gate is `mix ci`.
+
 ## Temporal developer environment
 
 Temporal CLI is implicitly available on this workstation as `temporal` for local durable-workflow development. Do not make repo code silently depend on that implicit machine state; prefer explicit scripts, documented versions, and README-tracked ergonomics work.
