@@ -94,8 +94,8 @@ If a wave reduces the repo to an archival shell and removes tasks or code paths,
 | `agent_session_manager` | `ROOT_FULL` | root repo commands |
 | `self_hosted_inference_core` | `ROOT_FULL` | root repo commands |
 | `llama_cpp_sdk` | `ROOT_FULL` | root repo commands |
-| `jido_harness` | `ROOT_FULL` | the repo also exposes `mix quality`; the packet source of truth remains the explicit root stack above |
 | `jido_integration` | `MONOREPO_FULL` | use the root `mix monorepo.*` aliases |
+| `citadel` | `ROOT_FULL` | Brain kernel; authority compilation and `AuthorityDecision.v1` author |
 | `packet_docs` | packet-local validation commands | run reference scan, stale-name scan, metadata alignment scan, and Elixir parse checks |
 
 ## Packet-Local Validation Commands

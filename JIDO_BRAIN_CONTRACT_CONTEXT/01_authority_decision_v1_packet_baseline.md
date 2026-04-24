@@ -2,11 +2,11 @@
 
 ## Purpose
 
-This file captures the Brain-side contract baseline that the packet assumes while `jido_os` itself stays out of execution scope.
+This file captures the Brain-side contract baseline for `citadel`.
 
 ## Ownership And Flow
 
-- contract owner: `jido_os`
+- contract owner: `citadel`
 - carrier and durable persistence owner: `jido_integration`
 - downstream flow: Brain -> Spine -> family or facade -> Execution Plane
 
@@ -44,4 +44,4 @@ This file captures the Brain-side contract baseline that the packet assumes whil
 
 ## Versioning Rule
 
-If the future `jido_os` rebuild needs different required fields or different field semantics, that is a contract-version event, not an incidental doc tweak. The rebuild should introduce `AuthorityDecision.v2` or another explicitly versioned successor and migrate the packet deliberately.
+If the Brain contract needs different required fields or different field semantics, that is a contract-version event, not an incidental doc tweak. The change should introduce `AuthorityDecision.v2` or another explicitly versioned successor and migrate the packet deliberately.

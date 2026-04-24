@@ -24,14 +24,18 @@ Without that rule, the Execution Plane will leak upward and the family kits or f
 | `self_hosted_inference_core` | service-runtime semantics | yes, mapped | raw process runtime primitives as public API |
 | `llama_cpp_sdk` | backend semantics | yes, mapped | lower service runtime mechanics |
 | `agent_session_manager` | provider-neutral session orchestration | yes, mapped | transport or provider protocol internals |
-| `jido_harness` | public runtime-driver and facade IR | yes, mapped | wholesale re-export of `execution_plane` |
-| `jido_integration` | durable control-plane and boundary APIs | yes, carried | live transport or runtime implementation |
-| `jido_os` | authority and policy APIs | yes, carried indirectly | lower execution mechanics |
+| `jido_integration` | durable control-plane, boundary APIs, access graph; public facade `Jido.Integration.V2` | yes, carried | live transport or runtime implementation |
+| `citadel` | authority and policy APIs, domain governance | yes, carried indirectly | lower execution mechanics, memory storage, proof-token ownership |
+| `outer_brain` | semantic runtime, context packs, recall orchestration | yes, carried indirectly | governed writes, access graph mutation, proof tokens |
+| `mezzanine` | durable workflow, promotion, audit, Temporal | yes, carried indirectly | raw semantic provider policy in lower execution layers |
+| `app_kit` | product surfaces, operator controls, memory-control DTOs | no EP contracts in product surface | direct tier-store writes or lower bypass |
+
+`jido_integration` is the current public-facade repo for contract mapping. `citadel` is the Brain.
 
 ## Contract Carriage Rules
 
 - `execution_plane_contracts` owns the canonical structs, validators, enums, and fixtures
-- `jido_integration`, `jido_harness`, and `agent_session_manager` may carry those contracts
+- `jido_integration`, `citadel` (indirectly), and `agent_session_manager` may carry those contracts
 - family kits may emit or consume mapped forms of those contracts
 - provider SDKs consume family-kit surfaces or mapped contract projections, not raw Execution Plane packages
 - if downstream adoption exposes an upstream surface or contract defect, fixing that upstream repo is part of closing the active wave

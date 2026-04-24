@@ -24,7 +24,7 @@ The matrix encodes the planned primary repo subset and the named conditional ups
 
 It does not attempt to encode every exceptional ADR-016 upstream touch, because those are wave-local exceptions rather than planned participation.
 
-It also excludes `jido_os`, which remains architectural context only for this packet and is represented instead through `JIDO_BRAIN_CONTRACT_CONTEXT/`.
+`citadel` is the Brain. `jido_integration` serves the public facade `Jido.Integration.V2`. `JIDO_BRAIN_CONTRACT_CONTEXT/` preserves the packet's Brain-side contract lineage.
 
 ## Repo Participation Matrix
 
@@ -46,8 +46,8 @@ It also excludes `jido_os`, which remains architectural context only for this pa
 | `agent_session_manager` | x |  |  |  | x | x |  | x |  |
 | `self_hosted_inference_core` |  |  |  |  |  |  | x | x |  |
 | `llama_cpp_sdk` |  |  |  |  |  |  | x | x |  |
-| `jido_harness` | x |  |  |  | x | x |  | x |  |
 | `jido_integration` | x |  |  |  | x | x | x | x |  |
+| `citadel` | x |  |  |  | x | x |  | x |  |
 
 ## Packet Control Asset
 
@@ -73,14 +73,8 @@ It also excludes `jido_os`, which remains architectural context only for this pa
 | `/home/home/p/g/n/agent_session_manager` | consume execution-plane contracts without owning transport |
 | `/home/home/p/g/n/self_hosted_inference_core` | adopt Execution Plane process/runtime packages while keeping service-runtime ownership |
 | `/home/home/p/g/n/llama_cpp_sdk` | adopt updated service-runtime contracts |
-| `/home/home/p/g/n/jido_harness` | align public IR to the Brain/Spine/Execution Plane split without owning lower runtime mechanics |
-| `/home/home/p/g/n/jido_integration` | project durable truth into execution-plane contracts and own durable boundary descriptors |
-
-## Architectural Repo Referenced But Not Modified By This Packet
-
-| Path | Reason |
-| --- | --- |
-| `/home/home/p/g/n/jido_os` | remains the architectural Brain, but this packet consumes the preserved Brain-contract snapshot in `JIDO_BRAIN_CONTRACT_CONTEXT/` while the repo is rebuilt separately |
+| `/home/home/p/g/n/jido_integration` | project durable truth into execution-plane contracts; own durable boundary descriptors; expose `Jido.Integration.V2` public facade |
+| `/home/home/p/g/n/citadel` | Brain kernel; authority compilation; `AuthorityDecision.v1` author; align Brain/Spine/Execution Plane split
 
 ## Existing Repo To Retire From Active Runtime Ownership
 

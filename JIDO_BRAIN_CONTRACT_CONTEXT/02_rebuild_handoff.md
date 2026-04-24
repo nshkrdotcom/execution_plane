@@ -1,8 +1,8 @@
 # Brain Rebuild Handoff
 
-## What The Future `jido_os` Rebuild Must Preserve Or Replace Deliberately
+## What The Current Brain Contract Must Preserve Or Replace Deliberately
 
-- Brain ownership of authority, trust, approval-policy, boundary, and topology direction
+- Brain ownership of authority, trust, approval-policy, boundary, and topology direction in `citadel`
 - authored decision contracts that can be carried durably through `jido_integration`
 - a clean separation between policy authorship and live runtime mechanics
 - stable policy identity for replay, audit, and route linkage
@@ -10,12 +10,12 @@
 
 ## What This Packet Intentionally Does Not Decide
 
-- the internal architecture of the rebuilt Brain
+- the internal architecture of the Brain implementation
 - the Brain's UI, interactive workflow, or sync convenience APIs
 - the internal policy compiler or decision engine structure
 - any transport, guest bridge, sandbox adapter, or runtime driver implementation
 
-## If The Rebuild Diverges
+## If The Brain Contract Diverges
 
 - update this directory first so packet assumptions are honest
 - treat any semantic break as a versioned contract change

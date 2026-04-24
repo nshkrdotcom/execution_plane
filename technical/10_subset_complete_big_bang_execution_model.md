@@ -23,7 +23,7 @@ The corrected method is a subset-complete big bang:
 - contract packet and public-surface rules freeze before broad adoption waves begin
 - conformance is part of delivery, not cleanup
 - upstream fixes are allowed within the active wave when adoption exposes an upstream defect
-- the packet uses `JIDO_BRAIN_CONTRACT_CONTEXT/` as the Brain-side contract baseline; `jido_os` itself is not an implementation target or conditional upstream repo here
+- the Brain is `citadel` (`/home/home/p/g/n/citadel`); `JIDO_BRAIN_CONTRACT_CONTEXT/` preserves the packet's Brain-side contract lineage
 
 ## Capability Waves
 
@@ -40,13 +40,14 @@ Repo subset:
 
 - `execution_plane`
 - `jido_integration`
-- `jido_harness`
 - `agent_session_manager`
+
+`jido_integration` serves the public facade `Jido.Integration.V2`.
 
 Wave gate:
 
 - contracts, owners, and public surfaces are provisionally frozen and documented
-- the same vocabulary exists in the packet-local Brain contract context, Spine, Execution Plane, and facade docs
+- the same vocabulary exists in the Brain contract context (`citadel`), Spine, Execution Plane, and facade docs
 - minimal-lane family intent details remain open to Wave 3 prove-out corrections
 
 ### Wave 2: Kernel And Minimal Package Topology
@@ -142,7 +143,8 @@ Repo subset:
 
 - `execution_plane`
 - `jido_integration`
-- `jido_harness`
+- `mezzanine`
+- `citadel`
 - `agent_session_manager`
 
 Wave gate:
@@ -150,7 +152,7 @@ Wave gate:
 - raw execution facts and durable meaning are cleanly separated
 - no raw long-lived secrets move through execution intents
 - session-bearing lane contracts are frozen before session-bearing implementation begins
-- Brain-side authority semantics are consumed from `JIDO_BRAIN_CONTRACT_CONTEXT/` rather than patched in `jido_os`
+- Brain-side authority semantics are validated against `citadel` source
 
 ### Wave 6: Session-Bearing Lane Convergence
 
@@ -172,14 +174,15 @@ Repo subset:
 - `gemini_cli_sdk`
 - `amp_sdk`
 - `agent_session_manager`
-- `jido_harness`
 - `jido_integration`
+- `mezzanine`
+
+`jido_integration` serves the public facade `Jido.Integration.V2`.
 
 Conditional upstream scope:
 
-- no repo is named in the packet baseline
-- any non-`jido_os` upstream repo whose aligned contract semantics require correction to close the lane may be promoted under ADR-016
-- mismatches against the Brain-side contract snapshot in `JIDO_BRAIN_CONTRACT_CONTEXT/` are blockers for the separate `jido_os` rebuild packet rather than same-wave scope here
+- any upstream repo whose aligned contract semantics require correction to close the lane may be promoted under ADR-016
+- Brain-side contract mismatches are resolved against `citadel` source
 
 Wave gate:
 
@@ -236,7 +239,6 @@ Repo subset:
 - `agent_session_manager`
 - `self_hosted_inference_core`
 - `llama_cpp_sdk`
-- `jido_harness`
 - `jido_integration`
 
 Wave gate:

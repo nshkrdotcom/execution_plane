@@ -56,7 +56,7 @@ Direction:
 
 Owner:
 
-- `/home/home/p/g/n/jido_os`
+- `/home/home/p/g/n/citadel` (Brain; authority compilation and policy direction)
 
 Carrier and durable persistence owner:
 
@@ -460,8 +460,7 @@ Execution-plane contracts live in:
 
 They may be carried by:
 
-- `/home/home/p/g/n/jido_integration`
-- `/home/home/p/g/n/jido_harness`
+- `/home/home/p/g/n/jido_integration` (public facade: `Jido.Integration.V2`)
 - `/home/home/p/g/n/agent_session_manager`
 
 They must not be exposed wholesale as the public product API of higher repos.

@@ -6,7 +6,7 @@
 
 Repo:
 
-- `/home/home/p/g/n/jido_os`
+- `/home/home/p/g/n/citadel`
 
 Owns:
 
@@ -16,6 +16,9 @@ Owns:
 - approval policy direction
 - workload-topology intent
 - authored `AuthorityDecision.v1` contracts
+- `BoundaryIntent`, `TopologyIntent`, `InvocationRequest.V2`
+- `KernelSnapshot`, `SignalIngress`, `BoundaryLeaseTracker`
+- bridges to `jido_integration` and `outer_brain`
 
 Must not own:
 
@@ -24,6 +27,7 @@ Must not own:
 - subprocess, socket, or stream lifecycle
 - durable run or attempt truth
 - lower execution facts
+- memory storage or proof-token ownership
 
 ### Spine
 
@@ -97,19 +101,36 @@ Provider and product repos that stay above those family kits:
 - `/home/home/p/g/n/amp_sdk`
 - `/home/home/p/g/n/llama_cpp_sdk`
 
-Orchestration and facade repos that remain above or beside those layers:
+Orchestration repos that remain above or beside those layers:
 
 - `/home/home/p/g/n/agent_session_manager`
-- `/home/home/p/g/n/jido_harness`
+
+Durable substrate, semantic runtime, and product boundary (above Spine):
+
+- `/home/home/p/g/n/mezzanine` — durable business-semantics substrate; Temporal workflow runtime; PackModel; lifecycle/execution/decision engines; promotion coordinator; proof tokens; audit
+- `/home/home/p/g/n/outer_brain` — semantic-runtime gateway; recall orchestration; private memory write; context pack; SemanticProvider contract
+- `/home/home/p/g/n/app_kit` — northbound product boundary; `mix app_kit.no_bypass` enforcement; operator/work/review surfaces
+- `/home/home/p/g/n/extravaganza` — product proving ground; thin product above AppKit
+
+Cross-cutting infrastructure:
+
+- `/home/home/p/g/n/ground_plane` — shared lower primitives; Postgres helpers; projection
+- `/home/home/p/g/n/AITrace` — unified observability; Trace/Span/Event/Collector
+- `/home/home/p/g/n/stack_lab` — proof composition; cross-repo harnesses; does not replace owner quality gates
 
 ## Hard Rules
 
 - No repo above the Execution Plane may own transport reality.
 - No repo below the Spine may own durable boundary/session truth.
-- No repo below the Brain may reinterpret policy.
+- `citadel` is the Brain and owns authority and policy direction.
 - The Execution Plane owns execution facts, not durable execution truth.
 - Semantic family kits must not be flattened into the Execution Plane.
-- `jido_harness` may map contracts, but may not turn the Execution Plane into the public product API.
+- `jido_integration` carries contracts but must not turn the Execution Plane into the public product API.
+- `mezzanine` owns Temporal. Use `just dev-up` in `/p/g/n/mezzanine`; do not use raw `temporal server start-dev`.
+- `app_kit` is the product boundary. Product code must pass `mix app_kit.no_bypass`.
+- `outer_brain` must not own governed writes, access graph mutation, or proof tokens.
+- Memory updates are supersession, never mutation: new rows with parent links; existing provenance is immutable.
+- All durable memory, policy, proof, graph, and audit state stays in Elixir-owned Postgres transactions; external services compute but do not govern.
 
 ## Distributed Semantics Rule
 

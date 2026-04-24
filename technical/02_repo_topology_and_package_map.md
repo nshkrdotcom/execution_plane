@@ -171,9 +171,18 @@ Provider and product repos:
 Orchestration and control:
 
 - `/home/home/p/g/n/agent_session_manager`
-- `/home/home/p/g/n/jido_harness`
-- `/home/home/p/g/n/jido_integration`
-- `/home/home/p/g/n/jido_os`
+- `/home/home/p/g/n/jido_integration` (Spine; public facade `Jido.Integration.V2`)
+- `/home/home/p/g/n/citadel` (Brain; authority compilation; `AuthorityDecision.v1` author)
+
+Durable substrate, semantic runtime, and product boundary:
+
+- `/home/home/p/g/n/mezzanine` (Temporal; PackModel; lifecycle/execution/decision engines; promotion; audit)
+- `/home/home/p/g/n/outer_brain` (semantic runtime; recall; context pack; SemanticProvider)
+- `/home/home/p/g/n/app_kit` (northbound product boundary; `mix app_kit.no_bypass`)
+- `/home/home/p/g/n/extravaganza` (product proving ground)
+- `/home/home/p/g/n/ground_plane` (shared lower primitives; Postgres/projection helpers)
+- `/home/home/p/g/n/AITrace` (unified observability)
+- `/home/home/p/g/n/stack_lab` (proof composition)
 
 ## Repo To Retire From Active Ownership
 

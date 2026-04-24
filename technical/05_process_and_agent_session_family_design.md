@@ -97,11 +97,11 @@ After refactor it:
 
 Repo:
 
-- `/home/home/p/g/n/jido_harness`
+- `/home/home/p/g/n/jido_integration` (public facade: `Jido.Integration.V2`)
 
 After refactor it:
 
-- remains a contract and driver facade
+- serves as the contract and driver facade via `Jido.Integration.V2`
 - may map execution-plane contracts into public runtime-driver APIs
 - must not become a thin public alias for the Execution Plane
 

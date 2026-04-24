@@ -55,19 +55,19 @@ Wave 3 is the explicit prove-out and correction wave for minimal-lane contracts 
 
 If a wave exposes an upstream defect in a dependency repo that blocks closure of the current wave:
 
-- that upstream repo is explicitly in scope for the minimal fix required, except `jido_os`
+- that upstream repo is explicitly in scope for the minimal fix required
 - the upstream repo must run its relevant gates
 - the impacted downstream repo must rerun its relevant gates
 - the checklist must record the upstream repo touch and the reason
 
-## Brain Repo Exception Rule
+## Brain Repo Rule (Updated 2026-04-24)
 
-`jido_os` remains the architectural Brain, but it is out of implementation scope for this packet.
+The Brain is `/home/home/p/g/n/citadel`.
 
-- this packet uses `JIDO_BRAIN_CONTRACT_CONTEXT/README.md` and `JIDO_BRAIN_CONTRACT_CONTEXT/01_authority_decision_v1_packet_baseline.md` as the Brain-side contract baseline
-- no wave in this packet may target or promote `jido_os` under ADR-016
-- if a Brain-side contract ambiguity is discovered, update `JIDO_BRAIN_CONTRACT_CONTEXT/` only when the packet snapshot itself is unclear
-- if the required fix is an actual repo or code change in `jido_os`, record a blocker or rebuild follow-up instead of touching the repo
+- `JIDO_BRAIN_CONTRACT_CONTEXT/` preserves the packet's Brain-side contract lineage
+- read `citadel`'s `AGENTS.md` and source as the current Brain-side truth
+- when a Brain-side contract ambiguity arises, consult `citadel` source first
+- Brain-side changes are in scope under ADR-016 when adoption exposes a dependency defect in `citadel`
 
 ## Gate Command Rule
 
@@ -90,7 +90,7 @@ If ADR-016 forces a same-wave upstream touch outside the prompt's currently name
 - then update that wave's checklist to mirror the same named scope
 - then add the same-wave commit section in `prompts/commit-message.txt`
 - then rerun packet-local metadata validation
-- only after those updates may that repo be treated as valid same-wave optional scope, except `jido_os`, which remains governed by the Brain Repo Exception Rule above
+- only after those updates may that repo be treated as valid same-wave optional scope (see Brain Repo Rule above for how to handle Brain-side defects in `citadel`)
 
 ## Wave Evidence Rule
 

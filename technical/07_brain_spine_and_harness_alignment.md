@@ -1,13 +1,16 @@
 # Brain, Spine, And Harness Alignment
 
-## `/home/home/p/g/n/jido_os`
+## `/home/home/p/g/n/citadel` (Brain)
 
 After refactor:
 
-- stays Brain
+- is the Brain
 - authors `AuthorityDecision.v1`
 - authors boundary, trust, approval, and topology direction
+- owns `BoundaryIntent`, `TopologyIntent`, `InvocationRequest.V2`, `KernelSnapshot`, `SignalIngress`, `BoundaryLeaseTracker`
+- bridges to `jido_integration` and `outer_brain`
 - does not host lower runtime code
+- does not own memory storage or proof-token ownership
 
 ## `/home/home/p/g/n/jido_integration`
 
@@ -20,13 +23,14 @@ After refactor:
 - projects Brain-authored intent into Execution Plane contracts
 - does not own live execution mechanics
 
-## `/home/home/p/g/n/jido_harness`
+## `jido_integration` Public Facade (`Jido.Integration.V2`)
 
 After refactor:
 
-- remains a facade and IR package
+- `jido_integration` exposes `Jido.Integration.V2` as the public facade
 - may map or carry execution-plane contracts
 - must not become the Execution Plane public API
+- must not expose raw lower transport surfaces
 
 ## `/home/home/p/g/n/agent_session_manager`
 
@@ -41,22 +45,31 @@ After refactor:
 
 Authoritative async-first shape:
 
-`jido_os`
-  -> `jido_integration`
-  -> family kit or `jido_harness`
-  -> Spine-authored execution contract
-  -> `execution_plane`
-  -> external world
-  -> raw execution events and outcomes
-  -> `jido_integration`
+```
+extravaganza (product intent)
+  -> app_kit (product boundary enforcement)
+    -> citadel (AuthorityDecision.v1)
+    -> outer_brain (context pack, recall)
+      -> mezzanine (pack lifecycle, Temporal dispatch)
+        -> jido_integration (Spine durable truth, Jido.Integration.V2)
+          -> family kit (cli_subprocess_core / pristine / reqllm_next / …)
+            -> execution_plane (live transport)
+              -> external world
+                -> ExecutionEvent.v1, ExecutionOutcome.v1
+                  -> jido_integration (durable meaning)
+                    -> mezzanine (evidence, audit, promotion)
+```
 
 Synchronous convenience surfaces may exist above this core, but the durable architecture is async-first.
 
 ## Anti-Leak Rules
 
-- `jido_harness` may carry or map contracts, but may not re-export the Execution Plane workspace as its public surface
+- `jido_integration` may carry or map contracts, but may not re-export the Execution Plane workspace as its public surface
 - `jido_integration` may project intents, but may not host transport runtime code
 - `agent_session_manager` may orchestrate session state, but may not parse provider protocols that belong in provider or family layers
+- `outer_brain` must not own governed writes, access graph mutation, proof tokens, or policy storage
+- `mezzanine` must not push raw semantic provider/model policy into lower execution layers
+- `app_kit` and product code must not import lower stores directly
 
 ## Identity And Secret Rules
 
