@@ -53,4 +53,23 @@ defmodule ExecutionPlane.MinimalLaneContractTest do
     assert intent.stderr_mode == "stdout"
     assert intent.close_stdin == false
   end
+
+  test "ProcessExecutionIntent.v1 permits empty argv values" do
+    envelope =
+      ContractFixtures.execution_intent_envelope()
+      |> Map.from_struct()
+      |> Map.put(:family, "process")
+      |> Map.put(:protocol, "process")
+      |> Envelope.new!()
+
+    intent =
+      ProcessExecutionIntent.new!(%{
+        envelope: envelope,
+        command: "claude",
+        argv: ["--system-prompt", ""],
+        stdio_mode: "pipe"
+      })
+
+    assert intent.argv == ["--system-prompt", ""]
+  end
 end

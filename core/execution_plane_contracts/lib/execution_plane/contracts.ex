@@ -306,6 +306,20 @@ defmodule ExecutionPlane.Contracts do
     raise ArgumentError, "#{field_name} must be a non-empty string, got: #{inspect(value)}"
   end
 
+  @spec validate_string!(term(), String.t()) :: String.t()
+  def validate_string!(value, _field_name) when is_binary(value), do: value
+
+  def validate_string!(nil, field_name) do
+    raise ArgumentError, "#{field_name} must be a string, got: nil"
+  end
+
+  def validate_string!(value, field_name) when is_atom(value),
+    do: value |> Atom.to_string() |> validate_string!(field_name)
+
+  def validate_string!(value, field_name) do
+    raise ArgumentError, "#{field_name} must be a string, got: #{inspect(value)}"
+  end
+
   @spec validate_opaque_handle_ref!(term(), String.t()) :: String.t()
   def validate_opaque_handle_ref!(value, field_name) do
     value = validate_non_empty_string!(value, field_name)

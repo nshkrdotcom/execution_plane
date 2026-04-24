@@ -100,7 +100,7 @@ defmodule ExecutionPlane.Contracts.ProcessExecutionIntent.V1 do
           attrs,
           :argv,
           [],
-          &Contracts.validate_non_empty_string!(&1, "argv")
+          &Contracts.validate_string!(&1, "argv")
         ),
       env_projection: Contracts.fetch_optional_map!(attrs, :env_projection, %{}),
       cwd: Contracts.fetch_optional_stringish!(attrs, :cwd),
