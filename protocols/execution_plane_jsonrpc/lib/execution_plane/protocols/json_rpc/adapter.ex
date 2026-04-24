@@ -43,8 +43,7 @@ defmodule ExecutionPlane.Protocols.JsonRpc.Adapter do
     end
   end
 
-  @spec handle_inbound(binary(), t()) ::
-          {:ok, [term()], t()} | {:error, term()}
+  @spec handle_inbound(binary(), t()) :: {:ok, [term()], t()}
   def handle_inbound(frame, %__MODULE__{} = state) when is_binary(frame) do
     case Jason.decode(frame) do
       {:ok, %{} = message} ->
@@ -64,8 +63,7 @@ defmodule ExecutionPlane.Protocols.JsonRpc.Adapter do
     end
   end
 
-  @spec encode_peer_reply(term(), {:ok, term()} | {:error, term()}, t()) ::
-          {:ok, binary(), t()} | {:error, term()}
+  @spec encode_peer_reply(term(), {:ok, term()} | {:error, term()}, t()) :: {:ok, binary(), t()}
   def encode_peer_reply(correlation_key, {:ok, result}, %__MODULE__{} = state) do
     frame =
       %{"id" => correlation_key, "result" => result}

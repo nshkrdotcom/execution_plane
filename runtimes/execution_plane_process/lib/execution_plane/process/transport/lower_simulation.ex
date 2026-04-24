@@ -69,10 +69,12 @@ defmodule ExecutionPlane.Process.Transport.LowerSimulation do
   @impl Adapter
   def normalize_transport_options(options) when is_list(options) do
     if Keyword.keyword?(options) do
-      with {:ok, _scenario} <- validate_options(options) do
-        {:ok, options}
-      else
-        {:error, reason} -> {:error, {:invalid_transport_options, reason}}
+      case validate_options(options) do
+        {:ok, _scenario} ->
+          {:ok, options}
+
+        {:error, reason} ->
+          {:error, {:invalid_transport_options, reason}}
       end
     else
       {:error, {:invalid_transport_options, options}}
@@ -115,33 +117,35 @@ defmodule ExecutionPlane.Process.Transport.LowerSimulation do
 
   @impl GenServer
   def init(opts) do
-    with {:ok, scenario} <- scenario(opts) do
-      delivery = Delivery.new(Keyword.get(opts, :event_tag, @event_tag))
+    case scenario(opts) do
+      {:ok, scenario} ->
+        delivery = Delivery.new(Keyword.get(opts, :event_tag, @event_tag))
 
-      state =
-        %__MODULE__{
-          command: Keyword.get(opts, :command),
-          delivery: delivery,
-          event_tag: delivery.tagged_event_tag,
-          exit: scenario.exit,
-          scenario_ref: scenario.scenario_ref,
-          surface_kind: Keyword.get(opts, :surface_kind, @surface_kind),
-          target_id: Keyword.get(opts, :target_id),
-          lease_ref: Keyword.get(opts, :lease_ref),
-          surface_ref: Keyword.get(opts, :surface_ref),
-          boundary_class: Keyword.get(opts, :boundary_class),
-          observability: Keyword.get(opts, :observability, %{}),
-          adapter_capabilities: Keyword.get(opts, :adapter_capabilities, capabilities()),
-          effective_capabilities: Keyword.get(opts, :effective_capabilities, capabilities()),
-          stdout_frames: scenario.stdout_frames,
-          stderr_frames: scenario.stderr_frames
-        }
-        |> maybe_put_subscriber(Keyword.get(opts, :subscriber))
+        state =
+          %__MODULE__{
+            command: Keyword.get(opts, :command),
+            delivery: delivery,
+            event_tag: delivery.tagged_event_tag,
+            exit: scenario.exit,
+            scenario_ref: scenario.scenario_ref,
+            surface_kind: Keyword.get(opts, :surface_kind, @surface_kind),
+            target_id: Keyword.get(opts, :target_id),
+            lease_ref: Keyword.get(opts, :lease_ref),
+            surface_ref: Keyword.get(opts, :surface_ref),
+            boundary_class: Keyword.get(opts, :boundary_class),
+            observability: Keyword.get(opts, :observability, %{}),
+            adapter_capabilities: Keyword.get(opts, :adapter_capabilities, capabilities()),
+            effective_capabilities: Keyword.get(opts, :effective_capabilities, capabilities()),
+            stdout_frames: scenario.stdout_frames,
+            stderr_frames: scenario.stderr_frames
+          }
+          |> maybe_put_subscriber(Keyword.get(opts, :subscriber))
 
-      send(self(), :playback)
-      {:ok, state}
-    else
-      {:error, {:transport, %Error{}} = error} -> {:stop, error}
+        send(self(), :playback)
+        {:ok, state}
+
+      {:error, {:transport, %Error{}} = error} ->
+        {:stop, error}
     end
   end
 

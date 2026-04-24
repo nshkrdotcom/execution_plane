@@ -2,10 +2,9 @@ defmodule ExecutionPlane.Process.Transport.SSHExec do
   @moduledoc false
 
   alias ExecutionPlane.Command
-  alias ExecutionPlane.Process.Transport.Surface.Adapter
-  alias ExecutionPlane.Process.Transport.Surface.Capabilities
   alias ExecutionPlane.Process.Transport
   alias ExecutionPlane.Process.Transport.{Error, RunResult, Subprocess}
+  alias ExecutionPlane.Process.Transport.Surface.{Adapter, Capabilities}
 
   @behaviour Adapter
   @behaviour Transport

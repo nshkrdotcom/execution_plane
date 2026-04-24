@@ -66,6 +66,9 @@ defmodule ExecutionPlane.Contracts do
     :event_id,
     :idempotency_key
   ]
+  @lineage_key_aliases @canonical_lineage_keys
+                       |> Map.new(fn key -> {Atom.to_string(key), key} end)
+                       |> Map.put("extensions", :extensions)
   @handoff_statuses [:accepted, :rejected, :unknown]
   @local_spool_modes [:disabled, :emergency_only]
 
@@ -254,26 +257,10 @@ defmodule ExecutionPlane.Contracts do
   def normalize_lineage!(lineage, required_keys \\ []) do
     lineage
     |> normalize_attrs()
-    |> Enum.reduce(%{}, fn {key, value}, acc ->
-      Map.put(acc, normalize_lineage_key!(key), value)
-    end)
-    |> Enum.reduce(%{}, fn
-      {:extensions, value}, acc ->
-        Map.put(acc, :extensions, ensure_map!(value, "lineage.extensions"))
-
-      {key, value}, acc ->
-        Map.put(acc, key, validate_non_empty_string!(value, "lineage.#{key}"))
-    end)
+    |> normalize_lineage_keys()
+    |> normalize_lineage_values()
     |> maybe_backfill_trace_id(required_keys)
-    |> then(fn normalized ->
-      Enum.each(required_keys, fn key ->
-        if is_nil(Map.get(normalized, key)) do
-          raise ArgumentError, "lineage.#{key} is required"
-        end
-      end)
-
-      normalized
-    end)
+    |> require_lineage_keys!(required_keys)
   end
 
   @spec maybe_match_lineage!(String.t(), lineage_t(), lineage_key(), String.t()) :: :ok
@@ -320,7 +307,7 @@ defmodule ExecutionPlane.Contracts do
     raise ArgumentError, "#{field_name} must be a string, got: #{inspect(value)}"
   end
 
-  @spec validate_opaque_handle_ref!(term(), String.t()) :: String.t()
+  @spec validate_opaque_handle_ref!(atom() | String.t(), String.t()) :: String.t()
   def validate_opaque_handle_ref!(value, field_name) do
     value = validate_non_empty_string!(value, field_name)
 
@@ -332,7 +319,7 @@ defmodule ExecutionPlane.Contracts do
     end
   end
 
-  @spec validate_iso8601!(term(), String.t()) :: String.t()
+  @spec validate_iso8601!(atom() | String.t(), String.t()) :: String.t()
   def validate_iso8601!(value, field_name) do
     value = validate_non_empty_string!(value, field_name)
 
@@ -377,23 +364,38 @@ defmodule ExecutionPlane.Contracts do
   defp normalize_lineage_key!(:extensions), do: :extensions
 
   defp normalize_lineage_key!(key) when is_binary(key) do
-    case key do
-      "tenant_id" -> :tenant_id
-      "trace_id" -> :trace_id
-      "request_id" -> :request_id
-      "decision_id" -> :decision_id
-      "boundary_session_id" -> :boundary_session_id
-      "attempt_ref" -> :attempt_ref
-      "route_id" -> :route_id
-      "event_id" -> :event_id
-      "idempotency_key" -> :idempotency_key
-      "extensions" -> :extensions
+    case Map.fetch(@lineage_key_aliases, key) do
+      {:ok, canonical_key} -> canonical_key
       _other -> raise ArgumentError, "unknown lineage key: #{inspect(key)}"
     end
   end
 
   defp normalize_lineage_key!(key),
     do: raise(ArgumentError, "unknown lineage key: #{inspect(key)}")
+
+  defp normalize_lineage_keys(attrs) do
+    Map.new(attrs, fn {key, value} -> {normalize_lineage_key!(key), value} end)
+  end
+
+  defp normalize_lineage_values(attrs) do
+    Map.new(attrs, fn
+      {:extensions, value} ->
+        {:extensions, ensure_map!(value, "lineage.extensions")}
+
+      {key, value} ->
+        {key, validate_non_empty_string!(value, "lineage.#{key}")}
+    end)
+  end
+
+  defp require_lineage_keys!(normalized, required_keys) do
+    Enum.each(required_keys, fn key ->
+      if is_nil(Map.get(normalized, key)) do
+        raise ArgumentError, "lineage.#{key} is required"
+      end
+    end)
+
+    normalized
+  end
 
   defp maybe_backfill_trace_id(lineage, required_keys) do
     if :trace_id in required_keys and is_nil(Map.get(lineage, :trace_id)) do

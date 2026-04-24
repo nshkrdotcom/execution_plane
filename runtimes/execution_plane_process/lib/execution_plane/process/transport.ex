@@ -25,9 +25,9 @@ defmodule ExecutionPlane.Process.Transport do
   """
 
   alias ExecutionPlane.{Command, ProcessExit, TaskSupport}
+  alias ExecutionPlane.Process.Transport.{Delivery, Error, Info, RunResult}
   alias ExecutionPlane.Process.Transport.Surface
   alias ExecutionPlane.Process.Transport.Surface.Capabilities
-  alias ExecutionPlane.Process.Transport.{Delivery, Error, Info, RunResult}
 
   @default_call_timeout_ms 5_000
   @default_force_close_timeout_ms 5_000

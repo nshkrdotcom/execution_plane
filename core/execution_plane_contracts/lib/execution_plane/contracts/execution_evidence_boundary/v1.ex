@@ -275,6 +275,7 @@ defmodule ExecutionPlane.Contracts.ExecutionEvidenceBoundary.V1 do
     ])
   end
 
+  @spec raise_raw_durable_evidence!([String.t()]) :: no_return()
   defp raise_raw_durable_evidence!(path) do
     raise ArgumentError,
           "raw durable evidence is forbidden at #{Enum.join(path, ".")}"

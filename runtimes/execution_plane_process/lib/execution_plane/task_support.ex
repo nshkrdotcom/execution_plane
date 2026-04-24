@@ -4,6 +4,7 @@ defmodule ExecutionPlane.TaskSupport do
   """
 
   @default_supervisor ExecutionPlane.TaskSupervisor
+  @default_supervisor_apps [:execution_plane_process, :execution_plane]
 
   @type task_start_error ::
           :noproc | {:task_start_failed, term()} | {:application_start_failed, term()}
@@ -72,13 +73,30 @@ defmodule ExecutionPlane.TaskSupport do
   defp maybe_retry_noproc(_supervisor, starter), do: starter.()
 
   defp ensure_started_for(@default_supervisor) do
-    case Application.ensure_all_started(:execution_plane) do
-      {:ok, _started_apps} -> :ok
-      {:error, reason} -> {:error, {:application_start_failed, reason}}
+    @default_supervisor_apps
+    |> Enum.reduce_while({:error, :no_runtime_app_started}, &ensure_candidate_started/2)
+    |> case do
+      :ok -> :ok
+      {:error, reason} -> {:error, reason}
     end
   end
 
   defp ensure_started_for(_supervisor), do: :ok
+
+  defp ensure_candidate_started(app, _acc) do
+    if Application.spec(app) do
+      app_start_result(app)
+    else
+      {:cont, {:error, {:application_not_found, app}}}
+    end
+  end
+
+  defp app_start_result(app) do
+    case Application.ensure_all_started(app) do
+      {:ok, _started_apps} -> {:halt, :ok}
+      {:error, reason} -> {:halt, {:error, {:application_start_failed, reason}}}
+    end
+  end
 
   defp do_async_nolink(supervisor, fun) do
     {:ok, Task.Supervisor.async_nolink(supervisor, fun)}

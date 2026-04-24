@@ -67,6 +67,8 @@ defmodule ExecutionPlane.Kernel do
 
         dispatch_module = plan.protocol_module
 
+        # Dynamic lower protocols are loaded by capability packages, not by the kernel package itself.
+        # credo:disable-for-next-line Credo.Check.Refactor.Apply
         case apply(dispatch_module, :execute, [plan, opts]) do
           {:ok, execution} ->
             {finished_at, events} =

@@ -49,101 +49,84 @@ defmodule ExecutionPlane.Runtimes.Process do
 
   defp execute_process(intent, surface, plan, start_ms) do
     if supports_surface?(surface) do
-      case run(
-             command: intent.command,
-             argv: intent.argv,
-             cwd: intent.cwd,
-             env: intent.env_projection,
-             clear_env?: intent.clear_env,
-             user: intent.user,
-             stdin: intent.stdin,
-             stderr: intent.stderr_mode |> normalize_stderr_mode(),
-             close_stdin: intent.close_stdin,
-             timeout: plan.timeout_ms,
-             surface_kind: surface.surface_kind
-           ) do
-        {:ok, %RunResult{} = result} ->
-          payload = run_result_payload(result)
-          metrics = duration_metrics(start_ms)
-
-          if Exit.successful?(result.exit) do
-            {:ok, %{family: family(), raw_payload: payload, metrics: metrics, failure: nil}}
-          else
-            {:error, %{family: family(), raw_payload: payload, metrics: metrics, failure: nil}}
-          end
-
-        {:error, {:timeout, context}} ->
-          {:error,
-           %{
-             family: family(),
-             raw_payload: context,
-             metrics: duration_metrics(start_ms),
-             failure: Failure.new!(%{failure_class: :timeout, reason: "execution timed out"})
-           }}
-
-        {:error, {:unsupported_surface_kind, surface_kind}} ->
-          {:error,
-           %{
-             family: family(),
-             raw_payload: %{surface_kind: surface_kind},
-             metrics: duration_metrics(start_ms),
-             failure:
-               Failure.new!(%{
-                 failure_class: :placement_unavailable,
-                 reason: "unsupported placement surface"
-               })
-           }}
-
-        {:error, {:command_not_found, command}} ->
-          {:error,
-           %{
-             family: family(),
-             raw_payload: %{command: command},
-             metrics: duration_metrics(start_ms),
-             failure: Failure.new!(%{failure_class: :launch_failed, reason: "command not found"})
-           }}
-
-        {:error, {:cwd_not_found, cwd}} ->
-          {:error,
-           %{
-             family: family(),
-             raw_payload: %{cwd: cwd},
-             metrics: duration_metrics(start_ms),
-             failure: Failure.new!(%{failure_class: :launch_failed, reason: "cwd not found"})
-           }}
-
-        {:error, {:send_failed, reason}} ->
-          {:error,
-           %{
-             family: family(),
-             raw_payload: %{send_failed: reason},
-             metrics: duration_metrics(start_ms),
-             failure: Failure.new!(%{failure_class: :launch_failed, reason: "send failed"})
-           }}
-
-        {:error, reason} ->
-          {:error,
-           %{
-             family: family(),
-             raw_payload: %{error: inspect(reason)},
-             metrics: duration_metrics(start_ms),
-             failure:
-               Failure.new!(%{failure_class: :launch_failed, reason: "process launch failed"})
-           }}
-      end
+      intent
+      |> run_process_intent(surface, plan)
+      |> process_execution_result(start_ms)
     else
-      {:error,
-       %{
-         family: family(),
-         raw_payload: %{surface_kind: surface && surface.surface_kind},
-         metrics: duration_metrics(start_ms),
-         failure:
-           Failure.new!(%{
-             failure_class: :placement_unavailable,
-             reason: "Wave 2 only supports local_subprocess"
-           })
-       }}
+      unsupported_process_surface_result(surface, start_ms)
     end
+  end
+
+  defp run_process_intent(intent, surface, plan) do
+    run(
+      command: intent.command,
+      argv: intent.argv,
+      cwd: intent.cwd,
+      env: intent.env_projection,
+      clear_env?: intent.clear_env,
+      user: intent.user,
+      stdin: intent.stdin,
+      stderr: intent.stderr_mode |> normalize_stderr_mode(),
+      close_stdin: intent.close_stdin,
+      timeout: plan.timeout_ms,
+      surface_kind: surface.surface_kind
+    )
+  end
+
+  defp process_execution_result({:ok, %RunResult{} = result}, start_ms) do
+    payload = run_result_payload(result)
+    metrics = duration_metrics(start_ms)
+    execution = %{family: family(), raw_payload: payload, metrics: metrics, failure: nil}
+
+    if Exit.successful?(result.exit), do: {:ok, execution}, else: {:error, execution}
+  end
+
+  defp process_execution_result({:error, {:timeout, context}}, start_ms) do
+    error_result(context, start_ms, :timeout, "execution timed out")
+  end
+
+  defp process_execution_result({:error, {:unsupported_surface_kind, surface_kind}}, start_ms) do
+    error_result(
+      %{surface_kind: surface_kind},
+      start_ms,
+      :placement_unavailable,
+      "unsupported placement surface"
+    )
+  end
+
+  defp process_execution_result({:error, {:command_not_found, command}}, start_ms) do
+    error_result(%{command: command}, start_ms, :launch_failed, "command not found")
+  end
+
+  defp process_execution_result({:error, {:cwd_not_found, cwd}}, start_ms) do
+    error_result(%{cwd: cwd}, start_ms, :launch_failed, "cwd not found")
+  end
+
+  defp process_execution_result({:error, {:send_failed, reason}}, start_ms) do
+    error_result(%{send_failed: reason}, start_ms, :launch_failed, "send failed")
+  end
+
+  defp process_execution_result({:error, reason}, start_ms) do
+    error_result(%{error: inspect(reason)}, start_ms, :launch_failed, "process launch failed")
+  end
+
+  defp unsupported_process_surface_result(surface, start_ms) do
+    error_result(
+      %{surface_kind: surface && surface.surface_kind},
+      start_ms,
+      :placement_unavailable,
+      "Wave 2 only supports local_subprocess"
+    )
+  end
+
+  defp error_result(raw_payload, start_ms, failure_class, reason) do
+    {:error,
+     %{
+       family: family(),
+       raw_payload: raw_payload,
+       metrics: duration_metrics(start_ms),
+       failure: Failure.new!(%{failure_class: failure_class, reason: reason})
+     }}
   end
 
   @spec run(keyword()) :: {:ok, RunResult.t()} | {:error, term()}
@@ -250,9 +233,9 @@ defmodule ExecutionPlane.Runtimes.Process do
   end
 
   defp ensure_erlexec_started do
-    with :ok <- ensure_erlexec_application_started(),
-         :ok <- ensure_exec_worker() do
-      :ok
+    case ensure_erlexec_application_started() do
+      :ok -> ensure_exec_worker()
+      {:error, reason} -> {:error, reason}
     end
   end
 

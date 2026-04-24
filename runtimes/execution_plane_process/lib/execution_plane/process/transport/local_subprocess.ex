@@ -1,10 +1,9 @@
 defmodule ExecutionPlane.Process.Transport.LocalSubprocess do
   @moduledoc false
 
-  alias ExecutionPlane.Process.Transport.Surface.Adapter
-  alias ExecutionPlane.Process.Transport.Surface.Capabilities
   alias ExecutionPlane.Process.Transport
   alias ExecutionPlane.Process.Transport.Subprocess
+  alias ExecutionPlane.Process.Transport.Surface.{Adapter, Capabilities}
 
   @behaviour Adapter
   @behaviour Transport

@@ -8,6 +8,7 @@ defmodule ExecutionPlane.Protocols.JsonRpc do
   alias ExecutionPlane.Contracts.JsonRpcExecutionIntent.V1, as: JsonRpcExecutionIntent
   alias ExecutionPlane.Kernel.DispatchPlan
   alias ExecutionPlane.Runtimes.Process
+  alias ExecutionPlane.Runtimes.Process.Exit
 
   @spec protocol() :: String.t()
   def protocol, do: "jsonrpc"
@@ -28,103 +29,97 @@ defmodule ExecutionPlane.Protocols.JsonRpc do
         _opts
       ) do
     request = build_request(intent)
-    target = route.resolved_target
 
-    case Process.run(
-           command: Contracts.fetch_value(target, :command),
-           argv: Contracts.fetch_value(target, :argv) || [],
-           cwd: Contracts.fetch_value(target, :cwd),
-           env: Contracts.fetch_value(target, :env) || %{},
-           stdin: Jason.encode!(request) <> "\n",
-           timeout: timeout_ms,
-           surface_kind:
-             target
-             |> Contracts.fetch_value(:execution_surface)
-             |> case do
-               nil -> "local_subprocess"
-               surface -> Contracts.fetch_value(surface, :surface_kind) || "local_subprocess"
-             end
-         ) do
-      {:ok, result} ->
-        raw_payload = %{
-          request: request,
-          stdout: result.stdout,
-          stderr: result.stderr,
-          exit: ExecutionPlane.Runtimes.Process.Exit.to_map(result.exit)
-        }
+    route.resolved_target
+    |> run_jsonrpc_process(request, timeout_ms)
+    |> jsonrpc_execution_result(request)
+  end
 
-        with {:ok, response} <- Jason.decode(result.stdout),
-             true <- response["id"] == request["id"] do
-          if response["error"] do
-            {:error,
-             %{
-               family: "process",
-               raw_payload: Map.put(raw_payload, :response, response),
-               metrics: %{},
-               failure:
-                 Failure.new!(%{
-                   failure_class: :semantic_runtime_failed,
-                   reason: "jsonrpc response returned an error"
-                 })
-             }}
-          else
-            {:ok,
-             %{
-               family: "process",
-               raw_payload: Map.put(raw_payload, :response, response),
-               metrics: %{},
-               failure: nil
-             }}
-          end
-        else
-          _other ->
-            {:error,
-             %{
-               family: "process",
-               raw_payload: raw_payload,
-               metrics: %{},
-               failure:
-                 Failure.new!(%{
-                   failure_class: :protocol_framing_failed,
-                   reason: "invalid jsonrpc response"
-                 })
-             }}
-        end
+  defp run_jsonrpc_process(target, request, timeout_ms) do
+    Process.run(
+      command: Contracts.fetch_value(target, :command),
+      argv: Contracts.fetch_value(target, :argv) || [],
+      cwd: Contracts.fetch_value(target, :cwd),
+      env: Contracts.fetch_value(target, :env) || %{},
+      stdin: Jason.encode!(request) <> "\n",
+      timeout: timeout_ms,
+      surface_kind: target |> Contracts.fetch_value(:execution_surface) |> surface_kind()
+    )
+  end
 
-      {:error, {:timeout, context}} ->
-        {:error,
-         %{
-           family: "process",
-           raw_payload: context,
-           metrics: %{},
-           failure:
-             Failure.new!(%{failure_class: :timeout, reason: "jsonrpc execution timed out"})
-         }}
+  defp jsonrpc_execution_result({:ok, result}, request) do
+    raw_payload = %{
+      request: request,
+      stdout: result.stdout,
+      stderr: result.stderr,
+      exit: Exit.to_map(result.exit)
+    }
 
-      {:error, {:command_not_found, command}} ->
-        {:error,
-         %{
-           family: "process",
-           raw_payload: %{command: command},
-           metrics: %{},
-           failure:
-             Failure.new!(%{failure_class: :launch_failed, reason: "jsonrpc command not found"})
-         }}
+    result.stdout
+    |> decode_matching_response(request)
+    |> response_result(raw_payload)
+  end
 
-      {:error, reason} ->
-        {:error,
-         %{
-           family: "process",
-           raw_payload: %{error: inspect(reason)},
-           metrics: %{},
-           failure:
-             Failure.new!(%{
-               failure_class: :transport_failed,
-               reason: "jsonrpc transport execution failed"
-             })
-         }}
+  defp jsonrpc_execution_result({:error, {:timeout, context}}, _request) do
+    error_result(context, :timeout, "jsonrpc execution timed out")
+  end
+
+  defp jsonrpc_execution_result({:error, {:command_not_found, command}}, _request) do
+    error_result(%{command: command}, :launch_failed, "jsonrpc command not found")
+  end
+
+  defp jsonrpc_execution_result({:error, reason}, _request) do
+    error_result(
+      %{error: inspect(reason)},
+      :transport_failed,
+      "jsonrpc transport execution failed"
+    )
+  end
+
+  defp decode_matching_response(stdout, request) do
+    with {:ok, response} <- Jason.decode(stdout),
+         true <- response["id"] == request["id"] do
+      {:ok, response}
+    else
+      _other -> :error
     end
   end
+
+  defp response_result({:ok, %{"error" => error} = response}, raw_payload)
+       when not is_nil(error) do
+    raw_payload
+    |> Map.put(:response, response)
+    |> error_result(:semantic_runtime_failed, "jsonrpc response returned an error")
+  end
+
+  defp response_result({:ok, response}, raw_payload) do
+    {:ok,
+     %{
+       family: "process",
+       raw_payload: Map.put(raw_payload, :response, response),
+       metrics: %{},
+       failure: nil
+     }}
+  end
+
+  defp response_result(:error, raw_payload) do
+    error_result(raw_payload, :protocol_framing_failed, "invalid jsonrpc response")
+  end
+
+  defp error_result(raw_payload, failure_class, reason) do
+    {:error,
+     %{
+       family: "process",
+       raw_payload: raw_payload,
+       metrics: %{},
+       failure: Failure.new!(%{failure_class: failure_class, reason: reason})
+     }}
+  end
+
+  defp surface_kind(nil), do: "local_subprocess"
+
+  defp surface_kind(surface),
+    do: Contracts.fetch_value(surface, :surface_kind) || "local_subprocess"
 
   defp build_request(%JsonRpcExecutionIntent{} = intent) do
     intent.request

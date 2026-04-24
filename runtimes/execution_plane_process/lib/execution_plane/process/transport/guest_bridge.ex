@@ -8,9 +8,12 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
   import Kernel, except: [send: 2]
 
   alias ExecutionPlane.{Command, LineFraming, ProcessExit}
-  alias ExecutionPlane.Process.Transport.GuestBridge.Protocol
   alias ExecutionPlane.Process.Transport
-  alias ExecutionPlane.Process.Transport.{Error, Info, Options, RunResult}
+  alias ExecutionPlane.Process.Transport.Error
+  alias ExecutionPlane.Process.Transport.GuestBridge.Protocol
+  alias ExecutionPlane.Process.Transport.Info
+  alias ExecutionPlane.Process.Transport.Options
+  alias ExecutionPlane.Process.Transport.RunResult
   alias ExecutionPlane.Process.Transport.Surface.{Adapter, Capabilities}
 
   @behaviour Adapter
