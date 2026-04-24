@@ -118,6 +118,7 @@ defmodule ExecutionPlane.MixProject do
           "conformance/execution_plane_testkit/README.md"
         ]
       ],
+      assets: %{"assets" => "assets"},
       logo: "assets/execution_plane.svg",
       source_ref: "main",
       source_url: @source_url
