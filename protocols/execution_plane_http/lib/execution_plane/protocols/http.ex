@@ -4,6 +4,7 @@ defmodule ExecutionPlane.Protocols.HTTP do
   """
 
   alias ExecutionPlane.Contracts
+  alias ExecutionPlane.Contracts.Failure
   alias ExecutionPlane.Kernel.DispatchPlan
   alias ExecutionPlane.LowerSimulation
 
@@ -69,7 +70,7 @@ defmodule ExecutionPlane.Protocols.HTTP do
            raw_payload: %{error: inspect(reason)},
            metrics: %{"duration_ms" => System.monotonic_time(:millisecond) - start_ms},
            failure:
-             ExecutionPlane.Contracts.Failure.new!(%{
+             Failure.new!(%{
                failure_class: :transport_failed,
                reason: "http request failed"
              })

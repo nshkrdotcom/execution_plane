@@ -1,21 +1,19 @@
-defmodule ExecutionPlaneProcess.MixProject do
+defmodule ExecutionPlaneHttp.MixProject do
   use Mix.Project
 
   @version "0.1.0"
   @source_url "https://github.com/nshkrdotcom/execution_plane"
   @contracts_version "~> 0.1.0"
   @kernel_version "~> 0.1.0"
-  @local_version "~> 0.1.0"
 
   def project do
     [
-      app: :execution_plane_process,
-      name: "ExecutionPlaneProcess",
+      app: :execution_plane_http,
+      name: "ExecutionPlaneHttp",
       version: @version,
       elixir: "~> 1.18",
-      elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
-      description: "Execution Plane process launch, stdio, PTY, and process-session runtime.",
+      description: "Execution Plane unary HTTP lower transport and intent helper.",
       package: package(),
       docs: docs(),
       dialyzer: dialyzer(),
@@ -26,20 +24,14 @@ defmodule ExecutionPlaneProcess.MixProject do
 
   def application do
     [
-      extra_applications: [:crypto, :logger],
-      mod: {ExecutionPlane.Process.Application, []}
+      extra_applications: [:inets, :logger, :ssl]
     ]
   end
-
-  defp elixirc_paths(:test), do: ["lib", "test/support"]
-  defp elixirc_paths(_env), do: ["lib"]
 
   defp deps do
     [
       execution_plane_contracts_dep(),
       execution_plane_kernel_dep(),
-      execution_plane_local_dep(),
-      {:erlexec, "~> 2.3"},
       {:jason, "~> 1.4"},
       {:ex_doc, "~> 0.40", only: :dev, runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
@@ -61,13 +53,6 @@ defmodule ExecutionPlaneProcess.MixProject do
     end
   end
 
-  defp execution_plane_local_dep do
-    case workspace_dep_path("../../placements/execution_plane_local") do
-      nil -> {:execution_plane_local, @local_version}
-      path -> {:execution_plane_local, path: path}
-    end
-  end
-
   defp workspace_dep_path(relative_path) do
     if local_workspace_deps?() do
       path = Path.expand(relative_path, __DIR__)
@@ -85,7 +70,7 @@ defmodule ExecutionPlaneProcess.MixProject do
 
   defp package do
     [
-      name: "execution_plane_process",
+      name: "execution_plane_http",
       licenses: ["MIT"],
       links: %{"GitHub" => @source_url},
       files: ~w(.formatter.exs mix.exs README.md lib)

@@ -63,28 +63,18 @@ defmodule ExecutionPlaneJsonRpc.MixProject do
   end
 
   defp workspace_dep_path(relative_path) do
-    if prefer_workspace_paths?() do
+    if local_workspace_deps?() do
       path = Path.expand(relative_path, __DIR__)
       if File.dir?(path), do: path
     end
   end
 
-  defp prefer_workspace_paths? do
-    workspace_paths_forced?() or
-      (not release_deps_forced?() and not Enum.member?(Path.split(__DIR__), "deps"))
+  defp local_workspace_deps? do
+    not hex_packaging_task?() and not Enum.member?(Path.split(__DIR__), "deps")
   end
 
-  defp release_deps_forced? do
-    force_hex_deps?() or Enum.any?(System.argv(), &(&1 in ["hex.build", "hex.publish"]))
-  end
-
-  defp workspace_paths_forced? do
-    not force_hex_deps?() and
-      System.get_env("FORCE_WORKSPACE_PATH_DEPS") in ["1", "true", "TRUE", "yes", "YES"]
-  end
-
-  defp force_hex_deps? do
-    System.get_env("EXECUTION_PLANE_HEX_DEPS") in ["1", "true", "TRUE", "yes", "YES"]
+  defp hex_packaging_task? do
+    Enum.any?(System.argv(), &(&1 in ["hex.build", "hex.publish"]))
   end
 
   defp package do
