@@ -80,18 +80,23 @@ defmodule ExecutionPlane.WebSocket do
 
   defp send_outbound_frames(conn, ref, websocket, outbound_frames) do
     Enum.reduce_while(outbound_frames, {:ok, conn, websocket}, fn frame,
-                                                                  {:ok, current_conn, current_ws} ->
-      case encode_frame(current_ws, frame) do
-        {:ok, next_ws, payload} ->
-          case Mint.WebSocket.stream_request_body(current_conn, ref, payload) do
-            {:ok, next_conn} -> {:cont, {:ok, next_conn, next_ws}}
-            {:error, _next_conn, reason} -> {:halt, {:error, reason}}
-          end
-
-        {:error, next_ws, reason} ->
-          {:halt, {:error, {:frame_encode_failed, reason, next_ws}}}
-      end
+                                                                  {:ok, next_conn, next_ws} ->
+      send_outbound_frame(next_conn, ref, next_ws, frame)
     end)
+  end
+
+  defp send_outbound_frame(conn, ref, websocket, frame) do
+    case encode_frame(websocket, frame) do
+      {:ok, next_ws, payload} -> send_encoded_frame(conn, ref, next_ws, payload)
+      {:error, next_ws, reason} -> {:halt, {:error, {:frame_encode_failed, reason, next_ws}}}
+    end
+  end
+
+  defp send_encoded_frame(conn, ref, websocket, payload) do
+    case Mint.WebSocket.stream_request_body(conn, ref, payload) do
+      {:ok, next_conn} -> {:cont, {:ok, next_conn, websocket}}
+      {:error, _next_conn, reason} -> {:halt, {:error, reason}}
+    end
   end
 
   defp next_item(%{done?: true} = state), do: {:halt, state}
@@ -104,15 +109,7 @@ defmodule ExecutionPlane.WebSocket do
   end
 
   defp handle_responses(state, responses) do
-    case Enum.reduce_while(responses, {:ok, state, []}, fn response, {:ok, current_state, acc} ->
-           case handle_response(response, current_state) do
-             {:ok, next_state, items} ->
-               {:cont, {:ok, next_state, acc ++ items}}
-
-             {:halt, next_state, items} ->
-               {:halt, {:halt, next_state, acc ++ items}}
-           end
-         end) do
+    case Enum.reduce_while(responses, {:ok, state, []}, &reduce_response/2) do
       {:ok, next_state, []} ->
         next_item(next_state)
 
@@ -121,6 +118,13 @@ defmodule ExecutionPlane.WebSocket do
 
       {:halt, next_state, items} ->
         {items, %{next_state | done?: true}}
+    end
+  end
+
+  defp reduce_response(response, {:ok, state, items}) do
+    case handle_response(response, state) do
+      {:ok, next_state, next_items} -> {:cont, {:ok, next_state, items ++ next_items}}
+      {:halt, next_state, next_items} -> {:halt, {:halt, next_state, items ++ next_items}}
     end
   end
 
@@ -140,32 +144,28 @@ defmodule ExecutionPlane.WebSocket do
 
   defp handle_frames([frame | rest], state) do
     case frame do
-      {:text, payload} ->
-        append_frame_item(rest, state, {:frame, {:text, payload}})
+      {:text, payload} -> append_frame_item(rest, state, {:frame, {:text, payload}})
+      {:binary, payload} -> append_frame_item(rest, state, {:frame, {:binary, payload}})
+      {:ping, payload} -> handle_ping_frame(rest, state, payload)
+      {:close, code, reason} -> {:halt, state, [{:close, code, reason}]}
+      _other -> handle_frames(rest, state)
+    end
+  end
 
-      {:binary, payload} ->
-        append_frame_item(rest, state, {:frame, {:binary, payload}})
+  defp handle_ping_frame(rest, state, payload) do
+    case Mint.WebSocket.encode(state.websocket, {:pong, payload}) do
+      {:ok, websocket, pong} ->
+        send_pong_frame(rest, state, websocket, pong)
 
-      {:ping, payload} ->
-        case Mint.WebSocket.encode(state.websocket, {:pong, payload}) do
-          {:ok, websocket, pong} ->
-            case Mint.WebSocket.stream_request_body(state.conn, state.ref, pong) do
-              {:ok, conn} ->
-                handle_frames(rest, %{state | conn: conn, websocket: websocket})
+      {:error, _websocket, reason} ->
+        {:halt, state, [{:transport_error, {:pong_encode_failed, reason}}]}
+    end
+  end
 
-              {:error, _conn, reason} ->
-                {:halt, state, [{:transport_error, {:pong_failed, reason}}]}
-            end
-
-          {:error, _websocket, reason} ->
-            {:halt, state, [{:transport_error, {:pong_encode_failed, reason}}]}
-        end
-
-      {:close, code, reason} ->
-        {:halt, state, [{:close, code, reason}]}
-
-      _other ->
-        handle_frames(rest, state)
+  defp send_pong_frame(rest, state, websocket, pong) do
+    case Mint.WebSocket.stream_request_body(state.conn, state.ref, pong) do
+      {:ok, conn} -> handle_frames(rest, %{state | conn: conn, websocket: websocket})
+      {:error, _conn, reason} -> {:halt, state, [{:transport_error, {:pong_failed, reason}}]}
     end
   end
 

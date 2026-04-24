@@ -1,0 +1,78 @@
+defmodule ExecutionPlaneSse.MixProject do
+  use Mix.Project
+
+  @version "0.1.0"
+  @source_url "https://github.com/nshkrdotcom/execution_plane"
+
+  def project do
+    [
+      app: :execution_plane_sse,
+      name: "ExecutionPlaneSse",
+      version: @version,
+      elixir: "~> 1.18",
+      start_permanent: Mix.env() == :prod,
+      description: "Execution Plane lower SSE framing and Finch stream lifecycle.",
+      package: package(),
+      docs: docs(),
+      dialyzer: dialyzer(),
+      deps: deps(),
+      aliases: aliases()
+    ]
+  end
+
+  def application do
+    [
+      extra_applications: [:logger]
+    ]
+  end
+
+  defp deps do
+    [
+      {:finch, "~> 0.21"},
+      {:server_sent_events, "~> 0.2"},
+      {:ex_doc, "~> 0.40", only: :dev, runtime: false},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false}
+    ]
+  end
+
+  defp package do
+    [
+      name: "execution_plane_sse",
+      licenses: ["MIT"],
+      links: %{"GitHub" => @source_url},
+      files: ~w(.formatter.exs mix.exs README.md lib)
+    ]
+  end
+
+  defp docs do
+    [
+      main: "readme",
+      source_ref: "main",
+      source_url: @source_url,
+      extras: ["README.md": [title: "Overview", filename: "readme"]]
+    ]
+  end
+
+  defp dialyzer do
+    [
+      plt_add_apps: [:mix, :ex_unit],
+      plt_core_path: "priv/plts/core",
+      plt_local_path: "priv/plts",
+      flags: [:error_handling, :underspecs]
+    ]
+  end
+
+  defp aliases do
+    [
+      ci: [
+        "format --check-formatted",
+        "compile --warnings-as-errors",
+        "cmd env MIX_ENV=test mix test",
+        "credo --strict",
+        "cmd env MIX_ENV=test mix dialyzer --force-check",
+        "docs --warnings-as-errors"
+      ]
+    ]
+  end
+end
