@@ -1,9 +1,6 @@
 defmodule ExecutionPlane do
   @moduledoc """
-  Workspace shell for the Execution Plane lower-runtime substrate.
-
-  Wave 1 freezes the package map and cross-layer contracts without pretending
-  the lower runtime extraction is already complete.
+  Lower-runtime substrate for shared execution contracts and runtime helpers.
   """
 
   @package_homes %{
@@ -17,9 +14,6 @@ defmodule ExecutionPlane do
     ssh: "placements/execution_plane_ssh",
     guest: "placements/execution_plane_guest",
     process: "runtimes/execution_plane_process",
-    operator_terminal: "runtimes/execution_plane_operator_terminal",
-    container: "sandboxes/execution_plane_container",
-    microvm: "sandboxes/execution_plane_microvm",
     testkit: "conformance/execution_plane_testkit"
   }
 
@@ -38,13 +32,13 @@ defmodule ExecutionPlane do
   def identity, do: :execution_plane
 
   @doc """
-  Returns the tracked workspace package homes keyed by their architecture role.
+  Returns the published package homes keyed by their runtime role.
   """
   @spec package_homes() :: %{required(atom()) => String.t()}
   def package_homes, do: @package_homes
 
   @doc """
-  Returns the minimal first-cut package roles required by Wave 1.
+  Returns the minimal executable substrate package roles.
   """
   @spec minimal_first_cut() :: [atom(), ...]
   def minimal_first_cut, do: @minimal_first_cut

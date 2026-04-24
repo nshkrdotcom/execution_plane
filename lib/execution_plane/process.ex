@@ -1,6 +1,6 @@
 defmodule ExecutionPlane.Process do
   @moduledoc """
-  Frozen Wave 3 helper surface for one-shot subprocess execution.
+  Helper surface for one-shot subprocess execution.
 
   This helper emits `ProcessExecutionIntent.v1`, resolves the minimal local
   process route, and executes through the kernel without requiring callers to

@@ -1,6 +1,6 @@
 defmodule ExecutionPlane.HTTP do
   @moduledoc """
-  Frozen Wave 3 helper surface for unary HTTP request/response execution.
+  Helper surface for unary HTTP request/response execution.
 
   Callers provide semantic request data plus optional lineage or envelope
   overrides. This helper emits `HttpExecutionIntent.v1`, resolves the matching

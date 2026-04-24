@@ -4,10 +4,9 @@ defmodule ExecutionPlane.MixProject do
   @version "0.1.0"
   @source_url "https://github.com/nshkrdotcom/execution_plane"
   @description """
-  Execution Plane is the workspace-style lower runtime substrate for the Brain /
-  Spine / Execution Plane architecture, freezing the shared contract packet,
-  package topology, and lower-boundary ownership rules before broader runtime
-  extraction waves begin.
+  Execution Plane provides shared lower-runtime contracts, route planning,
+  placement descriptors, process transport, HTTP execution, and JSON-RPC
+  helpers for Elixir SDKs and runtime family kits.
   """
 
   def project do
@@ -91,17 +90,6 @@ defmodule ExecutionPlane.MixProject do
       extras: [
         {"README.md", filename: "workspace_overview"},
         {"guides/index.md", filename: "guides_index"},
-        "technical/01_north_star_architecture.md",
-        "technical/02_repo_topology_and_package_map.md",
-        "technical/03_shared_contracts_and_lineage.md",
-        "technical/04_http_graphql_and_realtime_family_design.md",
-        "technical/05_process_and_agent_session_family_design.md",
-        "technical/07_brain_spine_and_harness_alignment.md",
-        "technical/10_subset_complete_big_bang_execution_model.md",
-        "technical/11_surface_exposure_and_contract_carriage_matrix.md",
-        "technical/12_repo_quality_gate_command_matrix.md",
-        "JIDO_BRAIN_CONTRACT_CONTEXT/README.md",
-        "JIDO_BRAIN_CONTRACT_CONTEXT/01_authority_decision_v1_packet_baseline.md",
         {"core/execution_plane_contracts/README.md", filename: "execution_plane_contracts"},
         {"core/execution_plane_kernel/README.md", filename: "execution_plane_kernel"},
         {"protocols/execution_plane_http/README.md", filename: "execution_plane_http"},
@@ -112,43 +100,10 @@ defmodule ExecutionPlane.MixProject do
         {"placements/execution_plane_ssh/README.md", filename: "execution_plane_ssh"},
         {"placements/execution_plane_guest/README.md", filename: "execution_plane_guest"},
         {"runtimes/execution_plane_process/README.md", filename: "execution_plane_process"},
-        {"runtimes/execution_plane_operator_terminal/README.md",
-         filename: "execution_plane_operator_terminal"},
-        {"sandboxes/execution_plane_container/README.md", filename: "execution_plane_container"},
-        {"sandboxes/execution_plane_microvm/README.md", filename: "execution_plane_microvm"},
-        {"conformance/execution_plane_testkit/README.md", filename: "execution_plane_testkit"},
-        "adrs/ADR-001-brain-spine-execution-plane-is-the-top-level-system-split.md",
-        "adrs/ADR-002-create-execution_plane-as-a-new-workspace-repo.md",
-        "adrs/ADR-003-share-lineage-and-route-contracts-not-one-mega-struct.md",
-        "adrs/ADR-004-pristine-remains-the-http-family-kit.md",
-        "adrs/ADR-006-reqllm_next-adopts-the-shared-http-and-realtime-family.md",
-        "adrs/ADR-007-cli_subprocess_core-remains-the-cli-family-kit-above-execution-plane.md",
-        "adrs/ADR-008-provider-sdks-keep-provider-semantics-and-drop-runtime-ownership.md",
-        "adrs/ADR-009-asm-remains-the-agent-session-kernel-and-jido_harness-remains-a-facade.md",
-        "adrs/ADR-011-jido_integration-is-the-spine-and-jido_os-is-the-brain.md",
-        "adrs/ADR-012-no-staged-compatibility-shims-or-intermediate-public-apis.md",
-        "adrs/ADR-014-execute-the-program-as-subset-complete-capability-waves.md",
-        "adrs/ADR-015-public-surfaces-expose-mapped-family-and-facade-irs-not-raw-execution-plane-packages.md",
-        "adrs/ADR-016-upstream-fixes-are-allowed-within-the-active-wave.md",
-        "brain_spine_execution_plane_architecture_review.md"
+        {"conformance/execution_plane_testkit/README.md", filename: "execution_plane_testkit"}
       ],
       groups_for_extras: [
         Overview: ["README.md", "guides/index.md"],
-        Packet: [
-          "technical/01_north_star_architecture.md",
-          "technical/02_repo_topology_and_package_map.md",
-          "technical/03_shared_contracts_and_lineage.md",
-          "technical/04_http_graphql_and_realtime_family_design.md",
-          "technical/05_process_and_agent_session_family_design.md",
-          "technical/07_brain_spine_and_harness_alignment.md",
-          "technical/10_subset_complete_big_bang_execution_model.md",
-          "technical/11_surface_exposure_and_contract_carriage_matrix.md",
-          "technical/12_repo_quality_gate_command_matrix.md"
-        ],
-        "Brain Contract Context": [
-          "JIDO_BRAIN_CONTRACT_CONTEXT/README.md",
-          "JIDO_BRAIN_CONTRACT_CONTEXT/01_authority_decision_v1_packet_baseline.md"
-        ],
         "Package Homes": [
           "core/execution_plane_contracts/README.md",
           "core/execution_plane_kernel/README.md",
@@ -160,27 +115,8 @@ defmodule ExecutionPlane.MixProject do
           "placements/execution_plane_ssh/README.md",
           "placements/execution_plane_guest/README.md",
           "runtimes/execution_plane_process/README.md",
-          "runtimes/execution_plane_operator_terminal/README.md",
-          "sandboxes/execution_plane_container/README.md",
-          "sandboxes/execution_plane_microvm/README.md",
           "conformance/execution_plane_testkit/README.md"
-        ],
-        ADRs: [
-          "adrs/ADR-001-brain-spine-execution-plane-is-the-top-level-system-split.md",
-          "adrs/ADR-002-create-execution_plane-as-a-new-workspace-repo.md",
-          "adrs/ADR-003-share-lineage-and-route-contracts-not-one-mega-struct.md",
-          "adrs/ADR-004-pristine-remains-the-http-family-kit.md",
-          "adrs/ADR-006-reqllm_next-adopts-the-shared-http-and-realtime-family.md",
-          "adrs/ADR-007-cli_subprocess_core-remains-the-cli-family-kit-above-execution-plane.md",
-          "adrs/ADR-008-provider-sdks-keep-provider-semantics-and-drop-runtime-ownership.md",
-          "adrs/ADR-009-asm-remains-the-agent-session-kernel-and-jido_harness-remains-a-facade.md",
-          "adrs/ADR-011-jido_integration-is-the-spine-and-jido_os-is-the-brain.md",
-          "adrs/ADR-012-no-staged-compatibility-shims-or-intermediate-public-apis.md",
-          "adrs/ADR-014-execute-the-program-as-subset-complete-capability-waves.md",
-          "adrs/ADR-015-public-surfaces-expose-mapped-family-and-facade-irs-not-raw-execution-plane-packages.md",
-          "adrs/ADR-016-upstream-fixes-are-allowed-within-the-active-wave.md"
-        ],
-        Review: ["brain_spine_execution_plane_architecture_review.md"]
+        ]
       ],
       logo: "assets/execution_plane.svg",
       source_ref: "main",
@@ -207,22 +143,16 @@ defmodule ExecutionPlane.MixProject do
           .formatter.exs
           LICENSE
           README.md
-          JIDO_BRAIN_CONTRACT_CONTEXT
-          adrs
           assets
-          brain_spine_execution_plane_architecture_review.md
-          conformance
+          conformance/execution_plane_testkit
           core
-          guides
+          guides/index.md
           lib
           mix.exs
           placements
           protocols
           runtimes/execution_plane_process
-          runtimes/execution_plane_operator_terminal/README.md
-          sandboxes
           streaming
-          technical
         )
     ]
   end

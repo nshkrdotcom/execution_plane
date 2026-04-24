@@ -1,6 +1,6 @@
 defmodule ExecutionPlane.JsonRpc do
   @moduledoc """
-  Frozen Wave 3 helper surface for unary JSON-RPC over the minimal process lane.
+  Helper surface for unary JSON-RPC over the minimal process lane.
 
   This helper emits `JsonRpcExecutionIntent.v1`, resolves the local process
   target used for the request/response exchange, and executes through the
