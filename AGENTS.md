@@ -1,7 +1,10 @@
 # Monorepo Project Map
 
-This checkout contains exactly eight Mix projects:
+This checkout contains one non-published Mix workspace root plus eight
+publishable package projects:
 
+- `./mix.exs`: non-published `execution_plane_workspace` tooling root. It owns
+  Blitz orchestration and must not be treated as the Hex package.
 - `./core/execution_plane/mix.exs`: publishable `execution_plane` common
   substrate.
 - `./protocols/execution_plane_http/mix.exs`: unary HTTP lane.
@@ -13,9 +16,9 @@ This checkout contains exactly eight Mix projects:
 - `./runtimes/execution_plane_operator_terminal/mix.exs`: operator-terminal
   add-on package for local, SSH, and distributed TUIs.
 
-The repository root `./mix.exs` is not one of the publishable package
-projects. It is the non-published `execution_plane_workspace` tooling root and
-is allowed to depend on Blitz for repo-wide orchestration.
+The repository root `./mix.exs` is a Mix project, but it is not a publishable
+package project. It is allowed to depend on Blitz for repo-wide orchestration;
+publishable manifests are not.
 
 ## Execution Plane Stack Rules
 
@@ -25,24 +28,32 @@ is allowed to depend on Blitz for repo-wide orchestration.
   not be added to publishable package manifests.
 - Lane packages and node/operator packages are separate Mix projects with
   their own dependency surfaces.
-- Keep active root-compiled homes, add-on homes, and reserved sandbox homes distinct in docs and release notes.
-- Do not move family-kit or product semantics into this repo. `cli_subprocess_core`, `pristine`, `prismatic`, `self_hosted_inference_core`, and the self-hosted runtime kits own those semantic layers above this substrate.
+- Keep active common substrate homes, add-on homes, and reserved sandbox homes
+  distinct in docs and release notes.
+- Do not move family-kit or product semantics into this repo.
+  `cli_subprocess_core`, `pristine`, `prismatic`,
+  `self_hosted_inference_core`, and the self-hosted runtime kits own those
+  semantic layers above this substrate.
 - The root repo gate is `mix ci`; it uses Blitz to run package-local `mix ci`
   aliases. Lane packages must also pass their package-local gate before claims
   are made.
 
 ## Current Architecture State
 
-- This checkout is intentionally workspace-shaped, not a flat `lib/` package dump.
+- This checkout is intentionally workspace-shaped, not a flat `lib/` package
+  dump.
 - The publishable `core/execution_plane` app compiles only common substrate
-  homes through `elixirc_paths`:
-  - `core/execution_plane_contracts/lib`
-  - `core/execution_plane_kernel/lib`
-  - `placements/execution_plane_local/lib`
-  - `placements/execution_plane_ssh/lib`
-  - `placements/execution_plane_guest/lib`
-  - `conformance/execution_plane_testkit/lib`
-- Root common contracts include admission, authority refs/verifiers,
+  homes through `elixirc_paths`. From the repo root those active homes are:
+  - `core/execution_plane/lib`
+  - `core/execution_plane/core/execution_plane_contracts/lib`
+  - `core/execution_plane/core/execution_plane_kernel/lib`
+  - `core/execution_plane/placements/execution_plane_local/lib`
+  - `core/execution_plane/placements/execution_plane_ssh/lib`
+  - `core/execution_plane/placements/execution_plane_guest/lib`
+  - `core/execution_plane/conformance/execution_plane_testkit/lib`
+- Root-level `placements/` and `conformance/` are not active source homes for
+  the package after the workspace-root correction.
+- Common substrate contracts include admission, authority refs/verifiers,
   sandbox profile carriage, acceptable attestation classes, target
   descriptors/attestations/verifiers, runtime client/node descriptor,
   execution refs/requests/results/events, evidence, provenance, placement
@@ -67,7 +78,9 @@ is allowed to depend on Blitz for repo-wide orchestration.
   attestations.
 - `local-erlexec-weak` is a weak local process attestation, not a container or
   microVM isolation guarantee.
-- `external_runtime_transport` is retired from the target architecture; do not add or preserve active dependencies on it unless the user explicitly asks for historical compatibility work.
+- `external_runtime_transport` is retired from the target architecture; do not
+  add or preserve active dependencies on it unless the user explicitly asks for
+  historical compatibility work.
 - The workspace should keep Hex fallback behavior in downstream repos;
   local path deps are for workspace development, not a silent production
   assumption.
@@ -75,41 +88,35 @@ is allowed to depend on Blitz for repo-wide orchestration.
   `execution_plane_node` after the lane/common contracts it depends on, and
   `execution_plane_operator_terminal` last.
 
-## Known Direct And Transitive Consumers Of `execution_plane`
+## Known Direct Consumers Of `execution_plane`
 
-- This list is the current top-level workspace scan from `mix.exs` files outside vendored `deps/` and `_build/`.
-- Some entries depend on `execution_plane` directly.
-- Some entries consume it transitively through `cli_subprocess_core`, `pristine_runtime`, or `prismatic_runtime`.
-- CLI subprocess family:
+- This list is the current sibling scan from `mix.exs` and
+  `build_support/*.exs` files outside vendored `deps/`, `_build/`, and
+  generated `dist/` output.
+- For local sibling development, `:execution_plane` must resolve to
+  `../execution_plane/core/execution_plane` from sibling repos, or the
+  equivalent relative path from nested packages. Never point `:execution_plane`
+  at the repo root; the root is only `execution_plane_workspace`.
+- Lane packages still resolve through their package homes:
+  `protocols/execution_plane_http`, `protocols/execution_plane_jsonrpc`,
+  `streaming/execution_plane_sse`, `streaming/execution_plane_websocket`,
+  `runtimes/execution_plane_process`, `runtimes/execution_plane_node`, and
+  `runtimes/execution_plane_operator_terminal`.
+- Updated direct consumers:
   - `cli_subprocess_core`
-  - `agent_session_manager`
-  - `claude_agent_sdk`
-  - `codex_sdk`
-  - `gemini_cli_sdk`
-  - `amp_sdk`
-  - `prompt_runner_sdk`
-- Self-hosted inference and transport family:
   - `self_hosted_inference_core`
   - `llama_cpp_sdk`
   - `reqllm_next`
-- Pristine / REST-provider family:
   - `pristine/apps/pristine_runtime`
-  - `pristine/apps/pristine_codegen`
-  - `pristine/apps/pristine_provider_testkit`
-  - `github_ex`
-  - `notion_sdk`
-- Prismatic / GraphQL-provider family:
-  - `prismatic/apps/prismatic_runtime`
-  - `prismatic/apps/prismatic_codegen`
-  - `prismatic/apps/prismatic_provider_testkit`
-  - `linear_sdk`
-- Integration and harness consumers:
+  - `prismatic/apps/prismatic_runtime` through
+    `prismatic/build_support/dependency_resolver.exs`
+  - `jido_integration/core/runtime_router` through
+    `jido_integration/build_support/dependency_resolver.exs`
+  - `citadel/core/authority_contract`
   - `stack_lab/support/citadel_spine_harness`
-  - `switchyard/apps/terminal_workbench_tui`
-  - `switchyard/core/workbench_daemon`
-  - `switchyard/core/workbench_process_runtime`
-  - `switchyard/sites/site_execution_plane`
-  - `switchyard/sites/site_jido`
+- Other sibling repos still contain Execution Plane references and must be
+  rechecked before active work: `switchyard` and retired
+  `external_runtime_transport`.
 
 ## Temporal Developer Environment
 
