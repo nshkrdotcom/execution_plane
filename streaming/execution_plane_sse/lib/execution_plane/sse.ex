@@ -20,8 +20,11 @@ defmodule ExecutionPlane.SSE do
     ServerSentEvents.parse(buffer)
   end
 
+  @spec stream(Finch.Request.t(), atom()) :: Enumerable.t()
+  def stream(%Finch.Request{} = request, finch_name), do: stream(request, finch_name, [])
+
   @spec stream(Finch.Request.t(), atom(), keyword()) :: Enumerable.t()
-  def stream(%Finch.Request{} = request, finch_name, opts \\ [])
+  def stream(%Finch.Request{} = request, finch_name, opts)
       when is_atom(finch_name) and is_list(opts) do
     receive_timeout = Keyword.get(opts, :receive_timeout, @default_receive_timeout)
 

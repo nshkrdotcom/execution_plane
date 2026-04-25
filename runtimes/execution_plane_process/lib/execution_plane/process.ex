@@ -7,17 +7,72 @@ defmodule ExecutionPlane.Process do
   hand-assemble contracts.
   """
 
+  alias ExecutionPlane.Admission.Rejection
   alias ExecutionPlane.Contracts
   alias ExecutionPlane.Contracts.ProcessExecutionIntent.V1, as: ProcessExecutionIntent
+  alias ExecutionPlane.ExecutionRequest
+  alias ExecutionPlane.ExecutionResult
   alias ExecutionPlane.Kernel
-  alias ExecutionPlane.Kernel.ExecutionResult
+  alias ExecutionPlane.Kernel.ExecutionResult, as: KernelExecutionResult
+  alias ExecutionPlane.Lane.Capabilities
   alias ExecutionPlane.LaneSupport
 
+  @behaviour ExecutionPlane.Lane.Adapter
+
+  @impl true
+  def lane_id, do: :process
+
+  @impl true
+  def capabilities do
+    Capabilities.new!(
+      lane_id: "process",
+      protocols: ["process"],
+      surfaces: ["local_subprocess", "ssh_exec", "guest_bridge"],
+      supports_execute: true,
+      supports_stream: false
+    )
+  end
+
+  @impl true
+  def validate(%ExecutionRequest{lane_id: "process"}), do: :ok
+
+  def validate(_request) do
+    {:error,
+     Rejection.new(
+       :invalid_lane_request,
+       "process adapter only accepts lane_id=process"
+     )}
+  end
+
+  @impl true
+  def execute(%ExecutionRequest{} = request, opts) do
+    request.payload
+    |> run(opts)
+    |> case do
+      {:ok, result} ->
+        {:ok, adapter_result(request, "succeeded", result, nil)}
+
+      {:error, result} ->
+        {:error, adapter_result(request, "failed", result, "process execution failed")}
+    end
+  end
+
+  @impl true
+  def stream(%ExecutionRequest{} = request, _opts) do
+    {:error,
+     Rejection.new(
+       :stream_not_supported,
+       "process adapter does not expose stream/2 for execution requests",
+       %{lane_id: request.lane_id}
+     )}
+  end
+
   @spec run(map() | keyword(), keyword()) ::
-          {:ok, ExecutionResult.t()} | {:error, ExecutionResult.t()}
+          {:ok, KernelExecutionResult.t()} | {:error, KernelExecutionResult.t()}
   def run(invocation, opts \\ [])
 
-  @spec run(String.t(), keyword()) :: {:ok, ExecutionResult.t()} | {:error, ExecutionResult.t()}
+  @spec run(String.t(), keyword()) ::
+          {:ok, KernelExecutionResult.t()} | {:error, KernelExecutionResult.t()}
   def run(command, opts) when is_binary(command) and is_list(opts) do
     run(%{command: command}, opts)
   end
@@ -93,5 +148,18 @@ defmodule ExecutionPlane.Process do
       surface ->
         Contracts.ensure_map!(surface, "execution_surface")
     end
+  end
+
+  defp adapter_result(%ExecutionRequest{} = request, status, result, error) do
+    ExecutionResult.new!(
+      execution_ref: request.execution_ref,
+      status: status,
+      output: %{
+        "events" => Enum.map(result.events, &ExecutionPlane.Boundary.dump_value/1),
+        "outcome" => ExecutionPlane.Boundary.dump_value(result.outcome)
+      },
+      error: error,
+      provenance: request.provenance
+    )
   end
 end

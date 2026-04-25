@@ -3,9 +3,7 @@ defmodule ExecutionPlaneJsonRpc.MixProject do
 
   @version "0.1.0"
   @source_url "https://github.com/nshkrdotcom/execution_plane"
-  @contracts_version "~> 0.1.0"
-  @kernel_version "~> 0.1.0"
-  @process_version "~> 0.1.0"
+  @execution_plane_version "~> 0.1.0"
 
   def project do
     [
@@ -14,7 +12,7 @@ defmodule ExecutionPlaneJsonRpc.MixProject do
       version: @version,
       elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
-      description: "Execution Plane JSON-RPC framing and process-backed unary control lane.",
+      description: "Execution Plane JSON-RPC framing and correlation lane.",
       package: package(),
       docs: docs(),
       dialyzer: dialyzer(),
@@ -31,9 +29,7 @@ defmodule ExecutionPlaneJsonRpc.MixProject do
 
   defp deps do
     [
-      execution_plane_contracts_dep(),
-      execution_plane_kernel_dep(),
-      execution_plane_process_dep(),
+      execution_plane_dep(),
       {:jason, "~> 1.4"},
       {:ex_doc, "~> 0.40", only: :dev, runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
@@ -41,24 +37,10 @@ defmodule ExecutionPlaneJsonRpc.MixProject do
     ]
   end
 
-  defp execution_plane_contracts_dep do
-    case workspace_dep_path("../../core/execution_plane_contracts") do
-      nil -> {:execution_plane_contracts, @contracts_version}
-      path -> {:execution_plane_contracts, path: path}
-    end
-  end
-
-  defp execution_plane_kernel_dep do
-    case workspace_dep_path("../../core/execution_plane_kernel") do
-      nil -> {:execution_plane_kernel, @kernel_version}
-      path -> {:execution_plane_kernel, path: path}
-    end
-  end
-
-  defp execution_plane_process_dep do
-    case workspace_dep_path("../../runtimes/execution_plane_process") do
-      nil -> {:execution_plane_process, @process_version}
-      path -> {:execution_plane_process, path: path}
+  defp execution_plane_dep do
+    case workspace_dep_path("../..") do
+      nil -> {:execution_plane, @execution_plane_version}
+      path -> {:execution_plane, path: path}
     end
   end
 

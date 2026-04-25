@@ -3,9 +3,7 @@ defmodule ExecutionPlaneProcess.MixProject do
 
   @version "0.1.0"
   @source_url "https://github.com/nshkrdotcom/execution_plane"
-  @contracts_version "~> 0.1.0"
-  @kernel_version "~> 0.1.0"
-  @local_version "~> 0.1.0"
+  @execution_plane_version "~> 0.1.0"
 
   def project do
     [
@@ -36,9 +34,7 @@ defmodule ExecutionPlaneProcess.MixProject do
 
   defp deps do
     [
-      execution_plane_contracts_dep(),
-      execution_plane_kernel_dep(),
-      execution_plane_local_dep(),
+      execution_plane_dep(),
       {:erlexec, "~> 2.3"},
       {:jason, "~> 1.4"},
       {:ex_doc, "~> 0.40", only: :dev, runtime: false},
@@ -47,24 +43,10 @@ defmodule ExecutionPlaneProcess.MixProject do
     ]
   end
 
-  defp execution_plane_contracts_dep do
-    case workspace_dep_path("../../core/execution_plane_contracts") do
-      nil -> {:execution_plane_contracts, @contracts_version}
-      path -> {:execution_plane_contracts, path: path}
-    end
-  end
-
-  defp execution_plane_kernel_dep do
-    case workspace_dep_path("../../core/execution_plane_kernel") do
-      nil -> {:execution_plane_kernel, @kernel_version}
-      path -> {:execution_plane_kernel, path: path}
-    end
-  end
-
-  defp execution_plane_local_dep do
-    case workspace_dep_path("../../placements/execution_plane_local") do
-      nil -> {:execution_plane_local, @local_version}
-      path -> {:execution_plane_local, path: path}
+  defp execution_plane_dep do
+    case workspace_dep_path("../..") do
+      nil -> {:execution_plane, @execution_plane_version}
+      path -> {:execution_plane, path: path}
     end
   end
 

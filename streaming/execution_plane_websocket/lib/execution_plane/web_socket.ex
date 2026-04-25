@@ -14,10 +14,20 @@ defmodule ExecutionPlane.WebSocket do
           | {:transport_error, term()}
           | :transport_timeout
 
+  @spec stream(String.t(), list()) ::
+          {:ok, %{status: non_neg_integer(), headers: list(), stream: Enumerable.t()}}
+          | {:error, term()}
+  def stream(url, headers), do: stream(url, headers, [], [])
+
+  @spec stream(String.t(), list(), [binary() | {:text | :binary, binary()}]) ::
+          {:ok, %{status: non_neg_integer(), headers: list(), stream: Enumerable.t()}}
+          | {:error, term()}
+  def stream(url, headers, outbound_frames), do: stream(url, headers, outbound_frames, [])
+
   @spec stream(String.t(), list(), [binary() | {:text | :binary, binary()}], keyword()) ::
           {:ok, %{status: non_neg_integer(), headers: list(), stream: Enumerable.t()}}
           | {:error, term()}
-  def stream(url, headers, outbound_frames \\ [], opts \\ [])
+  def stream(url, headers, outbound_frames, opts)
       when is_binary(url) and is_list(headers) and is_list(outbound_frames) and is_list(opts) do
     receive_timeout = Keyword.get(opts, :receive_timeout, @default_receive_timeout)
 

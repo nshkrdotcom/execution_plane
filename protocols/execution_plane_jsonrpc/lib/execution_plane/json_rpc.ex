@@ -1,20 +1,81 @@
 defmodule ExecutionPlane.JsonRpc do
   @moduledoc """
-  Helper surface for unary JSON-RPC over the minimal process lane.
+  Helper surface for JSON-RPC framing and direct owner composition.
 
   This helper emits `JsonRpcExecutionIntent.v1`, resolves the local process
   target used for the request/response exchange, and executes through the
   kernel.
   """
 
+  alias ExecutionPlane.Admission.Rejection
   alias ExecutionPlane.Contracts
   alias ExecutionPlane.Contracts.JsonRpcExecutionIntent.V1, as: JsonRpcExecutionIntent
+  alias ExecutionPlane.ExecutionEvent
+  alias ExecutionPlane.ExecutionRequest
+  alias ExecutionPlane.ExecutionResult
   alias ExecutionPlane.Kernel
-  alias ExecutionPlane.Kernel.ExecutionResult
+  alias ExecutionPlane.Kernel.ExecutionResult, as: KernelExecutionResult
+  alias ExecutionPlane.Lane.Capabilities
   alias ExecutionPlane.LaneSupport
+  alias ExecutionPlane.Protocols.JsonRpc.Adapter
+
+  @behaviour ExecutionPlane.Lane.Adapter
+
+  @impl true
+  def lane_id, do: :jsonrpc
+
+  @impl true
+  def capabilities do
+    Capabilities.new!(
+      lane_id: "jsonrpc",
+      protocols: ["jsonrpc"],
+      surfaces: ["framing"],
+      supports_execute: true,
+      supports_stream: true,
+      metadata: %{"process_backed" => false}
+    )
+  end
+
+  @impl true
+  def validate(%ExecutionRequest{lane_id: "jsonrpc"}), do: :ok
+
+  def validate(_request) do
+    {:error,
+     Rejection.new(
+       :invalid_lane_request,
+       "JSON-RPC adapter only accepts lane_id=jsonrpc"
+     )}
+  end
+
+  @impl true
+  def execute(%ExecutionRequest{} = request, _opts) do
+    {:ok,
+     ExecutionResult.new!(
+       execution_ref: request.execution_ref,
+       status: "succeeded",
+       output: %{
+         "framed_request" => Adapter.encode_once(request.payload)
+       },
+       provenance: request.provenance
+     )}
+  end
+
+  @impl true
+  def stream(%ExecutionRequest{} = request, _opts) do
+    event =
+      ExecutionEvent.new!(
+        execution_ref: request.execution_ref,
+        event_type: "jsonrpc.framed",
+        payload: %{
+          "framed_request" => Adapter.encode_once(request.payload)
+        }
+      )
+
+    {:ok, [event]}
+  end
 
   @spec call(map() | keyword(), keyword()) ::
-          {:ok, ExecutionResult.t()} | {:error, ExecutionResult.t()}
+          {:ok, KernelExecutionResult.t()} | {:error, KernelExecutionResult.t()}
   def call(binding, opts \\ []) do
     binding = Contracts.normalize_attrs(binding)
     timeout_ms = timeout_ms(binding)

@@ -7,14 +7,68 @@ defmodule ExecutionPlane.HTTP do
   minimal route, and executes the request through the kernel.
   """
 
+  alias ExecutionPlane.Admission.Rejection
   alias ExecutionPlane.Contracts
   alias ExecutionPlane.Contracts.HttpExecutionIntent.V1, as: HttpExecutionIntent
+  alias ExecutionPlane.ExecutionRequest
+  alias ExecutionPlane.ExecutionResult
   alias ExecutionPlane.Kernel
-  alias ExecutionPlane.Kernel.ExecutionResult
+  alias ExecutionPlane.Kernel.ExecutionResult, as: KernelExecutionResult
+  alias ExecutionPlane.Lane.Capabilities
   alias ExecutionPlane.LaneSupport
 
+  @behaviour ExecutionPlane.Lane.Adapter
+
+  @impl true
+  def lane_id, do: :http
+
+  @impl true
+  def capabilities do
+    Capabilities.new!(
+      lane_id: "http",
+      protocols: ["http"],
+      surfaces: ["http", "https"],
+      supports_execute: true,
+      supports_stream: false
+    )
+  end
+
+  @impl true
+  def validate(%ExecutionRequest{lane_id: "http"}), do: :ok
+
+  def validate(_request) do
+    {:error,
+     Rejection.new(
+       :invalid_lane_request,
+       "HTTP adapter only accepts lane_id=http"
+     )}
+  end
+
+  @impl true
+  def execute(%ExecutionRequest{} = request, opts) do
+    request.payload
+    |> unary(opts)
+    |> case do
+      {:ok, result} ->
+        {:ok, adapter_result(request, "succeeded", result, nil)}
+
+      {:error, result} ->
+        {:error, adapter_result(request, "failed", result, "http execution failed")}
+    end
+  end
+
+  @impl true
+  def stream(%ExecutionRequest{} = request, _opts) do
+    {:error,
+     Rejection.new(
+       :stream_not_supported,
+       "HTTP unary adapter does not expose stream/2 for execution requests",
+       %{lane_id: request.lane_id}
+     )}
+  end
+
   @spec unary(map() | keyword(), keyword()) ::
-          {:ok, ExecutionResult.t()} | {:error, ExecutionResult.t()}
+          {:ok, KernelExecutionResult.t()} | {:error, KernelExecutionResult.t()}
   def unary(request, opts \\ []) do
     request = Contracts.normalize_attrs(request)
     url = Contracts.fetch_required_stringish!(request, :url)
@@ -105,4 +159,17 @@ defmodule ExecutionPlane.HTTP do
   end
 
   defp maybe_put_timeout(timeouts, _timeout_ms), do: timeouts
+
+  defp adapter_result(%ExecutionRequest{} = request, status, result, error) do
+    ExecutionResult.new!(
+      execution_ref: request.execution_ref,
+      status: status,
+      output: %{
+        "events" => Enum.map(result.events, &ExecutionPlane.Boundary.dump_value/1),
+        "outcome" => ExecutionPlane.Boundary.dump_value(result.outcome)
+      },
+      error: error,
+      provenance: request.provenance
+    )
+  end
 end

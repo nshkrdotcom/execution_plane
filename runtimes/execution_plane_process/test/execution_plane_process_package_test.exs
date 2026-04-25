@@ -49,4 +49,39 @@ defmodule ExecutionPlaneProcessPackageTest do
 
     assert result.outcome.status == "succeeded"
   end
+
+  test "rejects local user switching on unprivileged hosts before spawning" do
+    if unprivileged_host?() do
+      assert {:error, result} =
+               ExecutionPlane.Process.run(
+                 %{
+                   command: "true",
+                   user: "nobody",
+                   execution_surface: %{surface_kind: "local_subprocess"}
+                 },
+                 lineage: %{idempotency_key: "user-switch-preflight"}
+               )
+
+      assert result.outcome.status == "failed"
+      assert result.outcome.failure.reason == "user switch requires privileged erlexec"
+      assert result.outcome.raw_payload.user == "nobody"
+      assert result.outcome.raw_payload.required_privilege == "root"
+    end
+  end
+
+  defp unprivileged_host? do
+    case :os.type() do
+      {:unix, _name} ->
+        case System.cmd("id", ["-u"], stderr_to_stdout: true) do
+          {"0\n", 0} -> false
+          {_uid, 0} -> true
+          _other -> true
+        end
+
+      _other ->
+        true
+    end
+  rescue
+    _error -> true
+  end
 end

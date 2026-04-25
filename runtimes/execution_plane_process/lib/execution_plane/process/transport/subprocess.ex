@@ -580,7 +580,8 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
 
   defp preflight_startup(%Options{} = options) do
     with :ok <- validate_cwd_exists(options.cwd),
-         :ok <- validate_command_exists(options.command) do
+         :ok <- validate_command_exists(options.command),
+         :ok <- validate_user_switch_permitted(options.user) do
       ensure_erlexec_started()
     end
   end
@@ -609,6 +610,31 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
       true ->
         :ok
     end
+  end
+
+  defp validate_user_switch_permitted(nil), do: :ok
+
+  defp validate_user_switch_permitted(user) do
+    if privileged_user?() do
+      :ok
+    else
+      {:error, Error.startup_failed({:user_switch_requires_privilege, user})}
+    end
+  end
+
+  defp privileged_user? do
+    case :os.type() do
+      {:unix, _name} ->
+        case System.cmd("id", ["-u"], stderr_to_stdout: true) do
+          {"0\n", 0} -> true
+          _other -> false
+        end
+
+      _other ->
+        false
+    end
+  rescue
+    _error -> false
   end
 
   defp ensure_erlexec_started do

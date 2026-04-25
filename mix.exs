@@ -4,9 +4,9 @@ defmodule ExecutionPlane.MixProject do
   @version "0.1.0"
   @source_url "https://github.com/nshkrdotcom/execution_plane"
   @description """
-  Execution Plane provides shared lower-runtime contracts, route planning,
-  placement descriptors, process transport, HTTP execution, and JSON-RPC
-  helpers for Elixir SDKs and runtime family kits.
+  Execution Plane provides shared lower-runtime contracts, behaviours,
+  codecs, placement descriptors, and pure helpers for Execution Plane lane
+  adapters, node hosts, and runtime family kits.
   """
 
   def project do
@@ -15,6 +15,8 @@ defmodule ExecutionPlane.MixProject do
       version: @version,
       elixir: "~> 1.18",
       elixirc_paths: elixirc_paths(Mix.env()),
+      test_paths: test_paths(),
+      test_helper: "test/test_helper.exs",
       start_permanent: Mix.env() == :prod,
       description: @description,
       aliases: aliases(),
@@ -27,8 +29,7 @@ defmodule ExecutionPlane.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:inets, :logger, :ssl],
-      mod: {ExecutionPlane.Application, []}
+      extra_applications: [:logger]
     ]
   end
 
@@ -39,17 +40,11 @@ defmodule ExecutionPlane.MixProject do
   defp elixirc_paths(:test) do
     [
       "lib",
-      "test/support",
       "core/execution_plane_contracts/lib",
       "core/execution_plane_kernel/lib",
-      "protocols/execution_plane_http/lib",
-      "protocols/execution_plane_jsonrpc/lib",
-      "streaming/execution_plane_sse/lib",
-      "streaming/execution_plane_websocket/lib",
       "placements/execution_plane_local/lib",
       "placements/execution_plane_ssh/lib",
       "placements/execution_plane_guest/lib",
-      "runtimes/execution_plane_process/lib",
       "conformance/execution_plane_testkit/lib"
     ]
   end
@@ -59,25 +54,23 @@ defmodule ExecutionPlane.MixProject do
       "lib",
       "core/execution_plane_contracts/lib",
       "core/execution_plane_kernel/lib",
-      "protocols/execution_plane_http/lib",
-      "protocols/execution_plane_jsonrpc/lib",
-      "streaming/execution_plane_sse/lib",
-      "streaming/execution_plane_websocket/lib",
       "placements/execution_plane_local/lib",
       "placements/execution_plane_ssh/lib",
-      "placements/execution_plane_guest/lib",
-      "runtimes/execution_plane_process/lib",
-      "conformance/execution_plane_testkit/lib"
+      "placements/execution_plane_guest/lib"
+    ]
+  end
+
+  defp test_paths do
+    [
+      "test/core",
+      "test/placements"
     ]
   end
 
   defp deps do
     [
-      {:erlexec, "~> 2.3"},
-      {:finch, "~> 0.21"},
       {:jason, "~> 1.4"},
-      {:mint_web_socket, "~> 1.0"},
-      {:server_sent_events, "~> 0.2"},
+      {:telemetry, "~> 1.3"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.40", only: :dev, runtime: false}
@@ -92,6 +85,7 @@ defmodule ExecutionPlane.MixProject do
         {"guides/index.md", filename: "guides_index"},
         {"core/execution_plane_contracts/README.md", filename: "execution_plane_contracts"},
         {"core/execution_plane_kernel/README.md", filename: "execution_plane_kernel"},
+        {"runtimes/execution_plane_node/README.md", filename: "execution_plane_node"},
         {"protocols/execution_plane_http/README.md", filename: "execution_plane_http"},
         {"protocols/execution_plane_jsonrpc/README.md", filename: "execution_plane_jsonrpc"},
         {"streaming/execution_plane_sse/README.md", filename: "execution_plane_sse"},
@@ -107,6 +101,7 @@ defmodule ExecutionPlane.MixProject do
         "Package Homes": [
           "core/execution_plane_contracts/README.md",
           "core/execution_plane_kernel/README.md",
+          "runtimes/execution_plane_node/README.md",
           "protocols/execution_plane_http/README.md",
           "protocols/execution_plane_jsonrpc/README.md",
           "streaming/execution_plane_sse/README.md",
@@ -151,9 +146,6 @@ defmodule ExecutionPlane.MixProject do
           lib
           mix.exs
           placements
-          protocols
-          runtimes/execution_plane_process
-          streaming
         )
     ]
   end

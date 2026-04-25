@@ -1,5 +1,5 @@
 [
-  import_deps: [:execution_plane_contracts, :execution_plane_kernel, :execution_plane_local],
+  import_deps: [:execution_plane],
   inputs: [
     "{mix,.formatter}.exs",
     "lib/**/*.{ex,exs}",

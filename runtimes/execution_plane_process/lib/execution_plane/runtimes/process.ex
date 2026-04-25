@@ -106,6 +106,15 @@ defmodule ExecutionPlane.Runtimes.Process do
     error_result(%{send_failed: reason}, start_ms, :launch_failed, "send failed")
   end
 
+  defp process_execution_result({:error, {:user_switch_requires_privilege, user}}, start_ms) do
+    error_result(
+      %{user: user, required_privilege: "root"},
+      start_ms,
+      :launch_failed,
+      "user switch requires privileged erlexec"
+    )
+  end
+
   defp process_execution_result({:error, reason}, start_ms) do
     error_result(%{error: inspect(reason)}, start_ms, :launch_failed, "process launch failed")
   end
@@ -135,6 +144,7 @@ defmodule ExecutionPlane.Runtimes.Process do
          :ok <- validate_surface(normalized.surface_kind),
          :ok <- validate_cwd_exists(normalized.cwd),
          :ok <- validate_command_exists(normalized.command),
+         :ok <- validate_user_switch_permitted(normalized.user),
          :ok <- ensure_erlexec_started(),
          exec_opts <-
            build_exec_opts(
@@ -230,6 +240,31 @@ defmodule ExecutionPlane.Runtimes.Process do
       true ->
         :ok
     end
+  end
+
+  defp validate_user_switch_permitted(nil), do: :ok
+
+  defp validate_user_switch_permitted(user) do
+    if privileged_user?() do
+      :ok
+    else
+      {:error, {:user_switch_requires_privilege, user}}
+    end
+  end
+
+  defp privileged_user? do
+    case :os.type() do
+      {:unix, _name} ->
+        case System.cmd("id", ["-u"], stderr_to_stdout: true) do
+          {"0\n", 0} -> true
+          _other -> false
+        end
+
+      _other ->
+        false
+    end
+  rescue
+    _error -> false
   end
 
   defp ensure_erlexec_started do

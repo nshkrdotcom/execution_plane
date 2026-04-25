@@ -3,6 +3,7 @@ defmodule ExecutionPlaneWebSocket.MixProject do
 
   @version "0.1.0"
   @source_url "https://github.com/nshkrdotcom/execution_plane"
+  @execution_plane_version "~> 0.1.0"
 
   def project do
     [
@@ -28,12 +29,35 @@ defmodule ExecutionPlaneWebSocket.MixProject do
 
   defp deps do
     [
+      execution_plane_dep(),
       {:mint, "~> 1.7"},
       {:mint_web_socket, "~> 1.0"},
       {:ex_doc, "~> 0.40", only: :dev, runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false}
     ]
+  end
+
+  defp execution_plane_dep do
+    case workspace_dep_path("../..") do
+      nil -> {:execution_plane, @execution_plane_version}
+      path -> {:execution_plane, path: path}
+    end
+  end
+
+  defp workspace_dep_path(relative_path) do
+    if local_workspace_deps?() do
+      path = Path.expand(relative_path, __DIR__)
+      if File.dir?(path), do: path
+    end
+  end
+
+  defp local_workspace_deps? do
+    not hex_packaging_task?() and not Enum.member?(Path.split(__DIR__), "deps")
+  end
+
+  defp hex_packaging_task? do
+    Enum.any?(System.argv(), &(&1 in ["hex.build", "hex.publish"]))
   end
 
   defp package do

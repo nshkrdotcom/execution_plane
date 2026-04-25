@@ -1,17 +1,19 @@
-defmodule ExecutionPlaneContracts.MixProject do
+defmodule ExecutionPlaneNode.MixProject do
   use Mix.Project
 
   @version "0.1.0"
   @source_url "https://github.com/nshkrdotcom/execution_plane"
+  @execution_plane_version "~> 0.1.0"
 
   def project do
     [
-      app: :execution_plane_contracts,
-      name: "ExecutionPlaneContracts",
+      app: :execution_plane_node,
+      name: "ExecutionPlaneNode",
       version: @version,
       elixir: "~> 1.18",
+      elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
-      description: "Execution Plane lower-boundary contracts and validators.",
+      description: "Lane-neutral Execution Plane runtime node and local Runtime.Client.",
       package: package(),
       docs: docs(),
       dialyzer: dialyzer(),
@@ -22,12 +24,18 @@ defmodule ExecutionPlaneContracts.MixProject do
 
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger, :telemetry],
+      mod: {ExecutionPlane.Node.Application, []}
     ]
   end
 
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_env), do: ["lib"]
+
   defp deps do
     [
+      execution_plane_dep(),
+      {:jason, "~> 1.4"},
       {:telemetry, "~> 1.3"},
       {:ex_doc, "~> 0.40", only: :dev, runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
@@ -35,9 +43,31 @@ defmodule ExecutionPlaneContracts.MixProject do
     ]
   end
 
+  defp execution_plane_dep do
+    case workspace_dep_path("../..") do
+      nil -> {:execution_plane, @execution_plane_version}
+      path -> {:execution_plane, path: path}
+    end
+  end
+
+  defp workspace_dep_path(relative_path) do
+    if local_workspace_deps?() do
+      path = Path.expand(relative_path, __DIR__)
+      if File.dir?(path), do: path
+    end
+  end
+
+  defp local_workspace_deps? do
+    not hex_packaging_task?() and not Enum.member?(Path.split(__DIR__), "deps")
+  end
+
+  defp hex_packaging_task? do
+    Enum.any?(System.argv(), &(&1 in ["hex.build", "hex.publish"]))
+  end
+
   defp package do
     [
-      name: "execution_plane_contracts",
+      name: "execution_plane_node",
       licenses: ["MIT"],
       links: %{"GitHub" => @source_url},
       files: ~w(.formatter.exs mix.exs README.md lib)

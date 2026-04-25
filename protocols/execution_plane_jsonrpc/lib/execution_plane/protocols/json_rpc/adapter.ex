@@ -24,6 +24,12 @@ defmodule ExecutionPlane.Protocols.JsonRpc.Adapter do
      }, []}
   end
 
+  @spec encode_once(term()) :: binary()
+  def encode_once(request) do
+    {:ok, _id, frame, _state} = encode_request(request, %__MODULE__{})
+    frame
+  end
+
   @spec encode_request(term(), t()) ::
           {:ok, term(), binary(), t()} | {:error, term()}
   def encode_request(request, %__MODULE__{} = state) do
