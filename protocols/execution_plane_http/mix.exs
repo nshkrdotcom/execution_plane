@@ -38,7 +38,7 @@ defmodule ExecutionPlaneHttp.MixProject do
   end
 
   defp execution_plane_dep do
-    case workspace_dep_path("../..") do
+    case workspace_dep_path("../../core/execution_plane") do
       nil -> {:execution_plane, @execution_plane_version}
       path -> {:execution_plane, path: path}
     end
@@ -61,10 +61,11 @@ defmodule ExecutionPlaneHttp.MixProject do
 
   defp package do
     [
+      maintainers: ["nshkrdotcom"],
       name: "execution_plane_http",
       licenses: ["MIT"],
       links: %{"GitHub" => @source_url},
-      files: ~w(.formatter.exs mix.exs README.md lib)
+      files: ~w(.formatter.exs CHANGELOG.md LICENSE README.md assets guides lib mix.exs)
     ]
   end
 
@@ -73,7 +74,26 @@ defmodule ExecutionPlaneHttp.MixProject do
       main: "readme",
       source_ref: "main",
       source_url: @source_url,
-      extras: ["README.md": [title: "Overview", filename: "readme"]]
+      logo: "assets/execution_plane_http.svg",
+      assets: %{"assets" => "assets"},
+      extras: [
+        {"README.md", title: "Overview", filename: "readme"},
+        {"CHANGELOG.md", title: "Changelog", filename: "changelog"},
+        {"LICENSE", title: "License", filename: "license"},
+        {"guides/index.md", title: "Guide Index", filename: "guides_index"},
+        {"guides/installation.md", title: "Installation", filename: "installation"},
+        {"guides/usage.md", title: "Usage", filename: "usage"},
+        {"guides/publishing.md", title: "Publishing", filename: "publishing"}
+      ],
+      groups_for_extras: [
+        Package: ["README.md", "CHANGELOG.md", "LICENSE"],
+        Guides: [
+          "guides/index.md",
+          "guides/installation.md",
+          "guides/usage.md",
+          "guides/publishing.md"
+        ]
+      ]
     ]
   end
 

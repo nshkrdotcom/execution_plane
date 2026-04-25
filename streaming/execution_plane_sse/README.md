@@ -1,11 +1,28 @@
-# `streaming/execution_plane_sse`
+# Execution Plane SSE
 
-Lower SSE framing, timeout, and stream lifecycle package.
+<p align="center">
+  <img src="assets/execution_plane_sse.svg" width="200" height="200" alt="Execution Plane SSE logo">
+</p>
 
-Current status:
+<p align="center">
+  <a href="https://github.com/nshkrdotcom/execution_plane"><img alt="GitHub" src="https://img.shields.io/badge/github-nshkrdotcom%2Fexecution_plane-24292f?logo=github"></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+</p>
 
-- active as a separate Mix project that depends on root `execution_plane`
-- owns shared SSE framing
-- owns the lower Finch-backed stream worker and timeout lifecycle
-- exposes a lane adapter for hosts that select this realtime lane
-- semantic families consume parsed SSE events without re-owning the lower lane
+`execution_plane_sse` owns the lower SSE framing and stream lifecycle helper
+below semantic family code.
+
+## Installation
+
+```elixir
+def deps do
+  [
+    {:execution_plane_sse, "~> 0.1.0"}
+  ]
+end
+```
+
+## Guides
+
+The HexDocs menu includes the guide index, installation notes, usage notes,
+and publishing checklist for this package.

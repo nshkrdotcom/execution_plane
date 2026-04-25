@@ -27,6 +27,13 @@ defmodule ExecutionPlane.OperatorTerminal.Surface do
 
   @type surface_kind :: :local_terminal | :ssh_terminal | :distributed_terminal
   @type boundary_class :: atom() | String.t() | nil
+  @type reserved_key ::
+          :boundary_class
+          | :contract_version
+          | :observability
+          | :surface_kind
+          | :surface_ref
+          | :transport_options
 
   @type t :: %__MODULE__{
           contract_version: String.t(),
@@ -54,7 +61,7 @@ defmodule ExecutionPlane.OperatorTerminal.Surface do
   @spec contract_version() :: String.t()
   def contract_version, do: @contract_version
 
-  @spec reserved_keys() :: [atom(), ...]
+  @spec reserved_keys() :: [reserved_key(), ...]
   def reserved_keys, do: @reserved_keys
 
   @spec remote_surface?(t() | surface_kind()) :: boolean()

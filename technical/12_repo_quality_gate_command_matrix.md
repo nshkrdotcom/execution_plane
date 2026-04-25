@@ -78,7 +78,7 @@ If a wave reduces the repo to an archival shell and removes tasks or code paths,
 
 | Repo | Exact gate stack | Notes |
 | --- | --- | --- |
-| `execution_plane` | `ROOT_CI_ALIAS` | root `mix ci` is the source of truth and includes static analysis plus docs warnings-as-errors |
+| `execution_plane` | `ROOT_CI_ALIAS` | root `mix ci` is the Blitz workspace gate; publishable packages still own their package-local `mix ci` aliases |
 | `external_runtime_transport` | `ARCHIVAL_ROOT` | use full root stack while code still exists; record any archival-shell task removals explicitly |
 | `pristine` | `MONOREPO_FULL` | use the root `mix monorepo.*` aliases |
 | `prismatic` | `MONOREPO_FULL` | use the root `mix monorepo.*` aliases |

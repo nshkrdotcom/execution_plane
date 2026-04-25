@@ -2,7 +2,8 @@
 
 This checkout contains exactly eight Mix projects:
 
-- `./mix.exs`: root `execution_plane` common substrate.
+- `./core/execution_plane/mix.exs`: publishable `execution_plane` common
+  substrate.
 - `./protocols/execution_plane_http/mix.exs`: unary HTTP lane.
 - `./protocols/execution_plane_jsonrpc/mix.exs`: JSON-RPC framing lane.
 - `./streaming/execution_plane_sse/mix.exs`: SSE framing and stream lane.
@@ -12,21 +13,29 @@ This checkout contains exactly eight Mix projects:
 - `./runtimes/execution_plane_operator_terminal/mix.exs`: operator-terminal
   add-on package for local, SSH, and distributed TUIs.
 
+The repository root `./mix.exs` is not one of the publishable package
+projects. It is the non-published `execution_plane_workspace` tooling root and
+is allowed to depend on Blitz for repo-wide orchestration.
+
 ## Execution Plane Stack Rules
 
-- The root `mix.exs` is the lower common substrate package. It must not grow
-  lane-heavy dependencies or runtime ownership.
+- `core/execution_plane/mix.exs` is the lower common substrate package. It
+  must not grow lane-heavy dependencies or runtime ownership.
+- The root `mix.exs` is workspace tooling only. Blitz belongs there and must
+  not be added to publishable package manifests.
 - Lane packages and node/operator packages are separate Mix projects with
   their own dependency surfaces.
 - Keep active root-compiled homes, add-on homes, and reserved sandbox homes distinct in docs and release notes.
 - Do not move family-kit or product semantics into this repo. `cli_subprocess_core`, `pristine`, `prismatic`, `self_hosted_inference_core`, and the self-hosted runtime kits own those semantic layers above this substrate.
-- The root repo gate is `mix ci`. Lane packages with their own `mix ci` alias
-  must pass their package-local gate before claims are made.
+- The root repo gate is `mix ci`; it uses Blitz to run package-local `mix ci`
+  aliases. Lane packages must also pass their package-local gate before claims
+  are made.
 
 ## Current Architecture State
 
 - This checkout is intentionally workspace-shaped, not a flat `lib/` package dump.
-- The root app compiles only common substrate homes through `elixirc_paths`:
+- The publishable `core/execution_plane` app compiles only common substrate
+  homes through `elixirc_paths`:
   - `core/execution_plane_contracts/lib`
   - `core/execution_plane_kernel/lib`
   - `placements/execution_plane_local/lib`
@@ -45,7 +54,7 @@ This checkout contains exactly eight Mix projects:
   `streaming/execution_plane_websocket`.
 - `ex_ratatui` is owned only by
   `runtimes/execution_plane_operator_terminal`.
-- `runtimes/execution_plane_node` depends on root `execution_plane` only among
+- `runtimes/execution_plane_node` depends on `core/execution_plane` only among
   Execution Plane packages. Hosts select lanes by declaring lane deps and
   registering adapters, target verifiers, evidence sinks, and authority
   verifier modules before admission opens.
@@ -59,10 +68,10 @@ This checkout contains exactly eight Mix projects:
 - `local-erlexec-weak` is a weak local process attestation, not a container or
   microVM isolation guarantee.
 - `external_runtime_transport` is retired from the target architecture; do not add or preserve active dependencies on it unless the user explicitly asks for historical compatibility work.
-- The root workspace should keep Hex fallback behavior in downstream repos;
+- The workspace should keep Hex fallback behavior in downstream repos;
   local path deps are for workspace development, not a silent production
   assumption.
-- Publish root `execution_plane` first, lane packages next,
+- Publish `core/execution_plane` first, lane packages next,
   `execution_plane_node` after the lane/common contracts it depends on, and
   `execution_plane_operator_terminal` last.
 

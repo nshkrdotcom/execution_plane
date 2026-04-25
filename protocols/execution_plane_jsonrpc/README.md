@@ -1,14 +1,28 @@
-# `protocols/execution_plane_jsonrpc`
+# Execution Plane JSON-RPC
 
-Owns lower JSON-RPC framing and control-lane handling below provider or family
-semantics.
+<p align="center">
+  <img src="assets/execution_plane_jsonrpc.svg" width="200" height="200" alt="Execution Plane JSON-RPC logo">
+</p>
 
-Current status:
+<p align="center">
+  <a href="https://github.com/nshkrdotcom/execution_plane"><img alt="GitHub" src="https://img.shields.io/badge/github-nshkrdotcom%2Fexecution_plane-24292f?logo=github"></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+</p>
 
-- active as a separate Mix project that depends on root `execution_plane`
-- owns JSON-RPC request/response framing and correlation
-- exposes a lane adapter for hosts that explicitly compose JSON-RPC with a
-  target client
-- does not own subprocess launch; a host that wants JSON-RPC over a process
-  must compose this package with the process lane explicitly
-- family kits keep protocol-session orchestration above this lower framing seam
+`execution_plane_jsonrpc` owns the lower JSON-RPC framing and correlation lane
+below provider semantics.
+
+## Installation
+
+```elixir
+def deps do
+  [
+    {:execution_plane_jsonrpc, "~> 0.1.0"}
+  ]
+end
+```
+
+## Guides
+
+The HexDocs menu includes the guide index, installation notes, usage notes,
+and publishing checklist for this package.

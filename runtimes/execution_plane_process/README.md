@@ -1,33 +1,28 @@
-# `runtimes/execution_plane_process`
+# Execution Plane Process
 
-Owns process launch, stdio, PTY, and long-lived process-session mechanics below
-family kits.
+<p align="center">
+  <img src="assets/execution_plane_process.svg" width="200" height="200" alt="Execution Plane Process logo">
+</p>
 
-Closed-wave status:
+<p align="center">
+  <a href="https://github.com/nshkrdotcom/execution_plane"><img alt="GitHub" src="https://img.shields.io/badge/github-nshkrdotcom%2Fexecution_plane-24292f?logo=github"></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+</p>
 
-- active for one-shot local process execution
-- active for `ExecutionPlane.Process.Transport` as the Execution Plane-owned
-  long-lived process/session seam
-- owns the only `erlexec` dependency in the Execution Plane package set
-- implements the process lane adapter for hosts that explicitly select local
-  process execution
-- active tagged-only mailbox delivery for long-lived transport subscribers:
-  `subscribe/2` tags by subscriber pid and `subscribe/3` tags by explicit
-  reference
-- local PTY/stdin attach, lease-aware transport metadata, and session lifecycle
-  now flow through that lower transport surface
-- the same transport substrate is exercised under local, SSH, and guest
-  placement adapters without moving service-runtime semantics into this repo
+`execution_plane_process` owns process launch, stdio, PTY, and long-lived
+process-session mechanics below family kits.
 
-Operator-facing terminal hosting is not owned here. That lane now lives in the
-separate `runtimes/execution_plane_operator_terminal` package so base process
-consumers do not inherit `ex_ratatui`.
+## Installation
 
-Standalone callers that use this lane directly should mark provenance as
-`direct_lower_lane_owner`. Governed callers should go through an
-`ExecutionPlane.Runtime.Client` backed by a node host that registers this lane
-and verifies a target such as `local-erlexec-weak`.
+```elixir
+def deps do
+  [
+    {:execution_plane_process, "~> 0.1.0"}
+  ]
+end
+```
 
-`local-erlexec-weak` is not a sandbox isolation claim. It is weak local process
-execution and must not be described as container, microVM, or cryptographic
-isolation.
+## Guides
+
+The HexDocs menu includes the guide index, installation notes, usage notes,
+and publishing checklist for this package.

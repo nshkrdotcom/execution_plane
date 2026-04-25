@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" role="img" aria-labelledby="title desc">
+  <title id="title">Execution Plane</title>
+  <desc id="desc">A symmetric hexagonal mark with layered execution lattice geometry.</desc>
+  <defs>
+    <linearGradient id="hexFill" x1="24" y1="24" x2="176" y2="176" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#071927"/>
+      <stop offset="0.45" stop-color="#10324a"/>
+      <stop offset="1" stop-color="#0b2436"/>
+    </linearGradient>
+    <linearGradient id="edgeGlow" x1="24" y1="100" x2="176" y2="100" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#38bdf8"/>
+      <stop offset="0.5" stop-color="#7dd3fc"/>
+      <stop offset="1" stop-color="#5eead4"/>
+    </linearGradient>
+    <linearGradient id="facetFill" x1="56" y1="42" x2="144" y2="158" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0f5e72" stop-opacity="0.92"/>
+      <stop offset="0.5" stop-color="#133f67" stop-opacity="0.78"/>
+      <stop offset="1" stop-color="#7c3aed" stop-opacity="0.64"/>
+    </linearGradient>
+    <radialGradient id="coreGlow" cx="100" cy="100" r="52" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fde68a" stop-opacity="0.95"/>
+      <stop offset="0.32" stop-color="#fb7185" stop-opacity="0.52"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="softGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#67e8f9" flood-opacity="0.5"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="10" flood-color="#38bdf8" flood-opacity="0.22"/>
+    </filter>
+    <clipPath id="hexClip">
+      <polygon points="100,12 176,56 176,144 100,188 24,144 24,56"/>
+    </clipPath>
+  </defs>
+
+  <polygon
+    points="100,12 176,56 176,144 100,188 24,144 24,56"
+    fill="url(#hexFill)"
+    stroke="url(#edgeGlow)"
+    stroke-width="4"
+    filter="url(#softGlow)"
+  />
+
+  <g clip-path="url(#hexClip)">
+    <rect x="20" y="20" width="160" height="160" fill="url(#coreGlow)" opacity="0.7"/>
+
+    <path
+      d="M10 140 C40 104 66 86 100 86 C134 86 160 104 190 140"
+      fill="none"
+      stroke="url(#edgeGlow)"
+      stroke-width="11"
+      stroke-linecap="round"
+      opacity="0.22"
+    />
+    <path
+      d="M16 118 C44 88 68 72 100 72 C132 72 156 88 184 118"
+      fill="none"
+      stroke="#38bdf8"
+      stroke-width="4"
+      stroke-linecap="round"
+      opacity="0.2"
+    />
+
+    <polygon
+      points="100,34 145,60 145,118 100,144 55,118 55,60"
+      fill="url(#facetFill)"
+      opacity="0.86"
+    />
+    <polygon
+      points="100,52 130,70 130,106 100,124 70,106 70,70"
+      fill="#0a1727"
+      opacity="0.88"
+      stroke="#7dd3fc"
+      stroke-opacity="0.45"
+      stroke-width="1.5"
+    />
+
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M55 60 L100 80 L145 60" stroke="#7dd3fc" stroke-width="2.4" opacity="0.92"/>
+      <path d="M55 118 L100 98 L145 118" stroke="#7dd3fc" stroke-width="2.4" opacity="0.92"/>
+      <path d="M100 34 L100 144" stroke="#5eead4" stroke-width="2.2" opacity="0.82"/>
+      <path d="M55 60 L55 118" stroke="#38bdf8" stroke-width="1.8" opacity="0.55"/>
+      <path d="M145 60 L145 118" stroke="#38bdf8" stroke-width="1.8" opacity="0.55"/>
+      <path d="M38 100 L78 100" stroke="#f8fafc" stroke-width="1.6" stroke-dasharray="2 6" opacity="0.55"/>
+      <path d="M122 100 L162 100" stroke="#f8fafc" stroke-width="1.6" stroke-dasharray="2 6" opacity="0.55"/>
+      <path d="M82 70 Q100 58 118 70" stroke="#fde68a" stroke-width="1.6" opacity="0.8"/>
+      <path d="M82 130 Q100 142 118 130" stroke="#fde68a" stroke-width="1.6" opacity="0.8"/>
+      <path d="M70 88 Q100 68 130 88" stroke="#67e8f9" stroke-width="1.4" opacity="0.65"/>
+      <path d="M70 112 Q100 132 130 112" stroke="#67e8f9" stroke-width="1.4" opacity="0.65"/>
+    </g>
+
+    <g filter="url(#softGlow)">
+      <circle cx="100" cy="100" r="18" fill="#08111c" stroke="#f8fafc" stroke-opacity="0.24" stroke-width="1.5"/>
+      <path
+        d="M100 82 L114 92 L114 108 L100 118 L86 108 L86 92 Z"
+        fill="url(#edgeGlow)"
+        opacity="0.9"
+      />
+      <path
+        d="M100 86 L109 93 L109 107 L100 114 L91 107 L91 93 Z"
+        fill="#082235"
+        opacity="0.95"
+      />
+    </g>
+
+    <g fill="#dbeafe">
+      <circle cx="100" cy="34" r="3.2"/>
+      <circle cx="55" cy="60" r="3.2"/>
+      <circle cx="145" cy="60" r="3.2"/>
+      <circle cx="55" cy="118" r="3.2"/>
+      <circle cx="145" cy="118" r="3.2"/>
+      <circle cx="38" cy="100" r="2.6"/>
+      <circle cx="162" cy="100" r="2.6"/>
+    </g>
+  </g>
+</svg>

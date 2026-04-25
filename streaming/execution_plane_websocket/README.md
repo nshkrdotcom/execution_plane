@@ -1,11 +1,28 @@
-# `streaming/execution_plane_websocket`
+# Execution Plane WebSocket
 
-Lower WebSocket session and handshake lifecycle package.
+<p align="center">
+  <img src="assets/execution_plane_websocket.svg" width="200" height="200" alt="Execution Plane WebSocket logo">
+</p>
 
-Current status:
+<p align="center">
+  <a href="https://github.com/nshkrdotcom/execution_plane"><img alt="GitHub" src="https://img.shields.io/badge/github-nshkrdotcom%2Fexecution_plane-24292f?logo=github"></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+</p>
 
-- active as a separate Mix project that depends on root `execution_plane`
-- owns handshake, receive, ping/pong, timeout, and close handling
-- exposes a lane adapter for hosts that select this realtime lane
-- semantic families keep provider frame decoding above this package
-- reconnect and resume policy stay contract-driven above the lower socket lifecycle
+`execution_plane_websocket` owns the lower WebSocket handshake and frame
+lifecycle.
+
+## Installation
+
+```elixir
+def deps do
+  [
+    {:execution_plane_websocket, "~> 0.1.0"}
+  ]
+end
+```
+
+## Guides
+
+The HexDocs menu includes the guide index, installation notes, usage notes,
+and publishing checklist for this package.

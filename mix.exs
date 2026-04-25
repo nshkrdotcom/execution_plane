@@ -1,32 +1,25 @@
-defmodule ExecutionPlane.MixProject do
+defmodule ExecutionPlane.Workspace.MixProject do
   use Mix.Project
 
   @version "0.1.0"
   @source_url "https://github.com/nshkrdotcom/execution_plane"
-  @description """
-  Execution Plane provides shared lower-runtime contracts, behaviours,
-  codecs, placement descriptors, and pure helpers for Execution Plane lane
-  adapters, node hosts, and runtime family kits.
-  """
 
   def project do
     [
-      app: :execution_plane,
+      app: :execution_plane_workspace,
       version: @version,
       elixir: "~> 1.18",
-      elixirc_paths: elixirc_paths(Mix.env()),
-      test_paths: test_paths(),
-      test_helper: "test/test_helper.exs",
       start_permanent: Mix.env() == :prod,
-      description: @description,
       aliases: aliases(),
-      package: package(),
+      blitz_workspace: blitz_workspace(),
+      deps: deps(),
       docs: docs(),
-      deps: deps()
+      name: "Execution Plane Workspace",
+      description: "Tooling root for the Execution Plane non-umbrella workspace",
+      source_url: @source_url
     ]
   end
 
-  # Run "mix help compile.app" to learn about applications.
   def application do
     [
       extra_applications: [:logger]
@@ -34,46 +27,76 @@ defmodule ExecutionPlane.MixProject do
   end
 
   def cli do
-    []
-  end
-
-  defp elixirc_paths(:test) do
     [
-      "lib",
-      "core/execution_plane_contracts/lib",
-      "core/execution_plane_kernel/lib",
-      "placements/execution_plane_local/lib",
-      "placements/execution_plane_ssh/lib",
-      "placements/execution_plane_guest/lib",
-      "conformance/execution_plane_testkit/lib"
-    ]
-  end
-
-  defp elixirc_paths(_env) do
-    [
-      "lib",
-      "core/execution_plane_contracts/lib",
-      "core/execution_plane_kernel/lib",
-      "placements/execution_plane_local/lib",
-      "placements/execution_plane_ssh/lib",
-      "placements/execution_plane_guest/lib"
-    ]
-  end
-
-  defp test_paths do
-    [
-      "test/core",
-      "test/placements"
+      preferred_envs: [
+        ci: :test,
+        credo: :test,
+        dialyzer: :test
+      ]
     ]
   end
 
   defp deps do
     [
-      {:jason, "~> 1.4"},
-      {:telemetry, "~> 1.3"},
-      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:blitz, "~> 0.2.0", runtime: false},
       {:ex_doc, "~> 0.40", only: :dev, runtime: false}
+    ]
+  end
+
+  defp aliases do
+    monorepo_aliases = [
+      "monorepo.deps.get": ["blitz.workspace deps_get"],
+      "monorepo.ci": ["blitz.workspace ci"]
+    ]
+
+    [
+      ci: [
+        "format --check-formatted",
+        "deps.get",
+        "monorepo.deps.get",
+        "monorepo.ci"
+      ],
+      "docs.root": ["docs"]
+    ] ++ monorepo_aliases
+  end
+
+  defp blitz_workspace do
+    [
+      root: __DIR__,
+      projects: workspace_projects(),
+      isolation: [
+        deps_path: true,
+        build_path: true,
+        lockfile: true,
+        hex_home: "_build/hex",
+        unset_env: ["HEX_API_KEY"]
+      ],
+      parallelism: [
+        env: "EXECUTION_PLANE_WORKSPACE_MAX_CONCURRENCY",
+        multiplier: :auto,
+        base: [
+          deps_get: 4,
+          ci: 2
+        ],
+        overrides: []
+      ],
+      tasks: [
+        deps_get: [args: ["deps.get"], preflight?: false],
+        ci: [args: ["ci"], color: true]
+      ]
+    ]
+  end
+
+  defp workspace_projects do
+    [
+      "core/execution_plane",
+      "protocols/execution_plane_http",
+      "protocols/execution_plane_jsonrpc",
+      "streaming/execution_plane_sse",
+      "streaming/execution_plane_websocket",
+      "runtimes/execution_plane_process",
+      "runtimes/execution_plane_node",
+      "runtimes/execution_plane_operator_terminal"
     ]
   end
 
@@ -82,99 +105,64 @@ defmodule ExecutionPlane.MixProject do
       main: "workspace_overview",
       extras: [
         {"README.md", filename: "workspace_overview"},
+        "AGENTS.md",
+        {"CHANGELOG.md", filename: "changelog"},
+        {"LICENSE", filename: "license"},
         {"guides/index.md", filename: "guides_index"},
         {"technical/02_repo_topology_and_package_map.md", filename: "repo_topology"},
         {"technical/07_brain_spine_and_harness_alignment.md", filename: "brain_spine_alignment"},
-        {"core/execution_plane_contracts/README.md", filename: "execution_plane_contracts"},
-        {"core/execution_plane_kernel/README.md", filename: "execution_plane_kernel"},
+        {"core/execution_plane/README.md", filename: "execution_plane"},
+        {"core/execution_plane/core/execution_plane_contracts/README.md",
+         filename: "execution_plane_contracts"},
+        {"core/execution_plane/core/execution_plane_kernel/README.md",
+         filename: "execution_plane_kernel"},
+        {"core/execution_plane/placements/execution_plane_local/README.md",
+         filename: "execution_plane_local"},
+        {"core/execution_plane/placements/execution_plane_ssh/README.md",
+         filename: "execution_plane_ssh"},
+        {"core/execution_plane/placements/execution_plane_guest/README.md",
+         filename: "execution_plane_guest"},
+        {"core/execution_plane/conformance/execution_plane_testkit/README.md",
+         filename: "execution_plane_testkit"},
         {"runtimes/execution_plane_node/README.md", filename: "execution_plane_node"},
         {"protocols/execution_plane_http/README.md", filename: "execution_plane_http"},
         {"protocols/execution_plane_jsonrpc/README.md", filename: "execution_plane_jsonrpc"},
         {"streaming/execution_plane_sse/README.md", filename: "execution_plane_sse"},
         {"streaming/execution_plane_websocket/README.md", filename: "execution_plane_websocket"},
-        {"placements/execution_plane_local/README.md", filename: "execution_plane_local"},
-        {"placements/execution_plane_ssh/README.md", filename: "execution_plane_ssh"},
-        {"placements/execution_plane_guest/README.md", filename: "execution_plane_guest"},
         {"runtimes/execution_plane_process/README.md", filename: "execution_plane_process"},
-        {"conformance/execution_plane_testkit/README.md", filename: "execution_plane_testkit"}
+        {"runtimes/execution_plane_operator_terminal/README.md",
+         filename: "execution_plane_operator_terminal"}
       ],
       groups_for_extras: [
         Overview: ["README.md", "guides/index.md"],
+        Publishing: ["CHANGELOG.md", "LICENSE"],
         Technical: [
           "technical/02_repo_topology_and_package_map.md",
           "technical/07_brain_spine_and_harness_alignment.md"
         ],
-        "Package Homes": [
-          "core/execution_plane_contracts/README.md",
-          "core/execution_plane_kernel/README.md",
+        Packages: [
+          "core/execution_plane/README.md",
           "runtimes/execution_plane_node/README.md",
           "protocols/execution_plane_http/README.md",
           "protocols/execution_plane_jsonrpc/README.md",
           "streaming/execution_plane_sse/README.md",
           "streaming/execution_plane_websocket/README.md",
-          "placements/execution_plane_local/README.md",
-          "placements/execution_plane_ssh/README.md",
-          "placements/execution_plane_guest/README.md",
           "runtimes/execution_plane_process/README.md",
-          "conformance/execution_plane_testkit/README.md"
+          "runtimes/execution_plane_operator_terminal/README.md"
+        ],
+        "Execution Plane Common Homes": [
+          "core/execution_plane/core/execution_plane_contracts/README.md",
+          "core/execution_plane/core/execution_plane_kernel/README.md",
+          "core/execution_plane/placements/execution_plane_local/README.md",
+          "core/execution_plane/placements/execution_plane_ssh/README.md",
+          "core/execution_plane/placements/execution_plane_guest/README.md",
+          "core/execution_plane/conformance/execution_plane_testkit/README.md"
         ]
       ],
       assets: %{"assets" => "assets"},
       logo: "assets/execution_plane.svg",
       source_ref: "main",
       source_url: @source_url
-    ]
-  end
-
-  defp package do
-    [
-      maintainers: ["nshkrdotcom"],
-      licenses: ["MIT"],
-      links: %{
-        "GitHub" => @source_url
-      },
-      exclude_patterns: [
-        "**/_build/**",
-        "**/deps/**",
-        "**/doc/**",
-        "**/*.beam",
-        "**/*.plt",
-        "**/*.plt.hash"
-      ],
-      files: ~w(
-          .formatter.exs
-          LICENSE
-          README.md
-          assets
-          conformance/execution_plane_testkit
-          core
-          guides/index.md
-          lib
-          mix.exs
-          placements
-          protocols/execution_plane_http/README.md
-          protocols/execution_plane_jsonrpc/README.md
-          runtimes/execution_plane_node/README.md
-          runtimes/execution_plane_operator_terminal/README.md
-          runtimes/execution_plane_process/README.md
-          streaming/execution_plane_sse/README.md
-          streaming/execution_plane_websocket/README.md
-          technical/02_repo_topology_and_package_map.md
-          technical/07_brain_spine_and_harness_alignment.md
-        )
-    ]
-  end
-
-  defp aliases do
-    [
-      ci: [
-        "format --check-formatted",
-        "compile --warnings-as-errors",
-        "cmd env MIX_ENV=test mix test",
-        "credo --strict",
-        "cmd env MIX_ENV=test mix dialyzer --force-check",
-        "docs --warnings-as-errors"
-      ]
     ]
   end
 end

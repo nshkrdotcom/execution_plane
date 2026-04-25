@@ -1,43 +1,28 @@
-# `runtimes/execution_plane_operator_terminal`
+# Execution Plane Operator Terminal
 
-Owns the Execution Plane operator-terminal ingress family.
+<p align="center">
+  <img src="assets/execution_plane_operator_terminal.svg" width="200" height="200" alt="Execution Plane Operator Terminal logo">
+</p>
 
-This package is intentionally separate from the root `execution_plane` Mix
-package so base lower-runtime consumers do not inherit `ex_ratatui` unless
-they explicitly opt into the operator-terminal lane.
+<p align="center">
+  <a href="https://github.com/nshkrdotcom/execution_plane"><img alt="GitHub" src="https://img.shields.io/badge/github-nshkrdotcom%2Fexecution_plane-24292f?logo=github"></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+</p>
 
-## Responsibilities
+`execution_plane_operator_terminal` owns the operator-facing terminal ingress
+family for local, SSH, and distributed TUIs.
 
-- host operator-facing TUIs below product apps
-- own local, SSH, and distributed operator-terminal surface semantics
-- supervise operator-terminal registry and runtime children
-- expose operator-terminal lifecycle and inspection APIs through
-  `ExecutionPlane.OperatorTerminal`
+## Installation
 
-## Non-Responsibilities
-
-- workload process placement
-- subprocess launch and PTY ownership for workload execution
-- durable operator truth
-- product-local rendering ownership
-
-## Developer Workflow
-
-```bash
-cd runtimes/execution_plane_operator_terminal
-mix deps.get
-mix format --check-formatted
-mix compile --warnings-as-errors
-mix test
-mix credo --strict
-mix dialyzer
-mix docs --warnings-as-errors
+```elixir
+def deps do
+  [
+    {:execution_plane_operator_terminal, "~> 0.1.0"}
+  ]
+end
 ```
 
-## Related Reading
+## Guides
 
-- [Execution Plane Workspace README](../../README.md)
-- `technical/02_repo_topology_and_package_map.md` in the root `execution_plane`
-  repo
-- `technical/11_surface_exposure_and_contract_carriage_matrix.md` in the root
-  `execution_plane` repo
+The HexDocs menu includes the guide index, installation notes, usage notes,
+and publishing checklist for this package.
