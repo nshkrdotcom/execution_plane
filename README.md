@@ -10,9 +10,9 @@
 </p>
 
 Execution Plane is a lower-runtime substrate for Elixir systems that need
-shared execution contracts, route planning, local process execution, HTTP
-execution, JSON-RPC request handling, placement descriptors, and conformance
-fixtures without each higher-level SDK re-owning those mechanics.
+shared execution contracts, admission values, target descriptors, lane
+adapter behaviours, placement descriptors, codecs, evidence envelopes, and
+conformance fixtures without each higher-level SDK re-owning those mechanics.
 
 It is designed to sit below family kits such as CLI subprocess, HTTP/provider,
 GraphQL/provider, and self-hosted inference libraries. Product SDKs should
@@ -21,12 +21,24 @@ directly.
 
 ## Installation
 
-Add `execution_plane` to your dependencies:
+Add the root package when you need the common substrate only:
 
 ```elixir
 def deps do
   [
     {:execution_plane, "~> 0.1.0"}
+  ]
+end
+```
+
+Lane hosts and family kits opt into the exact lane packages they run:
+
+```elixir
+def deps do
+  [
+    {:execution_plane, "~> 0.1.0"},
+    {:execution_plane_node, "~> 0.1.0"},
+    {:execution_plane_process, "~> 0.1.0"}
   ]
 end
 ```
@@ -37,79 +49,92 @@ Then fetch dependencies:
 mix deps.get
 ```
 
+Downstream SDK users normally should not add Execution Plane deps manually.
+For example, CLI provider SDKs get local subprocess execution transitively
+through `cli_subprocess_core`, and REST/GraphQL-only SDKs should stay above
+their HTTP or GraphQL family kit.
+
 ## What It Provides
 
-- Versioned execution contracts under `ExecutionPlane.Contracts`
-- Route validation and dispatch planning through `ExecutionPlane.Kernel`
-- One-shot local command execution through `ExecutionPlane.Process`
-- Long-lived process transport under `ExecutionPlane.Process.Transport`
-- Unary HTTP execution through `ExecutionPlane.HTTP`
-- Unary JSON-RPC execution through `ExecutionPlane.JsonRpc`
-- Local, SSH, and guest placement descriptors under `ExecutionPlane.Placements`
-- Lower-runtime simulation and conformance helpers for downstream packages
+- Root common contracts under `ExecutionPlane.Contracts`
+- Root boundary contracts for admission, authority references, sandbox
+  profile carriage, acceptable attestation classes, target descriptors,
+  runtime clients, execution requests, execution results, events, evidence,
+  provenance, and lane adapters
+- JSON codecs for all remote-boundary values
+- Placement descriptors under `ExecutionPlane.Placements`
+- Route validation, pure dispatch planning, and lower simulation helpers
+- Testkit fixtures for downstream conformance
 
-The operator-terminal UI runtime is published separately as
-`execution_plane_operator_terminal`; depending on `execution_plane` alone does
-not pull in terminal UI dependencies.
+The root package is intentionally lane-light. It does not depend on `erlexec`,
+`finch`, `mint_web_socket`, `server_sent_events`, or `ex_ratatui`.
 
-## Process Execution
+## Mix Projects
 
-Run a local command through the covered one-shot process lane:
+The checkout contains exactly eight Mix projects:
 
-```elixir
-{:ok, result} =
-  ExecutionPlane.Process.run(%{
-    command: "printf",
-    argv: ["hello\\n"],
-    timeout_ms: 1_000
-  })
+- `mix.exs`: root `execution_plane` common substrate
+- `protocols/execution_plane_http`: unary HTTP lane
+- `protocols/execution_plane_jsonrpc`: JSON-RPC framing and correlation lane
+- `streaming/execution_plane_sse`: SSE framing and stream lifecycle lane
+- `streaming/execution_plane_websocket`: WebSocket handshake/frame lane
+- `runtimes/execution_plane_process`: process/PTY/stdio lane, the sole owner
+  of `erlexec`
+- `runtimes/execution_plane_node`: lane-neutral runtime node and local
+  `ExecutionPlane.Runtime.Client`
+- `runtimes/execution_plane_operator_terminal`: operator-facing terminal
+  runtime, kept separate so base consumers do not inherit `ex_ratatui`
 
-result.status
-```
+The retired child roots `core/execution_plane_contracts`,
+`core/execution_plane_kernel`, and `placements/execution_plane_local` remain
+source homes compiled by the root package; they are not separate Mix projects.
 
-Use `ExecutionPlane.Process.Transport` when you need a long-lived process
-session with attachable stdin/stdout event handling.
+## Execution Modes
 
-## HTTP Execution
+Standalone lane owners may call their lane package directly and must mark the
+request provenance as `direct_lower_lane_owner`. This is honest local
+execution, not Citadel or node admission.
 
-Execute a unary HTTP request through the shared lower-runtime contract path:
+Governed callers should go through `ExecutionPlane.Runtime.Client`. A node host
+starts `execution_plane_node`, declares the lane packages it is willing to
+run, registers lane adapters, target verifiers, evidence sinks, and an
+authority verifier, then calls `complete_registration/2` before admitting
+traffic.
 
-```elixir
-{:ok, result} =
-  ExecutionPlane.HTTP.unary(%{
-    method: "GET",
-    url: "https://example.com",
-    headers: [{"accept", "text/html"}],
-    timeout_ms: 5_000
-  })
+The node validates:
 
-result.status
-```
+- contract version
+- authority reference through the registered authority verifier
+- placement and runtime constraints carried in the admission request
+- target attestation through registered target verifiers
+- lane availability through explicit lane registration
+- `acceptable_attestation` intersection against verified targets
 
-Higher-level HTTP SDKs can use this surface while keeping their provider
-semantics in their own packages.
+One node execute call dispatches to at most one verified target. Fallback
+ladders belong above the node, where an owner can issue separate
+runtime-client execute calls and record each rejection or success.
 
-## JSON-RPC Execution
+## Sandbox And Target Honesty
 
-Execute a unary JSON-RPC request over a process transport:
+The root contracts carry `ExecutionPlane.Sandbox.Profile` and
+`ExecutionPlane.Sandbox.AcceptableAttestation` values as opaque policy and
+target-selection data. They do not enforce a sandbox by themselves.
 
-```elixir
-{:ok, result} =
-  ExecutionPlane.JsonRpc.call(%{
-    command: "node",
-    argv: ["server.js"],
-    request: %{"jsonrpc" => "2.0", "id" => 1, "method" => "ping"},
-    timeout_ms: 2_000
-  })
+`local-erlexec-weak` means local process execution with weak local
+attestation. It is not a container, microVM, or cryptographic isolation claim.
+Stronger target classes must be backed by a host-owned verifier and target
+protocol evidence before they enter the node routing table.
 
-result.status
-```
+## Publish Order
 
-## Placement Surfaces
+Publish the root `execution_plane` package first, then lane packages that
+depend on it, then `execution_plane_node`, and finally
+`execution_plane_operator_terminal`. Repos such as Citadel and JidoIntegration
+that carry or map Execution Plane values should publish after the root
+contract package is available.
 
-Execution Plane includes placement descriptors for local, SSH, and guest-backed
-execution surfaces. They describe where execution is allowed to happen; they do
-not turn a placement into a stronger sandbox guarantee by themselves.
+Local workspace development may use sibling path dependencies. Published
+artifacts must not silently depend on this workstation layout.
 
 ## Development
 

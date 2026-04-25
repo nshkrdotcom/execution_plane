@@ -3,8 +3,12 @@
 Owns lower JSON-RPC framing and control-lane handling below provider or family
 semantics.
 
-Wave 6 status:
+Current status:
 
-- active for unary JSON-RPC request/response over the process runtime
-- `ExecutionPlane.Protocols.JsonRpc.Adapter` now owns the shared persistent JSON-RPC framing adapter
+- active as a separate Mix project that depends on root `execution_plane`
+- owns JSON-RPC request/response framing and correlation
+- exposes a lane adapter for hosts that explicitly compose JSON-RPC with a
+  target client
+- does not own subprocess launch; a host that wants JSON-RPC over a process
+  must compose this package with the process lane explicitly
 - family kits keep protocol-session orchestration above this lower framing seam

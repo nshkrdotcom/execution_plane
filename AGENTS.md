@@ -1,36 +1,70 @@
 # Monorepo Project Map
 
-- `./mix.exs`: Execution Plane lower-runtime substrate workspace root.
-- `./runtimes/execution_plane_operator_terminal/mix.exs`: Separate operator-terminal add-on package for local, SSH, and distributed TUIs.
+This checkout contains exactly eight Mix projects:
+
+- `./mix.exs`: root `execution_plane` common substrate.
+- `./protocols/execution_plane_http/mix.exs`: unary HTTP lane.
+- `./protocols/execution_plane_jsonrpc/mix.exs`: JSON-RPC framing lane.
+- `./streaming/execution_plane_sse/mix.exs`: SSE framing and stream lane.
+- `./streaming/execution_plane_websocket/mix.exs`: WebSocket lifecycle lane.
+- `./runtimes/execution_plane_process/mix.exs`: process/PTY/stdio lane.
+- `./runtimes/execution_plane_node/mix.exs`: lane-neutral runtime node.
+- `./runtimes/execution_plane_operator_terminal/mix.exs`: operator-terminal
+  add-on package for local, SSH, and distributed TUIs.
 
 ## Execution Plane Stack Rules
 
-- The root `mix.exs` is the lower runtime substrate package; it is not the only compilation root in this checkout.
-- `runtimes/execution_plane_operator_terminal/mix.exs` is a separate Mix project with its own dependency surface.
+- The root `mix.exs` is the lower common substrate package. It must not grow
+  lane-heavy dependencies or runtime ownership.
+- Lane packages and node/operator packages are separate Mix projects with
+  their own dependency surfaces.
 - Keep active root-compiled homes, add-on homes, and reserved sandbox homes distinct in docs and release notes.
 - Do not move family-kit or product semantics into this repo. `cli_subprocess_core`, `pristine`, `prismatic`, `self_hosted_inference_core`, and the self-hosted runtime kits own those semantic layers above this substrate.
-- The repo gate is `mix ci`.
+- The root repo gate is `mix ci`. Lane packages with their own `mix ci` alias
+  must pass their package-local gate before claims are made.
 
 ## Current Architecture State
 
 - This checkout is intentionally workspace-shaped, not a flat `lib/` package dump.
-- The root app compiles several capability homes through `elixirc_paths`:
+- The root app compiles only common substrate homes through `elixirc_paths`:
   - `core/execution_plane_contracts/lib`
   - `core/execution_plane_kernel/lib`
-  - `protocols/execution_plane_http/lib`
-  - `protocols/execution_plane_jsonrpc/lib`
-  - `streaming/execution_plane_sse/lib`
-  - `streaming/execution_plane_websocket/lib`
   - `placements/execution_plane_local/lib`
   - `placements/execution_plane_ssh/lib`
   - `placements/execution_plane_guest/lib`
-  - `runtimes/execution_plane_process/lib`
   - `conformance/execution_plane_testkit/lib`
-- `erlexec` is owned by the lower process transport slice, not by every downstream package.
-- In this repo, `erlexec` is used by `ExecutionPlane.Process.Transport` and the lower process runtime code under `runtimes/execution_plane_process`.
-- The HTTP, JSON-RPC, REST, and GraphQL provider layers do not need `erlexec` directly.
+- Root common contracts include admission, authority refs/verifiers,
+  sandbox profile carriage, acceptable attestation classes, target
+  descriptors/attestations/verifiers, runtime client/node descriptor,
+  execution refs/requests/results/events, evidence, provenance, placement
+  surfaces, and lane adapter behaviours.
+- `erlexec` is owned only by `runtimes/execution_plane_process`.
+- `finch` and `server_sent_events` are owned only by
+  `streaming/execution_plane_sse`.
+- `mint_web_socket` is owned only by
+  `streaming/execution_plane_websocket`.
+- `ex_ratatui` is owned only by
+  `runtimes/execution_plane_operator_terminal`.
+- `runtimes/execution_plane_node` depends on root `execution_plane` only among
+  Execution Plane packages. Hosts select lanes by declaring lane deps and
+  registering adapters, target verifiers, evidence sinks, and authority
+  verifier modules before admission opens.
+- Standalone lane calls must use direct lower-lane-owner provenance. Governed
+  execution callers must use `ExecutionPlane.Runtime.Client`.
+- The node may route to verified targets but must not own fallback ladders.
+  Fallback owners issue separate runtime-client calls per attestation rung.
+- There is no sandbox backend behaviour. Sandbox profiles are carried as
+  opaque policy data, and actual isolation claims must be verified target
+  attestations.
+- `local-erlexec-weak` is a weak local process attestation, not a container or
+  microVM isolation guarantee.
 - `external_runtime_transport` is retired from the target architecture; do not add or preserve active dependencies on it unless the user explicitly asks for historical compatibility work.
-- The root workspace should keep Hex fallback behavior in downstream repos; local path deps are for workspace development, not a silent production assumption.
+- The root workspace should keep Hex fallback behavior in downstream repos;
+  local path deps are for workspace development, not a silent production
+  assumption.
+- Publish root `execution_plane` first, lane packages next,
+  `execution_plane_node` after the lane/common contracts it depends on, and
+  `execution_plane_operator_terminal` last.
 
 ## Known Direct And Transitive Consumers Of `execution_plane`
 

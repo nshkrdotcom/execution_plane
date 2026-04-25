@@ -3,7 +3,11 @@
 Owns lower HTTP execution primitives and HTTP-family intent handling below
 semantic family kits.
 
-Wave 2 status:
+Current status:
 
-- active for unary HTTP request/response execution
-- request-shape details still remain provisional until Wave 3 prove-out
+- active as a separate Mix project that depends on root `execution_plane`
+- implements the lane-adapter boundary for unary HTTP request/response
+  execution
+- owns HTTP mechanics only; provider semantics stay in Pristine or other
+  family kits
+- does not pull `erlexec` or process-lane dependencies

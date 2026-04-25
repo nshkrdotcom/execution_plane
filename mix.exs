@@ -83,6 +83,8 @@ defmodule ExecutionPlane.MixProject do
       extras: [
         {"README.md", filename: "workspace_overview"},
         {"guides/index.md", filename: "guides_index"},
+        {"technical/02_repo_topology_and_package_map.md", filename: "repo_topology"},
+        {"technical/07_brain_spine_and_harness_alignment.md", filename: "brain_spine_alignment"},
         {"core/execution_plane_contracts/README.md", filename: "execution_plane_contracts"},
         {"core/execution_plane_kernel/README.md", filename: "execution_plane_kernel"},
         {"runtimes/execution_plane_node/README.md", filename: "execution_plane_node"},
@@ -98,6 +100,10 @@ defmodule ExecutionPlane.MixProject do
       ],
       groups_for_extras: [
         Overview: ["README.md", "guides/index.md"],
+        Technical: [
+          "technical/02_repo_topology_and_package_map.md",
+          "technical/07_brain_spine_and_harness_alignment.md"
+        ],
         "Package Homes": [
           "core/execution_plane_contracts/README.md",
           "core/execution_plane_kernel/README.md",
@@ -146,6 +152,15 @@ defmodule ExecutionPlane.MixProject do
           lib
           mix.exs
           placements
+          protocols/execution_plane_http/README.md
+          protocols/execution_plane_jsonrpc/README.md
+          runtimes/execution_plane_node/README.md
+          runtimes/execution_plane_operator_terminal/README.md
+          runtimes/execution_plane_process/README.md
+          streaming/execution_plane_sse/README.md
+          streaming/execution_plane_websocket/README.md
+          technical/02_repo_topology_and_package_map.md
+          technical/07_brain_spine_and_harness_alignment.md
         )
     ]
   end

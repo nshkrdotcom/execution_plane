@@ -1,12 +1,10 @@
 # Repo Topology And Package Map
 
-## New Repo
+## Repo
 
-Create:
-
-- `/home/home/p/g/n/execution_plane`
-
-This repo is a workspace-style lower execution-plane repo with these package homes:
+`/home/home/p/g/n/execution_plane` is a workspace-style lower
+execution-plane repo with common substrate homes, lane package homes, node
+runtime homes, and reserved future target/sandbox homes.
 
 ```text
 /home/home/p/g/n/execution_plane
@@ -20,13 +18,30 @@ This repo is a workspace-style lower execution-plane repo with these package hom
   /placements/execution_plane_ssh
   /placements/execution_plane_guest
   /runtimes/execution_plane_process
+  /runtimes/execution_plane_node
   /runtimes/execution_plane_operator_terminal
   /sandboxes/execution_plane_container
   /sandboxes/execution_plane_microvm
+  /targets/execution_plane_remote_agent
   /conformance/execution_plane_testkit
 ```
 
-Not every package must ship feature-complete in the first wave. The topology exists so the architecture expresses its true axes: contracts, kernel, protocol, streaming, placement, runtime, sandbox, and conformance.
+The active Mix-project set is intentionally smaller than the directory
+topology. Reserved directories document future axes without creating
+compatibility packages or unimplemented public APIs.
+
+## Exact Mix Projects
+
+The checkout contains exactly eight Mix projects:
+
+- `mix.exs`: root `execution_plane` common substrate
+- `protocols/execution_plane_http/mix.exs`
+- `protocols/execution_plane_jsonrpc/mix.exs`
+- `streaming/execution_plane_sse/mix.exs`
+- `streaming/execution_plane_websocket/mix.exs`
+- `runtimes/execution_plane_process/mix.exs`
+- `runtimes/execution_plane_node/mix.exs`
+- `runtimes/execution_plane_operator_terminal/mix.exs`
 
 ## Package Responsibilities
 
@@ -35,6 +50,10 @@ Not every package must ship feature-complete in the first wave. The topology exi
 Owns:
 
 - shared execution-plane contracts
+- admission, authority, sandbox-profile, acceptable-attestation, target,
+  runtime-client, lane-adapter, execution, event, evidence, and provenance
+  values
+- canonical JSON codecs for remote-boundary values
 - versioned enums for status, failure, and capability classes
 - route, event, and outcome contracts
 - validation rules for cross-layer payloads
@@ -45,10 +64,8 @@ Owns:
 Owns:
 
 - contract validation
-- route dispatch
-- transport/session supervision
+- pure route and dispatch planning
 - raw fact emission
-- timeout, cancellation, and reconnect coordination
 - capability-scoped owner retirement helpers and conformance hooks
 
 The kernel must not own durable truth or policy interpretation.
@@ -60,7 +77,8 @@ Own:
 - HTTP request/response execution at the lower transport layer
 - JSON-RPC framing, correlation, and transport bindings
 
-They do not own semantic GraphQL, provider semantics, or service-runtime readiness logic.
+They do not own semantic GraphQL, provider semantics, subprocess launch, or
+service-runtime readiness logic.
 
 ### Streaming packages
 
@@ -89,15 +107,27 @@ Own:
 - long-lived runtime session mechanics
 - service-backed process execution below family kits
 - separately consumable operator-terminal ingress for operator-facing TUIs
+- lane-neutral node admission and target routing
 
 ### Sandbox packages
 
 Own:
 
-- stronger isolation backends when available
-- translation from execution policy into runtime-specific enforcement knobs
+- reserved future stronger-isolation implementations when backed by real
+  verifiers and target protocol evidence
+- documentation of isolation posture
 
-They must document isolation strength honestly.
+They must document isolation strength honestly. The current root substrate has
+no sandbox backend behaviour; it carries opaque sandbox profiles and
+acceptable-attestation classes only.
+
+### Target packages
+
+Own:
+
+- future remote-agent target protocol implementations
+- cryptographic or otherwise externally backed target attestation
+- target-client implementations that remain outside the lane-neutral node
 
 ### Conformance package
 
@@ -113,39 +143,38 @@ Owns:
 
 ## Active Root Package Scope
 
-The root `execution_plane` Mix package compiles:
+The root `execution_plane` Mix package compiles common substrate homes only:
 
 - `execution_plane_contracts`
 - `execution_plane_kernel`
-- `execution_plane_http`
-- `execution_plane_jsonrpc`
-- `execution_plane_sse`
-- `execution_plane_websocket`
 - `execution_plane_local`
 - `execution_plane_ssh`
 - `execution_plane_guest`
-- `execution_plane_process`
 - `execution_plane_testkit`
 
-The operator-terminal ingress lane lives in this repo but is published from its
-own add-on Mix project at `runtimes/execution_plane_operator_terminal`.
+The HTTP, JSON-RPC, SSE, WebSocket, process, node, and operator-terminal
+surfaces are separate Mix projects. The node package depends on root
+`execution_plane` but does not require any lane package. Hosts choose lanes by
+declaring lane deps and registering adapters.
 
 Sandbox homes remain reserved topology homes until their isolation guarantees
 are implemented and tested.
 
-## Minimal First-Cut Scope
+## Current Runtime Model
 
-The first executable wave must at least land:
+Standalone lane owners may execute directly with
+`direct_lower_lane_owner` provenance. Governed callers use
+`ExecutionPlane.Runtime.Client`.
 
-- `execution_plane_contracts`
-- `execution_plane_kernel`
-- `execution_plane_http`
-- `execution_plane_jsonrpc`
-- `execution_plane_process`
-- `execution_plane_local`
-- `execution_plane_testkit`
+The node validates authority references through a host-registered verifier,
+intersects `AcceptableAttestation` classes with verified targets, chooses one
+target for one execute call, dispatches through a registered lane adapter,
+and emits serializable evidence. It does not perform fallback. Brain/Spine
+owners that allow multiple attestation classes own the fallback ladder by
+issuing separate runtime-client calls.
 
-That is the minimum package set needed to prove the final contract model across unary HTTP and basic process execution.
+`local-erlexec-weak` is the current local process attestation class. It is
+honest weak local execution, not a sandbox isolation claim.
 
 ## Existing Repos After Refactor
 
