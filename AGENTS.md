@@ -136,3 +136,46 @@ just temporal-ui
 
 - Do not invent raw `temporal server start-dev` commands for normal work.
 - Do not reset local Temporal state unless the user explicitly approves `just temporal-reset-confirm`.
+
+<!-- gn-ten:repo-agent:start repo=execution_plane source_sha=ab276c0640772b73065ab12bf05d77be51f1bb67 -->
+# execution_plane Agent Instructions Draft
+
+## Owns
+
+- Lower runtime substrate.
+- Execution packets.
+- Lane protocols.
+- Placement.
+- Sandbox and target attestations.
+- Raw lower evidence.
+
+## Does Not Own
+
+- Durable business meaning.
+- Governance policy.
+- Semantic routing.
+- Product UX.
+- Connector credential lifecycle.
+
+## Allowed Dependencies
+
+- GroundPlane primitives.
+- Lane-specific runtime libraries when isolated to lane packages.
+
+## Forbidden Imports
+
+- Product modules.
+- Mezzanine workflow logic.
+- Citadel policy internals.
+- Jido connector semantics.
+
+## Verification
+
+- `mix ci`
+- Lane package tests for changed runtime families.
+
+## Escalation
+
+If a caller asks Execution Plane to infer meaning or policy, reject the change
+and move that behavior to Jido Integration, Citadel, or Mezzanine.
+<!-- gn-ten:repo-agent:end -->
