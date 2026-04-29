@@ -20,6 +20,11 @@ The repository root `./mix.exs` is a Mix project, but it is not a publishable
 package project. It is allowed to depend on Blitz for repo-wide orchestration;
 publishable manifests are not.
 
+## Onboarding
+
+Read `ONBOARDING.md` first for the repo's one-screen ownership, first command,
+and proof path.
+
 ## Execution Plane Stack Rules
 
 - `core/execution_plane/mix.exs` is the lower common substrate package. It
