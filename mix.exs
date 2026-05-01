@@ -76,7 +76,7 @@ defmodule ExecutionPlane.Workspace.MixProject do
         multiplier: :auto,
         base: [
           deps_get: 4,
-          ci: 2
+          ci: 4
         ],
         overrides: []
       ],
