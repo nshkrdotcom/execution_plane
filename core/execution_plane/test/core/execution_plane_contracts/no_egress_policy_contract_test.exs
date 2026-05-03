@@ -21,18 +21,29 @@ defmodule ExecutionPlane.Contracts.NoEgressPolicyContractTest do
   test "policy rejects allow rules, missing negatives, and semantic policy" do
     base = NoEgressPolicy.dump(ContractFixtures.no_egress_policy())
 
-    assert_raise ArgumentError, ~r/denied_surfaces.external_egress.*deny/, fn ->
+    assert_error_contains(["denied_surfaces.external_egress", "deny"], fn ->
       NoEgressPolicy.new!(put_in(base, ["denied_surfaces", "external_egress"], "allow"))
-    end
+    end)
 
-    assert_raise ArgumentError, ~r/required_negative_evidence/, fn ->
+    assert_error_contains("required_negative_evidence", fn ->
       NoEgressPolicy.new!(
         Map.put(base, "required_negative_evidence", ["attempted_unregistered_provider_route"])
       )
-    end
+    end)
 
-    assert_raise ArgumentError, ~r/provider or model or budget semantics/i, fn ->
+    assert_error_contains("provider or model or budget semantics", fn ->
       NoEgressPolicy.new!(Map.put(base, "budget_profile_ref", "budget://phase6"))
-    end
+    end)
+  end
+
+  defp assert_error_contains(fragments, fun) do
+    error = assert_raise(ArgumentError, fun)
+    message = Exception.message(error) |> String.downcase()
+
+    fragments
+    |> List.wrap()
+    |> Enum.each(fn fragment ->
+      assert String.contains?(message, String.downcase(fragment))
+    end)
   end
 end

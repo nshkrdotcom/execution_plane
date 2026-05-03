@@ -5,13 +5,13 @@ defmodule ExecutionPlane.DurableHandleContractTest do
   alias ExecutionPlane.Contracts.ExecutionIntentEnvelope.V1, as: ExecutionIntentEnvelope
 
   test "credential handle refs require opaque handle-style refs" do
-    assert_raise ArgumentError, ~r/opaque handle ref/, fn ->
+    assert_error_contains("opaque handle ref", fn ->
       CredentialHandleRef.new!(%{
         handle_ref: "ghp_super_secret_value",
         kind: "oauth_bearer",
         audience: "github_api"
       })
-    end
+    end)
 
     assert %CredentialHandleRef{handle_ref: "credential-handle://tenant-1/github/lease-1"} =
              CredentialHandleRef.new!(%{
@@ -24,7 +24,7 @@ defmodule ExecutionPlane.DurableHandleContractTest do
   end
 
   test "execution intent envelopes reject raw secrets in credential_handle_refs" do
-    assert_raise ArgumentError, ~r/opaque handle ref/, fn ->
+    assert_error_contains("opaque handle ref", fn ->
       ExecutionIntentEnvelope.new!(%{
         intent_id: "intent-1",
         family: "process",
@@ -35,7 +35,7 @@ defmodule ExecutionPlane.DurableHandleContractTest do
         credential_handle_refs: ["sk-live-secret"],
         requested_capabilities: ["session.resume"]
       })
-    end
+    end)
 
     assert %ExecutionIntentEnvelope{
              credential_handle_refs: [
@@ -56,5 +56,13 @@ defmodule ExecutionPlane.DurableHandleContractTest do
                ],
                requested_capabilities: ["session.attach"]
              })
+  end
+
+  defp assert_error_contains(fragment, fun) do
+    error = assert_raise(ArgumentError, fun)
+
+    assert Exception.message(error)
+           |> String.downcase()
+           |> String.contains?(String.downcase(fragment))
   end
 end

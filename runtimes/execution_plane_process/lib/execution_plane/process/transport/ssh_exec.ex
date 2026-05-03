@@ -373,7 +373,15 @@ defmodule ExecutionPlane.Process.Transport.SSHExec do
   defp shell_env_key(key) do
     key
     |> to_string()
-    |> String.replace(~r/[^A-Za-z0-9_]/, "_")
+    |> :binary.bin_to_list()
+    |> Enum.map(fn byte ->
+      if byte in ?A..?Z or byte in ?a..?z or byte in ?0..?9 or byte == ?_ do
+        byte
+      else
+        ?_
+      end
+    end)
+    |> List.to_string()
   end
 
   defp shell_escape(value) when is_binary(value) do

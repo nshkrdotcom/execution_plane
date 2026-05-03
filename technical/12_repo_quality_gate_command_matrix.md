@@ -105,13 +105,13 @@ For `packet_docs`, run:
 1. packet-local markdown reference scan:
 
    ```bash
-   elixir -e 'root = File.cwd!(); files = Path.wildcard("**/*.md"); regex = ~r/`((?:prompts|technical|adrs|JIDO_BRAIN_CONTRACT_CONTEXT)\/[^`]+?\.md)`/; missing = for file <- files, {:ok, text} = File.read(file), [_, rel] <- Regex.scan(regex, text), not File.exists?(Path.join(root, rel)) do {file, rel} end; Enum.each(missing, fn {file, rel} -> IO.puts("MISSING_REF #{file} -> #{rel}") end); IO.puts("missing_count=#{length(missing)}")'
+   elixir -e 'root = File.cwd!(); prefixes = ["prompts/", "technical/", "adrs/", "JIDO_BRAIN_CONTRACT_CONTEXT/"]; files = Path.wildcard("**/*.md"); extract = fn text -> text |> String.split("`") |> Enum.drop(1) |> Enum.take_every(2) |> Enum.filter(fn rel -> String.ends_with?(rel, ".md") and Enum.any?(prefixes, &String.starts_with?(rel, &1)) end) end; missing = for file <- files, {:ok, text} <- [File.read(file)], rel <- extract.(text), not File.exists?(Path.join(root, rel)), do: {file, rel}; Enum.each(missing, fn {file, rel} -> IO.puts("MISSING_REF #{file} -> #{rel}") end); IO.puts("missing_count=#{length(missing)}")'
    ```
 
 2. stale-name or stale-path scan:
 
    ```bash
-   rg -n "03_minimal_viable_http_and_process_lanes_implementation_prompt|04_provider_and_dependent_family_adoption_of_minimal_lanes_implementation_prompt|05_session_bearing_lane_convergence_implementation_prompt|06_durable_truth_replay_approval_and_identity_alignment_implementation_prompt|08_active_owner_retirement_and_surface_cleanup_implementation_prompt|09_cross_repo_conformance_and_failure_hardening_implementation_prompt|10_final_verification_and_doc_sync_prompt|Workstream" README.md atlas.md technical adrs prompts JIDO_BRAIN_CONTRACT_CONTEXT brain_spine_execution_plane_architecture_review.md --glob '!technical/12_repo_quality_gate_command_matrix.md'
+   for token in 03_minimal_viable_http_and_process_lanes_implementation_prompt 04_provider_and_dependent_family_adoption_of_minimal_lanes_implementation_prompt 05_session_bearing_lane_convergence_implementation_prompt 06_durable_truth_replay_approval_and_identity_alignment_implementation_prompt 08_active_owner_retirement_and_surface_cleanup_implementation_prompt 09_cross_repo_conformance_and_failure_hardening_implementation_prompt 10_final_verification_and_doc_sync_prompt Workstream; do rg -n -F "$token" README.md atlas.md technical adrs prompts JIDO_BRAIN_CONTRACT_CONTEXT brain_spine_execution_plane_architecture_review.md --glob '!technical/12_repo_quality_gate_command_matrix.md'; done
    ```
 
    The expected clean result is no matches.

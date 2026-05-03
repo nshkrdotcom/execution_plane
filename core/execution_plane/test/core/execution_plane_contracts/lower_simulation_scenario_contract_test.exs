@@ -24,37 +24,37 @@ defmodule ExecutionPlane.Contracts.LowerSimulationScenarioContractTest do
   end
 
   test "lower simulation scenario rejects non-Execution Plane ownership and bad enums" do
-    assert_raise ArgumentError, ~r/owner_repo.*execution_plane/, fn ->
+    assert_error_contains(["owner_repo", "execution_plane"], fn ->
       LowerSimulationScenario.new!(scenario_attrs(%{owner_repo: "jido_integration"}))
-    end
+    end)
 
-    assert_raise ArgumentError, ~r/protocol_surface.*unsupported/, fn ->
+    assert_error_contains(["protocol_surface", "unsupported"], fn ->
       LowerSimulationScenario.new!(scenario_attrs(%{protocol_surface: "provider"}))
-    end
+    end)
 
-    assert_raise ArgumentError, ~r/matcher_class.*unsupported/, fn ->
+    assert_error_contains(["matcher_class", "unsupported"], fn ->
       LowerSimulationScenario.new!(scenario_attrs(%{matcher_class: "semantic_provider"}))
-    end
+    end)
   end
 
   test "lower simulation scenario rejects semantic provider policy in Execution Plane" do
-    assert_raise ArgumentError, ~r/semantic provider policy.*Execution Plane/, fn ->
+    assert_error_contains(["semantic provider policy", "Execution Plane"], fn ->
       LowerSimulationScenario.new!(Map.put(scenario_attrs(), :provider_refs, ["openai"]))
-    end
+    end)
 
-    assert_raise ArgumentError, ~r/semantic provider policy.*Execution Plane/, fn ->
+    assert_error_contains(["semantic provider policy", "Execution Plane"], fn ->
       LowerSimulationScenario.new!(Map.put(scenario_attrs(), "budget_profile_ref", "budget://1"))
-    end
+    end)
   end
 
   test "lower simulation scenario rejects egress, raw evidence, and raw-payload narrowing" do
-    assert_raise ArgumentError, ~r/no_egress_assertion.*external_egress.*deny/, fn ->
+    assert_error_contains(["no_egress_assertion", "external_egress", "deny"], fn ->
       LowerSimulationScenario.new!(
         scenario_attrs(%{no_egress_assertion: %{"external_egress" => "allow"}})
       )
-    end
+    end)
 
-    assert_raise ArgumentError, ~r/bounded_evidence_projection.*raw_payload_persistence/, fn ->
+    assert_error_contains(["bounded_evidence_projection", "raw_payload_persistence"], fn ->
       LowerSimulationScenario.new!(
         scenario_attrs(%{
           bounded_evidence_projection: %{
@@ -63,9 +63,9 @@ defmodule ExecutionPlane.Contracts.LowerSimulationScenarioContractTest do
           }
         })
       )
-    end
+    end)
 
-    assert_raise ArgumentError, ~r/ExecutionOutcome.v1.raw_payload.*must not be narrowed/, fn ->
+    assert_error_contains(["ExecutionOutcome.v1.raw_payload", "must not be narrowed"], fn ->
       LowerSimulationScenario.new!(
         scenario_attrs(%{
           bounded_evidence_projection: %{
@@ -75,7 +75,7 @@ defmodule ExecutionPlane.Contracts.LowerSimulationScenarioContractTest do
           }
         })
       )
-    end
+    end)
   end
 
   test "adapter selection policy uses owner registries and rejects request simulation selectors" do
@@ -88,13 +88,13 @@ defmodule ExecutionPlane.Contracts.LowerSimulationScenarioContractTest do
     assert_json_safe(dump)
     assert AdapterSelectionPolicy.new!(dump) == policy
 
-    assert_raise ArgumentError, ~r/public simulation selector/i, fn ->
+    assert_error_contains("public simulation selector", fn ->
       AdapterSelectionPolicy.new!(Map.put(adapter_policy_attrs(), :simulation, "service_mode"))
-    end
+    end)
 
-    assert_raise ArgumentError, ~r/config_key.*public simulation selector/i, fn ->
+    assert_error_contains(["config_key", "public simulation selector"], fn ->
       AdapterSelectionPolicy.new!(adapter_policy_attrs(%{config_key: "request.simulation"}))
-    end
+    end)
   end
 
   test "ExecutionOutcome.v1 raw_payload remains raw while wrapper carries bounded evidence" do
@@ -176,5 +176,16 @@ defmodule ExecutionPlane.Contracts.LowerSimulationScenarioContractTest do
   defp assert_json_safe(value) when is_map(value) do
     assert Enum.all?(Map.keys(value), &is_binary/1)
     Enum.each(value, fn {_key, nested} -> assert_json_safe(nested) end)
+  end
+
+  defp assert_error_contains(fragments, fun) do
+    error = assert_raise(ArgumentError, fun)
+    message = Exception.message(error) |> String.downcase()
+
+    fragments
+    |> List.wrap()
+    |> Enum.each(fn fragment ->
+      assert String.contains?(message, String.downcase(fragment))
+    end)
   end
 end

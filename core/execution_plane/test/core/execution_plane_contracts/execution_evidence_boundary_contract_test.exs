@@ -56,23 +56,23 @@ defmodule ExecutionPlane.Contracts.ExecutionEvidenceBoundaryContractTest do
         ] do
       attrs = put_in(base, ["bounded_exit_code_or_response_shape", key], value)
 
-      assert_raise ArgumentError, ~r/raw durable evidence/i, fn ->
+      assert_error_contains("raw durable evidence", fn ->
         ExecutionEvidenceBoundary.new!(attrs)
-      end
+      end)
     end
   end
 
   test "boundary rejects StackLab ownership and semantic provider policy" do
     base = ExecutionEvidenceBoundary.dump(ContractFixtures.execution_evidence_boundary())
 
-    assert_raise ArgumentError, ~r/owner_repo must be execution_plane/, fn ->
+    assert_error_contains("owner_repo must be execution_plane", fn ->
       ExecutionEvidenceBoundary.new!(Map.put(base, "owner_repo", "stack_lab"))
-    end
+    end)
 
     for key <- ["provider_refs", "model_refs", "budget_profile_ref"] do
-      assert_raise ArgumentError, ~r/provider or model or budget semantics/i, fn ->
+      assert_error_contains("provider or model or budget semantics", fn ->
         ExecutionEvidenceBoundary.new!(Map.put(base, key, ["forbidden"]))
-      end
+      end)
     end
   end
 
@@ -86,5 +86,13 @@ defmodule ExecutionPlane.Contracts.ExecutionEvidenceBoundaryContractTest do
     refute source =~ "raw_payload_shape"
     refute source =~ "bounded_evidence_projection"
     refute source =~ "ExecutionEvidenceBoundary"
+  end
+
+  defp assert_error_contains(fragment, fun) do
+    error = assert_raise(ArgumentError, fun)
+
+    assert Exception.message(error)
+           |> String.downcase()
+           |> String.contains?(String.downcase(fragment))
   end
 end
