@@ -21,6 +21,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   @exec_wait_delay_ms 50
   @run_stop_wait_ms 200
   @run_kill_wait_ms 500
+  @kill_paths ["/bin/kill", "/usr/bin/kill"]
 
   @default_interrupt_mode :signal
 
@@ -1270,7 +1271,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   end
 
   defp interrupt_subprocess(_pid, os_pid, :signal) when is_integer(os_pid) and os_pid > 0 do
-    case System.find_executable("kill") do
+    case kill_executable() do
       nil ->
         transport_error(Error.send_failed(:kill_command_not_found))
 
@@ -1496,7 +1497,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   end
 
   defp kill_process_group(os_pid, signal) when is_integer(os_pid) and os_pid > 0 do
-    case System.find_executable("kill") do
+    case kill_executable() do
       nil ->
         :ok
 
@@ -1509,6 +1510,10 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   end
 
   defp kill_process_group(_os_pid, _signal), do: :ok
+
+  defp kill_executable do
+    Enum.find(@kill_paths, &File.exists?/1)
+  end
 
   defp drop_until_next_newline(data) when is_binary(data) do
     case :binary.match(data, "\n") do

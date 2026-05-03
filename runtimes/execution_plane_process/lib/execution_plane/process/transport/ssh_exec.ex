@@ -299,7 +299,7 @@ defmodule ExecutionPlane.Process.Transport.SSHExec do
   defp normalize_destination(destination),
     do: transport_error(Error.invalid_options({:invalid_ssh_destination, destination}))
 
-  defp normalize_ssh_path(nil), do: {:ok, System.find_executable("ssh") || "ssh"}
+  defp normalize_ssh_path(nil), do: {:ok, "ssh"}
 
   defp normalize_ssh_path(path) when is_binary(path) and path != "",
     do: {:ok, path}

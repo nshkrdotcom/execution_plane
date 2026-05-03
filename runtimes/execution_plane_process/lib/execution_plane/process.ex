@@ -18,6 +18,17 @@ defmodule ExecutionPlane.Process do
   alias ExecutionPlane.LaneSupport
 
   @behaviour ExecutionPlane.Lane.Adapter
+  @governed_context_keys [
+    :authority_packet_ref,
+    :authority_ref,
+    :lease_ref,
+    :credential_handle_ref,
+    :credential_handle_refs,
+    :attach_grant_ref,
+    :permission_decision_ref,
+    :route_template_ref,
+    :target_descriptor
+  ]
 
   @impl true
   def lane_id, do: :process
@@ -81,6 +92,7 @@ defmodule ExecutionPlane.Process do
     invocation = Contracts.normalize_attrs(invocation)
     timeout_ms = timeout_ms(invocation)
     lineage = LaneSupport.build_lineage("process", Keyword.get(opts, :lineage, %{}))
+    governed? = governed_context?(invocation, opts)
 
     intent =
       ProcessExecutionIntent.new!(%{
@@ -97,7 +109,7 @@ defmodule ExecutionPlane.Process do
         env_projection: env_projection(invocation),
         cwd: Contracts.fetch_optional_stringish!(invocation, :cwd),
         stdin: Contracts.fetch_value(invocation, :stdin),
-        clear_env: Contracts.fetch_optional_boolean!(invocation, :clear_env, false),
+        clear_env: Contracts.fetch_optional_boolean!(invocation, :clear_env, governed?),
         user: Contracts.fetch_optional_stringish!(invocation, :user),
         stdio_mode: Contracts.fetch_optional_stringish!(invocation, :stdio_mode, "pipe"),
         stderr_mode: Contracts.fetch_optional_stringish!(invocation, :stderr_mode, "separate"),
@@ -149,6 +161,31 @@ defmodule ExecutionPlane.Process do
         Contracts.ensure_map!(surface, "execution_surface")
     end
   end
+
+  defp governed_context?(invocation, opts) do
+    envelope = Keyword.get(opts, :envelope, %{})
+    route = Keyword.get(opts, :route, %{})
+
+    governed_attrs?(invocation) or governed_attrs?(envelope) or governed_attrs?(route)
+  end
+
+  defp governed_attrs?(attrs) when is_map(attrs) or is_list(attrs) do
+    attrs = Contracts.normalize_attrs(attrs)
+
+    Enum.any?(@governed_context_keys, fn key ->
+      attrs
+      |> Contracts.fetch_value(key)
+      |> present?()
+    end) or governed_attrs?(Contracts.fetch_value(attrs, :extensions))
+  end
+
+  defp governed_attrs?(_attrs), do: false
+
+  defp present?(nil), do: false
+  defp present?(""), do: false
+  defp present?([]), do: false
+  defp present?(%{} = value), do: map_size(value) > 0
+  defp present?(_value), do: true
 
   defp adapter_result(%ExecutionRequest{} = request, status, result, error) do
     ExecutionResult.new!(

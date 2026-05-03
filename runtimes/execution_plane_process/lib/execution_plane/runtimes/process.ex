@@ -15,6 +15,7 @@ defmodule ExecutionPlane.Runtimes.Process do
   @exec_wait_delay_ms 50
   @run_stop_wait_ms 200
   @run_kill_wait_ms 500
+  @kill_paths ["/bin/kill", "/usr/bin/kill"]
 
   @spec family() :: String.t()
   def family, do: "process"
@@ -576,7 +577,7 @@ defmodule ExecutionPlane.Runtimes.Process do
   end
 
   defp kill_process_group(os_pid, signal) when is_integer(os_pid) and os_pid > 0 do
-    case System.find_executable("kill") do
+    case kill_executable() do
       nil ->
         :ok
 
@@ -586,6 +587,11 @@ defmodule ExecutionPlane.Runtimes.Process do
   end
 
   defp kill_process_group(_os_pid, _signal), do: :ok
+
+  defp kill_executable do
+    Enum.find(@kill_paths, &File.exists?/1)
+  end
+
   defp normalize_surface_kind(value) when is_atom(value), do: Atom.to_string(value)
   defp normalize_surface_kind(value) when is_binary(value), do: value
 

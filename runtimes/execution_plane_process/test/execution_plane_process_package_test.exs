@@ -18,41 +18,51 @@ defmodule ExecutionPlaneProcessPackageTest do
                  command: "ignored",
                  execution_surface: %{surface_kind: "local_subprocess"}
                },
-               route: %{
-                 resolved_target: %{
-                   "lower_simulation" => %{
-                     "scenario_ref" => "process-package-smoke",
-                     "status" => "succeeded",
-                     "raw_payload" => %{
-                       "exit" => %{"code" => 0},
-                       "stdout" => "ok",
-                       "stderr" => ""
-                     },
-                     "no_egress_policy" => %{
-                       "policy_ref" => "policy://process-package-smoke",
-                       "owner_repo" => "execution_plane",
-                       "mode" => "deny",
-                       "enforcement_boundary" => "lower_runtime",
-                       "denied_surfaces" => %{
-                         "external_egress" => "deny",
-                         "process_spawn" => "deny",
-                         "unregistered_provider_route" => "deny",
-                         "raw_external_saas_write_path" => "deny"
-                       },
-                       "required_negative_evidence" => [
-                         "attempted_unregistered_provider_route",
-                         "attempted_raw_external_saas_write_path"
-                       ]
-                     }
-                   }
-                 }
-               },
-               lineage: %{
-                 idempotency_key: "process-package-smoke"
-               }
+               route: lower_simulation_route("process-package-smoke"),
+               lineage: lineage("process-package-smoke")
              )
 
     assert result.outcome.status == "succeeded"
+  end
+
+  test "governed process intents clear ambient env by default" do
+    with_restored_env("EXECUTION_PLANE_ENV05_SECRET", "ambient-env05-secret", fn ->
+      assert {:ok, result} =
+               ExecutionPlane.Process.run(
+                 %{
+                   command: "ignored",
+                   execution_surface: %{surface_kind: "local_subprocess"}
+                 },
+                 envelope: governed_envelope(),
+                 route: lower_simulation_route("governed-process-env-default"),
+                 lineage: lineage("governed-process-env-default")
+               )
+
+      assert result.plan.intent.clear_env == true
+      assert result.plan.intent.env_projection == %{}
+      refute inspect(result) =~ "ambient-env05-secret"
+    end)
+  end
+
+  test "governed process intents project only explicit env materialization" do
+    with_restored_env("EXECUTION_PLANE_ENV05_TOKEN", "ambient-token", fn ->
+      assert {:ok, result} =
+               ExecutionPlane.Process.run(
+                 %{
+                   command: "ignored",
+                   env: %{"LEASE_TOKEN" => "explicit-lease-token"},
+                   execution_surface: %{surface_kind: "local_subprocess"}
+                 },
+                 envelope: governed_envelope(),
+                 route: lower_simulation_route("governed-process-explicit-env"),
+                 lineage: lineage("governed-process-explicit-env")
+               )
+
+      assert result.plan.intent.clear_env == true
+      assert result.plan.intent.env_projection == %{"LEASE_TOKEN" => "explicit-lease-token"}
+      refute Map.has_key?(result.plan.intent.env_projection, "EXECUTION_PLANE_ENV05_TOKEN")
+      refute inspect(result) =~ "ambient-token"
+    end)
   end
 
   test "rejects local user switching on unprivileged hosts before spawning" do
@@ -138,5 +148,62 @@ defmodule ExecutionPlaneProcessPackageTest do
     end
   rescue
     _error -> true
+  end
+
+  defp governed_envelope do
+    [
+      lease_ref: "lease://env-05-process",
+      credential_handle_refs: ["credential://env-05-process"],
+      route_template_ref: "route-template://env-05-process",
+      extensions: %{authority_packet_ref: "authority-packet://env-05-process"}
+    ]
+  end
+
+  defp lower_simulation_route(ref) do
+    %{
+      resolved_target: %{
+        "lower_simulation" => %{
+          "scenario_ref" => ref,
+          "status" => "succeeded",
+          "raw_payload" => %{
+            "exit" => %{"code" => 0},
+            "stdout" => "ok",
+            "stderr" => ""
+          },
+          "no_egress_policy" => %{
+            "policy_ref" => "policy://#{ref}",
+            "owner_repo" => "execution_plane",
+            "mode" => "deny",
+            "enforcement_boundary" => "lower_runtime",
+            "denied_surfaces" => %{
+              "external_egress" => "deny",
+              "process_spawn" => "deny",
+              "unregistered_provider_route" => "deny",
+              "raw_external_saas_write_path" => "deny"
+            },
+            "required_negative_evidence" => [
+              "attempted_unregistered_provider_route",
+              "attempted_raw_external_saas_write_path"
+            ]
+          }
+        }
+      }
+    }
+  end
+
+  defp lineage(ref), do: %{idempotency_key: ref}
+
+  defp with_restored_env(key, value, fun) do
+    previous = System.get_env(key)
+    System.put_env(key, value)
+
+    try do
+      fun.()
+    after
+      case previous do
+        nil -> System.delete_env(key)
+        previous_value -> System.put_env(key, previous_value)
+      end
+    end
   end
 end
