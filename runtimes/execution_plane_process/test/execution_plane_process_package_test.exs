@@ -1,6 +1,11 @@
 defmodule ExecutionPlaneProcessPackageTest do
   use ExUnit.Case, async: false
 
+  alias ExecutionPlane.Process.Transport.GuestBridge
+  alias ExecutionPlane.Process.Transport.LowerSimulation
+  alias ExecutionPlane.Process.Transport.Surface
+  alias ExecutionPlane.Process.Transport.Surface.Capabilities
+
   test "starts the standalone process application supervisor" do
     assert {:ok, _apps} = Application.ensure_all_started(:execution_plane_process)
     assert Process.whereis(ExecutionPlane.TaskSupervisor)
@@ -67,6 +72,56 @@ defmodule ExecutionPlaneProcessPackageTest do
       assert result.outcome.raw_payload.user == "nobody"
       assert result.outcome.raw_payload.required_privilege == "root"
     end
+  end
+
+  test "process surface rejects unknown binary transport option keys" do
+    options = %{"provider_supplied_key" => "unbounded"}
+
+    assert {:error, {:invalid_transport_options, ^options}} =
+             Surface.resolve(
+               command: "cat",
+               execution_surface: %{
+                 "surface_kind" => :ssh_exec,
+                 "transport_options" => options
+               }
+             )
+  end
+
+  test "process capabilities reject unknown atomish strings without runtime atom creation" do
+    assert {:error, {:invalid_startup_kind, "provider_spawn"}} =
+             Capabilities.new(%{"startup_kind" => "provider_spawn"})
+
+    capabilities =
+      Capabilities.new!(
+        remote?: true,
+        startup_kind: :bridge,
+        path_semantics: :guest,
+        supports_run?: true,
+        supports_streaming_stdio?: true,
+        supports_pty?: false,
+        supports_user?: false,
+        supports_env?: false,
+        supports_cwd?: false,
+        interrupt_kind: :rpc
+      )
+
+    refute Capabilities.satisfies_requirements?(capabilities, %{
+             "startup_kind" => "provider_spawn"
+           })
+  end
+
+  test "guest bridge rejects unknown binary transport option keys" do
+    options = %{"provider_supplied_key" => "unbounded"}
+
+    assert {:error, {:invalid_transport_options, ^options}} =
+             GuestBridge.normalize_transport_options(options)
+  end
+
+  test "lower simulation rejects unknown binary transport option keys" do
+    options = %{"provider_supplied_key" => "unbounded"}
+
+    assert {:error, {:invalid_transport_options, ^options}} =
+             LowerSimulation.normalize_transport_options(options)
   end
 
   defp unprivileged_host? do

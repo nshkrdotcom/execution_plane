@@ -17,6 +17,14 @@ defmodule ExecutionPlane.OperatorTerminal.Surface do
     :boundary_class,
     :observability
   ]
+  @transport_option_key_aliases %{
+    "auth_methods" => :auth_methods,
+    "daemon_starter" => :daemon_starter,
+    "daemon_stopper" => :daemon_stopper,
+    "name" => :name,
+    "port" => :port,
+    "user_passwords" => :user_passwords
+  }
 
   defstruct contract_version: @contract_version,
             surface_kind: @default_surface_kind,
@@ -158,7 +166,10 @@ defmodule ExecutionPlane.OperatorTerminal.Surface do
   end
 
   defp normalize_transport_options(options) when is_map(options) do
-    {:ok, Enum.into(options, [], fn {key, value} -> {normalize_key(key), value} end)}
+    case Enum.reduce_while(options, [], &normalize_transport_option_pair/2) do
+      :error -> {:error, {:invalid_transport_options, options}}
+      normalized -> {:ok, Enum.reverse(normalized)}
+    end
   end
 
   defp normalize_transport_options(other), do: {:error, {:invalid_transport_options, other}}
@@ -177,6 +188,16 @@ defmodule ExecutionPlane.OperatorTerminal.Surface do
   defp fetch(attrs, key, default \\ nil),
     do: Map.get(attrs, key, Map.get(attrs, Atom.to_string(key), default))
 
-  defp normalize_key(key) when is_atom(key), do: key
-  defp normalize_key(key) when is_binary(key), do: String.to_atom(key)
+  defp normalize_transport_option_pair({key, value}, acc) when is_atom(key) do
+    {:cont, [{key, value} | acc]}
+  end
+
+  defp normalize_transport_option_pair({key, value}, acc) when is_binary(key) do
+    case Map.fetch(@transport_option_key_aliases, key) do
+      {:ok, normalized_key} -> {:cont, [{normalized_key, value} | acc]}
+      :error -> {:halt, :error}
+    end
+  end
+
+  defp normalize_transport_option_pair(_other, _acc), do: {:halt, :error}
 end

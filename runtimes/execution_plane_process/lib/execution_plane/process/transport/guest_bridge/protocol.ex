@@ -4,6 +4,18 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge.Protocol do
   alias ExecutionPlane.Process.Transport.Surface.Capabilities
 
   @version 1
+  @capability_value_aliases %{
+    "attach" => :attach,
+    "bridge" => :bridge,
+    "guest" => :guest,
+    "local" => :local,
+    "none" => :none,
+    "remote" => :remote,
+    "rpc" => :rpc,
+    "signal" => :signal,
+    "spawn" => :spawn,
+    "stdin" => :stdin
+  }
 
   def version, do: @version
 
@@ -189,9 +201,7 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge.Protocol do
   defp decode_atomish(value) when is_atom(value), do: value
 
   defp decode_atomish(value) when is_binary(value) do
-    String.to_existing_atom(value)
-  rescue
-    ArgumentError -> value
+    Map.get(@capability_value_aliases, value, value)
   end
 
   defp decode_atomish(value), do: value

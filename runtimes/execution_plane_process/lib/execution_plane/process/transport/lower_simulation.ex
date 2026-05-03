@@ -24,6 +24,10 @@ defmodule ExecutionPlane.Process.Transport.LowerSimulation do
 
   @surface_kind :lower_simulation
   @event_tag :execution_plane_process
+  @transport_option_keys ~w(scenario_ref stdout stdout_frames stderr stderr_frames exit exit_code)a
+  @transport_option_key_aliases Map.new(@transport_option_keys, fn key ->
+                                  {Atom.to_string(key), key}
+                                end)
 
   defstruct [
     :command,
@@ -82,11 +86,10 @@ defmodule ExecutionPlane.Process.Transport.LowerSimulation do
   end
 
   def normalize_transport_options(options) when is_map(options) do
-    options
-    |> Enum.map(fn {key, value} -> {normalize_key(key), value} end)
-    |> normalize_transport_options()
-  rescue
-    ArgumentError -> {:error, {:invalid_transport_options, options}}
+    case Enum.reduce_while(options, [], &normalize_transport_option_pair/2) do
+      :error -> {:error, {:invalid_transport_options, options}}
+      normalized -> normalized |> Enum.reverse() |> normalize_transport_options()
+    end
   end
 
   def normalize_transport_options(options), do: {:error, {:invalid_transport_options, options}}
@@ -319,11 +322,18 @@ defmodule ExecutionPlane.Process.Transport.LowerSimulation do
     }
   end
 
-  defp normalize_key(key) when is_atom(key), do: key
-
-  defp normalize_key(key) when is_binary(key) do
-    String.to_existing_atom(key)
+  defp normalize_transport_option_pair({key, value}, acc) when is_atom(key) do
+    {:cont, [{key, value} | acc]}
   end
+
+  defp normalize_transport_option_pair({key, value}, acc) when is_binary(key) do
+    case Map.fetch(@transport_option_key_aliases, key) do
+      {:ok, normalized_key} -> {:cont, [{normalized_key, value} | acc]}
+      :error -> {:halt, :error}
+    end
+  end
+
+  defp normalize_transport_option_pair(_other, _acc), do: {:halt, :error}
 
   defp invalid_options(reason) do
     transport_error(Error.invalid_options(reason))

@@ -27,6 +27,18 @@ defmodule ExecutionPlane.Placements.Capabilities do
           supports_cwd?: boolean(),
           interrupt_kind: :signal | :stdin | :rpc | :none
         }
+  @atomish_values %{
+    "attach" => :attach,
+    "bridge" => :bridge,
+    "guest" => :guest,
+    "local" => :local,
+    "none" => :none,
+    "remote" => :remote,
+    "rpc" => :rpc,
+    "signal" => :signal,
+    "spawn" => :spawn,
+    "stdin" => :stdin
+  }
 
   @spec new(t() | map() | keyword()) :: {:ok, t()} | {:error, {:invalid_capabilities, term()}}
   def new(%__MODULE__{} = capabilities), do: {:ok, capabilities}
@@ -103,8 +115,8 @@ defmodule ExecutionPlane.Placements.Capabilities do
   defp normalize_atomish(value) when is_atom(value), do: value
 
   defp normalize_atomish(value) when is_binary(value) do
-    String.to_existing_atom(value)
-  rescue
-    ArgumentError -> nil
+    Map.get(@atomish_values, value)
   end
+
+  defp normalize_atomish(_other), do: nil
 end

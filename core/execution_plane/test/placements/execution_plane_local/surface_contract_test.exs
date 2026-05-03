@@ -1,6 +1,7 @@
 defmodule ExecutionPlane.Placements.SurfaceContractTest do
   use ExUnit.Case, async: true
 
+  alias ExecutionPlane.Placements.Capabilities
   alias ExecutionPlane.Placements.Surface
 
   test "helper lookups preserve the narrow placement vocabulary" do
@@ -51,5 +52,10 @@ defmodule ExecutionPlane.Placements.SurfaceContractTest do
   test "new/1 rejects unsupported execution-surface contract versions" do
     assert {:error, {:invalid_contract_version, "execution_surface.v0"}} =
              Surface.new(contract_version: "execution_surface.v0")
+  end
+
+  test "capabilities reject unknown atomish strings without runtime atom creation" do
+    assert {:error, {:invalid_capabilities, {:startup_kind, "provider_spawn"}}} =
+             Capabilities.new(%{"startup_kind" => "provider_spawn"})
   end
 end

@@ -54,4 +54,16 @@ defmodule ExecutionPlane.OperatorTerminal.SurfaceTest do
     assert surface.surface_ref == "operator-dist-1"
     assert surface.transport_options == [name: "ops_listener"]
   end
+
+  test "new/1 rejects unknown binary transport option keys" do
+    options = %{"operator_supplied_key" => "unbounded"}
+
+    assert {:error, {:invalid_transport_options, ^options}} =
+             Surface.new(
+               operator_terminal_surface: %{
+                 "surface_kind" => "local_terminal",
+                 "transport_options" => options
+               }
+             )
+  end
 end

@@ -45,4 +45,25 @@ defmodule ExecutionPlaneHttpPackageTest do
     assert result.outcome.status == "succeeded"
     assert result.outcome.raw_payload["status_code"] == 200
   end
+
+  test "rejects unknown HTTP method strings before IO" do
+    assert {:error, result} =
+             ExecutionPlane.HTTP.unary(
+               %{
+                 url: "http://127.0.0.1:9/blocked",
+                 method: "BREW",
+                 timeout_ms: 10
+               },
+               lineage: %{
+                 trace_id: "0123456789abcdef0123456789abcdef",
+                 request_id: "request-http-method-1",
+                 idempotency_key: "idem-http-method-1"
+               }
+             )
+
+    assert result.outcome.status == "failed"
+    assert result.outcome.failure.failure_class == :transport_failed
+    assert result.outcome.failure.reason == "invalid http method"
+    assert result.outcome.raw_payload.error == ~s(invalid_http_method: "BREW")
+  end
 end

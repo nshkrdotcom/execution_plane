@@ -8,6 +8,18 @@ defmodule ExecutionPlane.Protocols.HTTP do
   alias ExecutionPlane.Kernel.DispatchPlan
   alias ExecutionPlane.LowerSimulation
 
+  @http_method_aliases %{
+    "delete" => :delete,
+    "get" => :get,
+    "head" => :head,
+    "options" => :options,
+    "patch" => :patch,
+    "post" => :post,
+    "put" => :put,
+    "trace" => :trace
+  }
+  @http_methods Map.values(@http_method_aliases)
+
   @spec protocol() :: String.t()
   def protocol, do: "http"
 
@@ -28,21 +40,26 @@ defmodule ExecutionPlane.Protocols.HTTP do
         _opts
       ) do
     url = Contracts.fetch_value(route.resolved_target, :url)
-    method = route.resolved_target |> Contracts.fetch_value(:method) |> normalize_method()
     headers = normalize_headers(intent.headers)
     body = normalize_body(intent.body)
     content_type = content_type(headers, body)
     start_ms = System.monotonic_time(:millisecond)
 
-    case LowerSimulation.execute_if_configured("http", intent, route, start_ms) do
-      :not_configured ->
-        execute_http_request(method, url, headers, content_type, body, timeout_ms, start_ms)
+    case route.resolved_target |> Contracts.fetch_value(:method) |> normalize_method() do
+      {:ok, method} ->
+        case LowerSimulation.execute_if_configured("http", intent, route, start_ms) do
+          :not_configured ->
+            execute_http_request(method, url, headers, content_type, body, timeout_ms, start_ms)
 
-      {:ok, execution} ->
-        {:ok, execution}
+          {:ok, execution} ->
+            {:ok, execution}
 
-      {:error, execution} ->
-        {:error, execution}
+          {:error, execution} ->
+            {:error, execution}
+        end
+
+      {:error, {:invalid_http_method, method}} ->
+        invalid_method_result(method, start_ms)
     end
   end
 
@@ -84,11 +101,24 @@ defmodule ExecutionPlane.Protocols.HTTP do
     :ok
   end
 
-  defp normalize_method(nil), do: :post
-  defp normalize_method(method) when is_atom(method), do: method
+  defp normalize_method(nil), do: {:ok, :post}
 
-  defp normalize_method(method) when is_binary(method),
-    do: method |> String.downcase() |> String.to_atom()
+  defp normalize_method(method) when is_atom(method) do
+    if method in @http_methods do
+      {:ok, method}
+    else
+      {:error, {:invalid_http_method, method}}
+    end
+  end
+
+  defp normalize_method(method) when is_binary(method) do
+    case Map.fetch(@http_method_aliases, String.downcase(method)) do
+      {:ok, normalized_method} -> {:ok, normalized_method}
+      :error -> {:error, {:invalid_http_method, method}}
+    end
+  end
+
+  defp normalize_method(method), do: {:error, {:invalid_http_method, method}}
 
   defp normalize_headers(headers) when is_map(headers) do
     Enum.map(headers, fn {key, value} ->
@@ -134,5 +164,19 @@ defmodule ExecutionPlane.Protocols.HTTP do
       {:error, reason} ->
         {:error, reason}
     end
+  end
+
+  defp invalid_method_result(method, start_ms) do
+    {:error,
+     %{
+       family: "http",
+       raw_payload: %{error: "invalid_http_method: #{inspect(method)}"},
+       metrics: %{"duration_ms" => System.monotonic_time(:millisecond) - start_ms},
+       failure:
+         Failure.new!(%{
+           failure_class: :transport_failed,
+           reason: "invalid http method"
+         })
+     }}
   end
 end

@@ -32,6 +32,39 @@ defmodule ExecutionPlane.Process.Transport.Surface do
     :observability
   ]
   @forbidden_transport_option_keys [:command, :args, :cwd, :env, :clear_env?, :user]
+  @transport_option_keys [
+    :args,
+    :attach_token,
+    :bridge_profile,
+    :bridge_ref,
+    :clear_env?,
+    :command,
+    :connect_timeout_ms,
+    :cwd,
+    :destination,
+    :endpoint,
+    :env,
+    :exit,
+    :exit_code,
+    :extensions,
+    :identity_file,
+    :port,
+    :request_timeout_ms,
+    :scenario_ref,
+    :ssh_args,
+    :ssh_options,
+    :ssh_path,
+    :ssh_user,
+    :stderr,
+    :stderr_frames,
+    :stdout,
+    :stdout_frames,
+    :supported_protocol_versions,
+    :user
+  ]
+  @transport_option_key_aliases Map.new(@transport_option_keys, fn key ->
+                                  {Atom.to_string(key), key}
+                                end)
 
   defstruct contract_version: @contract_version,
             surface_kind: @default_surface_kind,
@@ -370,11 +403,8 @@ defmodule ExecutionPlane.Process.Transport.Surface do
   defp validate_observability(observability),
     do: {:error, {:invalid_observability, observability}}
 
-  defp normalize_transport_option_key(key) when is_binary(key) do
-    {:ok, String.to_existing_atom(key)}
-  rescue
-    ArgumentError -> :error
-  end
+  defp normalize_transport_option_key(key) when is_binary(key),
+    do: Map.fetch(@transport_option_key_aliases, key)
 
   defp normalize_transport_option_pair({key, value}, acc) when is_atom(key) do
     {:cont, [{key, value} | acc]}

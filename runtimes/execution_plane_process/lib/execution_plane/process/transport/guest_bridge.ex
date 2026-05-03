@@ -24,6 +24,22 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
   @default_protocol_versions [1]
   @default_request_timeout_ms 5_000
   @default_connect_timeout_ms 5_000
+  @capability_value_aliases %{
+    "attach" => :attach,
+    "bridge" => :bridge,
+    "guest" => :guest,
+    "local" => :local,
+    "none" => :none,
+    "remote" => :remote,
+    "rpc" => :rpc,
+    "signal" => :signal,
+    "spawn" => :spawn,
+    "stdin" => :stdin
+  }
+  @transport_option_keys ~w(endpoint bridge_ref attach_token bridge_profile supported_protocol_versions extensions connect_timeout_ms request_timeout_ms)a
+  @transport_option_key_aliases Map.new(@transport_option_keys, fn key ->
+                                  {Atom.to_string(key), key}
+                                end)
 
   defstruct socket: nil,
             buffer: "",
@@ -512,10 +528,9 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
   end
 
   defp normalize_transport_options_shape(options) when is_map(options) do
-    if Enum.all?(Map.keys(options), &(is_atom(&1) or is_binary(&1))) do
-      {:ok, Enum.map(options, fn {key, value} -> {normalize_option_key(key), value} end)}
-    else
-      {:error, {:invalid_transport_options, options}}
+    case Enum.reduce_while(options, [], &normalize_transport_option_pair/2) do
+      :error -> {:error, {:invalid_transport_options, options}}
+      normalized -> {:ok, Enum.reverse(normalized)}
     end
   end
 
@@ -523,13 +538,10 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
     do: {:error, {:invalid_transport_options, options}}
 
   defp reject_unknown_transport_option_keys(options) when is_list(options) do
-    allowed =
-      ~w(endpoint bridge_ref attach_token bridge_profile supported_protocol_versions extensions connect_timeout_ms request_timeout_ms)a
-
     unknown =
       options
       |> Keyword.keys()
-      |> Enum.reject(&(&1 in allowed))
+      |> Enum.reject(&(&1 in @transport_option_keys))
 
     if unknown == [] do
       :ok
@@ -538,13 +550,18 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
     end
   end
 
-  defp normalize_option_key(key) when is_atom(key), do: key
-
-  defp normalize_option_key(key) when is_binary(key) do
-    String.to_existing_atom(key)
-  rescue
-    ArgumentError -> key
+  defp normalize_transport_option_pair({key, value}, acc) when is_atom(key) do
+    {:cont, [{key, value} | acc]}
   end
+
+  defp normalize_transport_option_pair({key, value}, acc) when is_binary(key) do
+    case Map.fetch(@transport_option_key_aliases, key) do
+      {:ok, normalized_key} -> {:cont, [{normalized_key, value} | acc]}
+      :error -> {:halt, :error}
+    end
+  end
+
+  defp normalize_transport_option_pair(_other, _acc), do: {:halt, :error}
 
   defp normalize_required_binary(value, _field) when is_binary(value) and value != "",
     do: {:ok, value}
@@ -1290,9 +1307,7 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
   defp decode_atomish(value) when is_atom(value), do: value
 
   defp decode_atomish(value) when is_binary(value) do
-    String.to_existing_atom(value)
-  rescue
-    ArgumentError -> value
+    Map.get(@capability_value_aliases, value, value)
   end
 
   defp decode_atomish(value), do: value

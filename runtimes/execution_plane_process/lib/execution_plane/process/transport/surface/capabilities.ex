@@ -56,6 +56,18 @@ defmodule ExecutionPlane.Process.Transport.Surface.Capabilities do
     :supports_cwd?,
     :interrupt_kind
   ]
+  @atomish_values %{
+    "attach" => :attach,
+    "bridge" => :bridge,
+    "guest" => :guest,
+    "local" => :local,
+    "none" => :none,
+    "remote" => :remote,
+    "rpc" => :rpc,
+    "signal" => :signal,
+    "spawn" => :spawn,
+    "stdin" => :stdin
+  }
 
   @type key ::
           :remote?
@@ -237,9 +249,7 @@ defmodule ExecutionPlane.Process.Transport.Surface.Capabilities do
   defp normalize_atomish(value) when is_atom(value), do: value
 
   defp normalize_atomish(value) when is_binary(value) do
-    String.to_existing_atom(value)
-  rescue
-    ArgumentError -> nil
+    Map.get(@atomish_values, value)
   end
 
   defp normalize_atomish(_other), do: nil
