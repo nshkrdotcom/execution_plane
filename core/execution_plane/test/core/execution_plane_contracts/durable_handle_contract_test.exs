@@ -32,6 +32,9 @@ defmodule ExecutionPlane.DurableHandleContractTest do
         idempotency_key: "idem-1",
         boundary_session_id: "boundary-session-1",
         decision_id: "decision-1",
+        target_ref: "target://tenant-1/local-process/1",
+        attach_grant_ref: "attach-grant://tenant-1/process/1",
+        no_egress_posture_ref: "no-egress-posture://tenant-1/deny-external",
         credential_handle_refs: ["sk-live-secret"],
         requested_capabilities: ["session.resume"]
       })
@@ -50,6 +53,9 @@ defmodule ExecutionPlane.DurableHandleContractTest do
                idempotency_key: "idem-2",
                boundary_session_id: "boundary-session-2",
                decision_id: "decision-2",
+               target_ref: "target://tenant-1/local-process/1",
+               attach_grant_ref: "attach-grant://tenant-1/process/1",
+               no_egress_posture_ref: "no-egress-posture://tenant-1/deny-external",
                credential_handle_refs: [
                  "credential-handle://tenant-1/workload-identity/session-1",
                  "urn:credential-handle:tenant-1:github:lease-1"

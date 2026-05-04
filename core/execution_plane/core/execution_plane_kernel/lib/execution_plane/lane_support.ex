@@ -58,6 +58,17 @@ defmodule ExecutionPlane.LaneSupport do
       boundary_session_id: lineage.boundary_session_id,
       decision_id: lineage.decision_id,
       lease_ref: Contracts.fetch_value(attrs, :lease_ref),
+      target_ref: fetch_or_default(attrs, :target_ref, "target://#{family}/#{token}"),
+      attach_grant_ref:
+        fetch_or_default(attrs, :attach_grant_ref, "attach-grant://#{family}/#{token}"),
+      no_egress_posture_ref:
+        fetch_or_default(
+          attrs,
+          :no_egress_posture_ref,
+          "no-egress-posture://#{family}/deny-external"
+        ),
+      process_target_identity_ref: Contracts.fetch_value(attrs, :process_target_identity_ref),
+      stream_target_identity_ref: Contracts.fetch_value(attrs, :stream_target_identity_ref),
       route_template_ref: Contracts.fetch_value(attrs, :route_template_ref),
       credential_handle_refs: Contracts.fetch_value(attrs, :credential_handle_refs) || [],
       attempt_ref: lineage.attempt_ref,

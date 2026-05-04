@@ -17,6 +17,11 @@ defmodule ExecutionPlane.Contracts.ExecutionIntentEnvelope.V1 do
     :boundary_session_id,
     :decision_id,
     :lease_ref,
+    :target_ref,
+    :attach_grant_ref,
+    :no_egress_posture_ref,
+    :process_target_identity_ref,
+    :stream_target_identity_ref,
     :route_template_ref,
     :attempt_ref,
     :deadline_at,
@@ -36,6 +41,11 @@ defmodule ExecutionPlane.Contracts.ExecutionIntentEnvelope.V1 do
           boundary_session_id: String.t(),
           decision_id: String.t(),
           lease_ref: String.t() | nil,
+          target_ref: String.t(),
+          attach_grant_ref: String.t(),
+          no_egress_posture_ref: String.t(),
+          process_target_identity_ref: String.t() | nil,
+          stream_target_identity_ref: String.t() | nil,
           route_template_ref: String.t() | nil,
           credential_handle_refs: [String.t()],
           attempt_ref: String.t() | nil,
@@ -79,6 +89,11 @@ defmodule ExecutionPlane.Contracts.ExecutionIntentEnvelope.V1 do
       "boundary_session_id" => envelope.boundary_session_id,
       "decision_id" => envelope.decision_id,
       "lease_ref" => envelope.lease_ref,
+      "target_ref" => envelope.target_ref,
+      "attach_grant_ref" => envelope.attach_grant_ref,
+      "no_egress_posture_ref" => envelope.no_egress_posture_ref,
+      "process_target_identity_ref" => envelope.process_target_identity_ref,
+      "stream_target_identity_ref" => envelope.stream_target_identity_ref,
       "route_template_ref" => envelope.route_template_ref,
       "credential_handle_refs" => envelope.credential_handle_refs,
       "attempt_ref" => envelope.attempt_ref,
@@ -103,13 +118,21 @@ defmodule ExecutionPlane.Contracts.ExecutionIntentEnvelope.V1 do
       boundary_session_id: Contracts.fetch_required_stringish!(attrs, :boundary_session_id),
       decision_id: Contracts.fetch_required_stringish!(attrs, :decision_id),
       lease_ref: Contracts.fetch_optional_stringish!(attrs, :lease_ref),
+      target_ref: fetch_required_ref!(attrs, :target_ref, "target://"),
+      attach_grant_ref: fetch_required_ref!(attrs, :attach_grant_ref, "attach-grant://"),
+      no_egress_posture_ref:
+        fetch_required_ref!(attrs, :no_egress_posture_ref, "no-egress-posture://"),
+      process_target_identity_ref:
+        fetch_optional_ref!(attrs, :process_target_identity_ref, "process-target-identity://"),
+      stream_target_identity_ref:
+        fetch_optional_ref!(attrs, :stream_target_identity_ref, "stream-target-identity://"),
       route_template_ref: Contracts.fetch_optional_stringish!(attrs, :route_template_ref),
       credential_handle_refs:
         Contracts.fetch_optional_list!(
           attrs,
           :credential_handle_refs,
           [],
-          &Contracts.validate_opaque_handle_ref!(&1, "credential_handle_ref")
+          &validate_credential_handle_ref!/1
         ),
       attempt_ref: Contracts.fetch_optional_stringish!(attrs, :attempt_ref),
       deadline_at:
@@ -127,5 +150,44 @@ defmodule ExecutionPlane.Contracts.ExecutionIntentEnvelope.V1 do
         ),
       extensions: Contracts.normalize_extensions!(attrs)
     }
+  end
+
+  defp fetch_required_ref!(attrs, key, prefix) do
+    case Contracts.fetch_value(attrs, key) do
+      nil ->
+        raise ArgumentError, "#{key} is required"
+
+      value ->
+        value
+        |> Contracts.validate_non_empty_string!(to_string(key))
+        |> validate_ref_prefix!(to_string(key), prefix)
+    end
+  end
+
+  defp fetch_optional_ref!(attrs, key, prefix) do
+    case Contracts.fetch_optional_stringish!(attrs, key) do
+      nil -> nil
+      value -> validate_ref_prefix!(value, to_string(key), prefix)
+    end
+  end
+
+  defp validate_credential_handle_ref!(value) do
+    value = Contracts.validate_opaque_handle_ref!(value, "credential_handle_ref")
+
+    if String.starts_with?(value, "credential-handle://") or
+         String.starts_with?(value, "urn:credential-handle:") do
+      value
+    else
+      raise ArgumentError,
+            "credential_handle_ref must start with credential-handle:// or urn:credential-handle:, got: #{inspect(value)}"
+    end
+  end
+
+  defp validate_ref_prefix!(value, field_name, prefix) do
+    if String.starts_with?(value, prefix) do
+      value
+    else
+      raise ArgumentError, "#{field_name} must start with #{prefix}, got: #{inspect(value)}"
+    end
   end
 end

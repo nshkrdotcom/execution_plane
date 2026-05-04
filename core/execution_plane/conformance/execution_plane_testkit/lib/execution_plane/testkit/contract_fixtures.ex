@@ -71,7 +71,12 @@ defmodule ExecutionPlane.Testkit.ContractFixtures do
       decision_id: authority_decision().decision_id,
       lease_ref: "lease://1",
       route_template_ref: "route-template://http",
-      credential_handle_refs: ["cred://1"],
+      credential_handle_refs: ["credential-handle://tenant-1/workload-identity/session-1"],
+      target_ref: "target://tenant-1/local-process/1",
+      attach_grant_ref: "attach-grant://tenant-1/process/1",
+      no_egress_posture_ref: "no-egress-posture://tenant-1/deny-external",
+      process_target_identity_ref: "process-target-identity://tenant-1/local-process/1",
+      stream_target_identity_ref: "stream-target-identity://tenant-1/stdout/1",
       attempt_ref: "attempt://1",
       deadline_at: "2026-04-10T12:00:00Z",
       cancellation_ref: "cancel://1",
@@ -258,7 +263,7 @@ defmodule ExecutionPlane.Testkit.ContractFixtures do
   @spec credential_handle_ref() :: CredentialHandleRef.t()
   def credential_handle_ref do
     CredentialHandleRef.new!(%{
-      handle_ref: "cred://1",
+      handle_ref: "credential-handle://tenant-1/workload-identity/session-1",
       kind: "oauth_bearer",
       audience: "github_api",
       expires_at: "2026-04-10T12:00:00Z",

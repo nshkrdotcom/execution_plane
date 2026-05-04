@@ -74,7 +74,10 @@ defmodule ExecutionPlane.Testkit.LineageContinuityTest do
 
     refute Map.has_key?(attach_grant.grant_scope, "secret")
     assert attach_grant.lease_ref == "lease://1"
-    assert credential_handle_ref.handle_ref == "cred://1"
+
+    assert credential_handle_ref.handle_ref ==
+             "credential-handle://tenant-1/workload-identity/session-1"
+
     assert credential_handle_ref.kind == "oauth_bearer"
   end
 
