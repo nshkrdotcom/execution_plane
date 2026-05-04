@@ -34,6 +34,8 @@ defmodule ExecutionPlane.DurableHandleContractTest do
         decision_id: "decision-1",
         target_ref: "target://tenant-1/local-process/1",
         attach_grant_ref: "attach-grant://tenant-1/process/1",
+        target_auth_posture_ref: "target-posture://tenant-1/local-process/1",
+        workspace_ref: "workspace://tenant-1/runtime",
         no_egress_posture_ref: "no-egress-posture://tenant-1/deny-external",
         credential_handle_refs: ["sk-live-secret"],
         requested_capabilities: ["session.resume"]
@@ -55,6 +57,8 @@ defmodule ExecutionPlane.DurableHandleContractTest do
                decision_id: "decision-2",
                target_ref: "target://tenant-1/local-process/1",
                attach_grant_ref: "attach-grant://tenant-1/process/1",
+               target_auth_posture_ref: "target-posture://tenant-1/local-process/1",
+               workspace_ref: "workspace://tenant-1/runtime",
                no_egress_posture_ref: "no-egress-posture://tenant-1/deny-external",
                credential_handle_refs: [
                  "credential-handle://tenant-1/workload-identity/session-1",

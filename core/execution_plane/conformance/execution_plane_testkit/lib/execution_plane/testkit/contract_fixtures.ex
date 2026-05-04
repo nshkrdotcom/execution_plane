@@ -23,6 +23,7 @@ defmodule ExecutionPlane.Testkit.ContractFixtures do
   alias ExecutionPlane.Contracts.ProcessExecutionIntent.V1, as: ProcessExecutionIntent
   alias ExecutionPlane.Contracts.StreamAttachRevocation.V1, as: StreamAttachRevocation
   alias ExecutionPlane.Contracts.StreamBackpressure.V1, as: StreamBackpressure
+  alias ExecutionPlane.Contracts.TargetPosture.V1, as: TargetPosture
   alias ExecutionPlane.Contracts.WorkerBudget.V1, as: WorkerBudget
 
   @spec authority_decision() :: AuthorityDecision.t()
@@ -74,6 +75,8 @@ defmodule ExecutionPlane.Testkit.ContractFixtures do
       credential_handle_refs: ["credential-handle://tenant-1/workload-identity/session-1"],
       target_ref: "target://tenant-1/local-process/1",
       attach_grant_ref: "attach-grant://tenant-1/process/1",
+      target_auth_posture_ref: "target-posture://tenant-1/local-process/1",
+      workspace_ref: "workspace://repo-1",
       no_egress_posture_ref: "no-egress-posture://tenant-1/deny-external",
       process_target_identity_ref: "process-target-identity://tenant-1/local-process/1",
       stream_target_identity_ref: "stream-target-identity://tenant-1/stdout/1",
@@ -190,16 +193,53 @@ defmodule ExecutionPlane.Testkit.ContractFixtures do
     |> Map.merge(%{
       attach_grant_ref: "attach-grant://tenant-1/stream/1",
       lease_ref: "lease://1",
+      target_ref: "target://tenant-1/local-process/1",
+      target_auth_posture: "materialize_on_attach",
+      target_auth_posture_ref: "target-posture://tenant-1/local-process/1",
+      boundary_session_id: "boundary-session-1",
+      no_egress_posture_ref: "no-egress-posture://tenant-1/deny-external",
+      process_target_identity_ref: "process-target-identity://tenant-1/local-process/1",
+      stream_target_identity_ref: "stream-target-identity://tenant-1/stdout/1",
+      credential_handle_refs: ["credential-handle://tenant-1/workload-identity/session-1"],
+      provider_account_refs: ["provider-account://tenant-1/workload-identity/main"],
+      connector_instance_refs: ["connector-instance://tenant-1/workload-identity/default"],
       hazmat_resource_ref: "hazmat://runtime/local-process/stdio",
       grant_scope: %{
         "tenant_ref" => "tenant://tenant-1",
         "resource_ref" => "execution-resource://local-process/1",
+        "target_ref" => "target://tenant-1/local-process/1",
+        "credential_handle_refs" => ["credential-handle://tenant-1/workload-identity/session-1"],
         "capabilities" => ["stream.attach", "stdio.read"]
       },
       expires_at: "2026-04-10T12:10:00Z",
-      revocation_ref: "revocation://not-revoked"
+      revocation_ref: "revocation://not-revoked",
+      cleanup_refs: ["cleanup://tenant-1/local-process/1"]
     })
     |> AttachGrant.new!()
+  end
+
+  @spec target_posture() :: TargetPosture.t()
+  def target_posture do
+    TargetPosture.new!(%{
+      tenant_ref: "tenant://tenant-1",
+      target_ref: "target://tenant-1/local-process/1",
+      target_kind: "local_subprocess",
+      target_auth_posture: "materialize_on_attach",
+      target_auth_posture_ref: "target-posture://tenant-1/local-process/1",
+      boundary_session_id: "boundary-session-1",
+      workspace_ref: "workspace://repo-1",
+      no_egress_posture_ref: "no-egress-posture://tenant-1/deny-external",
+      process_target_identity_ref: "process-target-identity://tenant-1/local-process/1",
+      stream_target_identity_ref: "stream-target-identity://tenant-1/stdout/1",
+      allowed_provider_families: ["http", "process"],
+      allowed_provider_account_refs: ["provider-account://tenant-1/workload-identity/main"],
+      allowed_connector_instance_refs: ["connector-instance://tenant-1/workload-identity/default"],
+      allowed_credential_handle_refs: ["credential-handle://tenant-1/workload-identity/session-1"],
+      allowed_attach_grant_refs: ["attach-grant://tenant-1/stream/1"],
+      cleanup_refs: ["cleanup://tenant-1/local-process/1"],
+      materialized_state_refs: ["materialized-credential://tenant-1/local-process/1"],
+      multi_handle?: false
+    })
   end
 
   @spec stream_backpressure() :: StreamBackpressure.t()

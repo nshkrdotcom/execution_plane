@@ -29,7 +29,8 @@ defmodule ExecutionPlane.Contracts do
     stream_backpressure_v1: "ExecutionPlane.StreamBackpressure.v1",
     worker_budget_v1: "ExecutionPlane.WorkerBudget.v1",
     no_bypass_scan_v1: "ExecutionPlane.NoBypassScan.v1",
-    stream_attach_revocation_v1: "ExecutionPlane.StreamAttachRevocation.v1"
+    stream_attach_revocation_v1: "ExecutionPlane.StreamAttachRevocation.v1",
+    target_posture_v1: "ExecutionPlane.TargetPosture.v1"
   }
 
   @contract_modules [
@@ -52,7 +53,8 @@ defmodule ExecutionPlane.Contracts do
     ExecutionPlane.Contracts.StreamBackpressure.V1,
     ExecutionPlane.Contracts.WorkerBudget.V1,
     ExecutionPlane.Contracts.NoBypassScan.V1,
-    ExecutionPlane.Contracts.StreamAttachRevocation.V1
+    ExecutionPlane.Contracts.StreamAttachRevocation.V1,
+    ExecutionPlane.Contracts.TargetPosture.V1
   ]
 
   @canonical_lineage_keys [

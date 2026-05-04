@@ -19,6 +19,8 @@ defmodule ExecutionPlane.Contracts.ExecutionIntentEnvelope.V1 do
     :lease_ref,
     :target_ref,
     :attach_grant_ref,
+    :target_auth_posture_ref,
+    :workspace_ref,
     :no_egress_posture_ref,
     :process_target_identity_ref,
     :stream_target_identity_ref,
@@ -43,6 +45,8 @@ defmodule ExecutionPlane.Contracts.ExecutionIntentEnvelope.V1 do
           lease_ref: String.t() | nil,
           target_ref: String.t(),
           attach_grant_ref: String.t(),
+          target_auth_posture_ref: String.t(),
+          workspace_ref: String.t(),
           no_egress_posture_ref: String.t(),
           process_target_identity_ref: String.t() | nil,
           stream_target_identity_ref: String.t() | nil,
@@ -91,6 +95,8 @@ defmodule ExecutionPlane.Contracts.ExecutionIntentEnvelope.V1 do
       "lease_ref" => envelope.lease_ref,
       "target_ref" => envelope.target_ref,
       "attach_grant_ref" => envelope.attach_grant_ref,
+      "target_auth_posture_ref" => envelope.target_auth_posture_ref,
+      "workspace_ref" => envelope.workspace_ref,
       "no_egress_posture_ref" => envelope.no_egress_posture_ref,
       "process_target_identity_ref" => envelope.process_target_identity_ref,
       "stream_target_identity_ref" => envelope.stream_target_identity_ref,
@@ -120,6 +126,9 @@ defmodule ExecutionPlane.Contracts.ExecutionIntentEnvelope.V1 do
       lease_ref: Contracts.fetch_optional_stringish!(attrs, :lease_ref),
       target_ref: fetch_required_ref!(attrs, :target_ref, "target://"),
       attach_grant_ref: fetch_required_ref!(attrs, :attach_grant_ref, "attach-grant://"),
+      target_auth_posture_ref:
+        fetch_required_ref!(attrs, :target_auth_posture_ref, "target-posture://"),
+      workspace_ref: fetch_required_ref!(attrs, :workspace_ref, "workspace://"),
       no_egress_posture_ref:
         fetch_required_ref!(attrs, :no_egress_posture_ref, "no-egress-posture://"),
       process_target_identity_ref:

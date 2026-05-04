@@ -61,6 +61,13 @@ defmodule ExecutionPlane.LaneSupport do
       target_ref: fetch_or_default(attrs, :target_ref, "target://#{family}/#{token}"),
       attach_grant_ref:
         fetch_or_default(attrs, :attach_grant_ref, "attach-grant://#{family}/#{token}"),
+      target_auth_posture_ref:
+        fetch_or_default(
+          attrs,
+          :target_auth_posture_ref,
+          "target-posture://#{family}/#{token}"
+        ),
+      workspace_ref: fetch_or_default(attrs, :workspace_ref, "workspace://#{family}/#{token}"),
       no_egress_posture_ref:
         fetch_or_default(
           attrs,

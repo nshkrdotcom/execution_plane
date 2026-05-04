@@ -153,7 +153,7 @@ defmodule ExecutionPlaneProcessPackageTest do
   defp governed_envelope do
     [
       lease_ref: "lease://env-05-process",
-      credential_handle_refs: ["credential://env-05-process"],
+      credential_handle_refs: ["credential-handle://tenant-1/env-05-process"],
       route_template_ref: "route-template://env-05-process",
       extensions: %{authority_packet_ref: "authority-packet://env-05-process"}
     ]

@@ -33,7 +33,8 @@ defmodule ExecutionPlane.Contracts.ContractPacketTest do
       ContractFixtures.stream_backpressure(),
       ContractFixtures.worker_budget(),
       ContractFixtures.no_bypass_scan(),
-      ContractFixtures.stream_attach_revocation()
+      ContractFixtures.stream_attach_revocation(),
+      ContractFixtures.target_posture()
     ]
 
     Enum.each(fixtures, fn fixture ->

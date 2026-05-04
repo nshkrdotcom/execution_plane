@@ -11,6 +11,8 @@ defmodule ExecutionPlane.Contracts.LowerAuthorityRefsContractTest do
       |> Map.drop([
         :target_ref,
         :attach_grant_ref,
+        :target_auth_posture_ref,
+        :workspace_ref,
         :no_egress_posture_ref,
         :process_target_identity_ref,
         :stream_target_identity_ref
@@ -26,10 +28,27 @@ defmodule ExecutionPlane.Contracts.LowerAuthorityRefsContractTest do
       |> ExecutionIntentEnvelope.new!()
     end)
 
+    assert_error_contains("target_auth_posture_ref is required", fn ->
+      base
+      |> Map.put(:target_ref, "target://tenant-1/local-process/1")
+      |> Map.put(:attach_grant_ref, "attach-grant://tenant-1/process/1")
+      |> ExecutionIntentEnvelope.new!()
+    end)
+
+    assert_error_contains("workspace_ref is required", fn ->
+      base
+      |> Map.put(:target_ref, "target://tenant-1/local-process/1")
+      |> Map.put(:attach_grant_ref, "attach-grant://tenant-1/process/1")
+      |> Map.put(:target_auth_posture_ref, "target-posture://tenant-1/local-process/1")
+      |> ExecutionIntentEnvelope.new!()
+    end)
+
     assert_error_contains("no_egress_posture_ref is required", fn ->
       base
       |> Map.put(:target_ref, "target://tenant-1/local-process/1")
       |> Map.put(:attach_grant_ref, "attach-grant://tenant-1/process/1")
+      |> Map.put(:target_auth_posture_ref, "target-posture://tenant-1/local-process/1")
+      |> Map.put(:workspace_ref, "workspace://tenant-1/runtime")
       |> ExecutionIntentEnvelope.new!()
     end)
   end
@@ -53,6 +72,8 @@ defmodule ExecutionPlane.Contracts.LowerAuthorityRefsContractTest do
 
     assert_error_contains("no_egress_posture_ref must start with no-egress-posture://", fn ->
       base
+      |> Map.put(:target_auth_posture_ref, "target-posture://tenant-1/local-process/1")
+      |> Map.put(:workspace_ref, "workspace://tenant-1/runtime")
       |> Map.put(:no_egress_posture_ref, "provider-account://tenant-1/github/main")
       |> ExecutionIntentEnvelope.new!()
     end)
@@ -73,6 +94,8 @@ defmodule ExecutionPlane.Contracts.LowerAuthorityRefsContractTest do
         credential_handle_refs: ["credential-handle://tenant-1/github/lease-1"],
         target_ref: "target://tenant-1/local-process/1",
         attach_grant_ref: "attach-grant://tenant-1/process/1",
+        target_auth_posture_ref: "target-posture://tenant-1/local-process/1",
+        workspace_ref: "workspace://tenant-1/runtime",
         no_egress_posture_ref: "no-egress-posture://tenant-1/deny-external",
         process_target_identity_ref: "process-target-identity://tenant-1/local-process/1",
         stream_target_identity_ref: "stream-target-identity://tenant-1/stdout/1",
@@ -81,6 +104,8 @@ defmodule ExecutionPlane.Contracts.LowerAuthorityRefsContractTest do
 
     assert envelope.target_ref == "target://tenant-1/local-process/1"
     assert envelope.attach_grant_ref == "attach-grant://tenant-1/process/1"
+    assert envelope.target_auth_posture_ref == "target-posture://tenant-1/local-process/1"
+    assert envelope.workspace_ref == "workspace://tenant-1/runtime"
     assert envelope.no_egress_posture_ref == "no-egress-posture://tenant-1/deny-external"
 
     assert envelope.process_target_identity_ref ==
@@ -91,6 +116,8 @@ defmodule ExecutionPlane.Contracts.LowerAuthorityRefsContractTest do
     assert %{
              "target_ref" => "target://tenant-1/local-process/1",
              "attach_grant_ref" => "attach-grant://tenant-1/process/1",
+             "target_auth_posture_ref" => "target-posture://tenant-1/local-process/1",
+             "workspace_ref" => "workspace://tenant-1/runtime",
              "no_egress_posture_ref" => "no-egress-posture://tenant-1/deny-external"
            } = ExecutionIntentEnvelope.dump(envelope)
   end
