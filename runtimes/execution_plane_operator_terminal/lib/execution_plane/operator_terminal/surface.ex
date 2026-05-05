@@ -176,7 +176,7 @@ defmodule ExecutionPlane.OperatorTerminal.Surface do
 
   defp validate_optional_binary(nil, _field), do: :ok
   defp validate_optional_binary(value, _field) when is_binary(value), do: :ok
-  defp validate_optional_binary(value, field), do: {:error, {:"invalid_#{field}", value}}
+  defp validate_optional_binary(value, :surface_ref), do: {:error, {:invalid_surface_ref, value}}
 
   defp validate_boundary_class(nil), do: :ok
   defp validate_boundary_class(value) when is_atom(value) or is_binary(value), do: :ok

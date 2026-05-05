@@ -66,4 +66,14 @@ defmodule ExecutionPlane.OperatorTerminal.SurfaceTest do
                }
              )
   end
+
+  test "new/1 rejects non-binary operator-terminal refs with bounded errors" do
+    assert {:error, {:invalid_surface_ref, 123}} =
+             Surface.new(
+               operator_terminal_surface: %{
+                 "surface_kind" => "local_terminal",
+                 "surface_ref" => 123
+               }
+             )
+  end
 end

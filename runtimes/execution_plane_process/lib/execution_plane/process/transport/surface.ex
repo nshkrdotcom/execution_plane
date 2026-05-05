@@ -382,7 +382,9 @@ defmodule ExecutionPlane.Process.Transport.Surface do
 
   defp validate_optional_binary(nil, _field), do: :ok
   defp validate_optional_binary(value, _field) when is_binary(value) and value != "", do: :ok
-  defp validate_optional_binary(value, field), do: {:error, {:"invalid_#{field}", value}}
+  defp validate_optional_binary(value, :target_id), do: {:error, {:invalid_target_id, value}}
+  defp validate_optional_binary(value, :lease_ref), do: {:error, {:invalid_lease_ref, value}}
+  defp validate_optional_binary(value, :surface_ref), do: {:error, {:invalid_surface_ref, value}}
 
   defp validate_contract_version(nil), do: :ok
   defp validate_contract_version(@contract_version), do: :ok

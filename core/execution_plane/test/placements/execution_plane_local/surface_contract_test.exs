@@ -54,6 +54,17 @@ defmodule ExecutionPlane.Placements.SurfaceContractTest do
              Surface.new(contract_version: "execution_surface.v0")
   end
 
+  test "new/1 rejects non-binary lower-runtime refs with bounded errors" do
+    assert {:error, {:invalid_target_id, 123}} =
+             Surface.new(%{"surface_kind" => "ssh_exec", "target_id" => 123})
+
+    assert {:error, {:invalid_lease_ref, 123}} =
+             Surface.new(%{"surface_kind" => "ssh_exec", "lease_ref" => 123})
+
+    assert {:error, {:invalid_surface_ref, 123}} =
+             Surface.new(%{"surface_kind" => "ssh_exec", "surface_ref" => 123})
+  end
+
   test "capabilities reject unknown atomish strings without runtime atom creation" do
     assert {:error, {:invalid_capabilities, {:startup_kind, "provider_spawn"}}} =
              Capabilities.new(%{"startup_kind" => "provider_spawn"})

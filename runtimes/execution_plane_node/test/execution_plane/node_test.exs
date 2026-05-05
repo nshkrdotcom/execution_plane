@@ -18,9 +18,12 @@ defmodule ExecutionPlane.NodeTest do
   alias ExecutionPlane.Target.Attestation
   alias ExecutionPlane.Target.Descriptor
 
+  @server_name ExecutionPlane.NodeTest.Server
+  @node_id "execution-plane-node-test"
+
   setup do
-    name = :"node_#{System.unique_integer([:positive])}"
-    start_supervised!({ExecutionPlane.Node.Server, name: name, node_id: Atom.to_string(name)})
+    name = @server_name
+    start_supervised!({ExecutionPlane.Node.Server, name: name, node_id: @node_id})
     Process.register(self(), :execution_plane_node_test_sink)
 
     on_exit(fn ->

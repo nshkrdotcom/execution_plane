@@ -97,6 +97,26 @@ defmodule ExecutionPlaneProcessPackageTest do
              )
   end
 
+  test "process surface rejects non-binary lower-runtime refs with bounded errors" do
+    assert {:error, {:invalid_target_id, 123}} =
+             Surface.resolve(
+               command: "cat",
+               execution_surface: %{"surface_kind" => :local_subprocess, "target_id" => 123}
+             )
+
+    assert {:error, {:invalid_lease_ref, 123}} =
+             Surface.resolve(
+               command: "cat",
+               execution_surface: %{"surface_kind" => :local_subprocess, "lease_ref" => 123}
+             )
+
+    assert {:error, {:invalid_surface_ref, 123}} =
+             Surface.resolve(
+               command: "cat",
+               execution_surface: %{"surface_kind" => :local_subprocess, "surface_ref" => 123}
+             )
+  end
+
   test "process capabilities reject unknown atomish strings without runtime atom creation" do
     assert {:error, {:invalid_startup_kind, "provider_spawn"}} =
              Capabilities.new(%{"startup_kind" => "provider_spawn"})
