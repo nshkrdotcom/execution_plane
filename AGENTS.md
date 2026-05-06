@@ -184,3 +184,7 @@ just temporal-ui
 If a caller asks Execution Plane to infer meaning or policy, reject the change
 and move that behavior to Jido Integration, Citadel, or Mezzanine.
 <!-- gn-ten:repo-agent:end -->
+
+## Blitz 0.3.0 operational note
+
+Root workspace Blitz uses published Hex `~> 0.3.0` by default; `.blitz/` is committed compact impact state after green QC. Source and `mix.exs` changes cascade through reverse workspace dependencies; docs-only changes should stay owner-local.

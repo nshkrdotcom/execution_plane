@@ -38,15 +38,15 @@ defmodule ExecutionPlane.Workspace.MixProject do
 
   defp deps do
     [
-      {:blitz, "~> 0.2.0", runtime: false},
+      {:blitz, "~> 0.3.0", runtime: false},
       {:ex_doc, "~> 0.40", only: :dev, runtime: false}
     ]
   end
 
   defp aliases do
     monorepo_aliases = [
-      "monorepo.deps.get": ["blitz.workspace deps_get"],
-      "monorepo.ci": ["blitz.workspace ci"]
+      "monorepo.deps.get": ["blitz.workspace.impact deps_get --"],
+      "monorepo.ci": ["blitz.workspace.impact ci --"]
     ]
 
     [
