@@ -49,8 +49,8 @@ defmodule ExecutionPlane.LowerSimulationTest do
     assert evidence["side_effect_policy"] == "deny_external_egress"
     assert evidence["side_effect_result"] == "not_attempted"
     assert evidence["raw_payload_shape"] == ["body", "headers", "status_code"]
-    assert evidence["input_fingerprint"]["sha256"] =~ "sha256:"
-    assert evidence["output_fingerprint"]["sha256"] =~ "sha256:"
+    assert String.contains?(evidence["input_fingerprint"]["sha256"], "sha256:")
+    assert String.contains?(evidence["output_fingerprint"]["sha256"], "sha256:")
     refute Map.has_key?(evidence["input_fingerprint"], "body")
     refute Map.has_key?(evidence["output_fingerprint"], "body")
 
@@ -112,7 +112,7 @@ defmodule ExecutionPlane.LowerSimulationTest do
 
     assert result.outcome.status == "succeeded"
     assert result.outcome.family == "process"
-    assert result.outcome.raw_payload["stdout"] =~ ~s("ok":true)
+    assert String.contains?(result.outcome.raw_payload["stdout"], ~s("ok":true))
 
     assert [artifact] = result.outcome.artifacts
     assert artifact["evidence"]["side_effect_policy"] == "deny_process_spawn"
@@ -149,7 +149,7 @@ defmodule ExecutionPlane.LowerSimulationTest do
 
     assert result.outcome.failure.failure_class == :route_unresolved
     assert result.outcome.raw_payload.side_effect_result == "blocked_before_dispatch"
-    assert result.outcome.raw_payload.error =~ "required_negative_evidence"
+    assert String.contains?(result.outcome.raw_payload.error, "required_negative_evidence")
   end
 
   defp no_egress_policy(overrides \\ %{}) do

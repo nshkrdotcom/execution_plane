@@ -30,7 +30,12 @@ defmodule ExecutionPlane.Contracts.ExecutionEvidenceBoundaryContractTest do
     assert boundary.contract_version == "ExecutionPlane.ExecutionEvidenceBoundary.v1"
     assert boundary.owner_repo == "execution_plane"
     assert boundary.bounded_status == "succeeded"
-    assert boundary.input_fingerprint_ref =~ "fingerprint://execution-plane/input/"
+
+    assert String.contains?(
+             boundary.input_fingerprint_ref,
+             "fingerprint://execution-plane/input/"
+           )
+
     assert boundary.scan_result["status"] == "passed"
 
     dump = ExecutionEvidenceBoundary.dump(boundary)
@@ -41,7 +46,7 @@ defmodule ExecutionPlane.Contracts.ExecutionEvidenceBoundaryContractTest do
              "status_code"
            ]
 
-    refute inspect(dump) =~ "raw provider body kept"
+    refute String.contains?(inspect(dump), "raw provider body kept")
     refute Map.has_key?(dump, "raw_payload")
   end
 
@@ -82,10 +87,10 @@ defmodule ExecutionPlane.Contracts.ExecutionEvidenceBoundaryContractTest do
         "core/execution_plane_contracts/lib/execution_plane/contracts/execution_outcome/v1.ex"
       )
 
-    assert source =~ "raw_payload: Contracts.fetch_optional_map!"
-    refute source =~ "raw_payload_shape"
-    refute source =~ "bounded_evidence_projection"
-    refute source =~ "ExecutionEvidenceBoundary"
+    assert String.contains?(source, "raw_payload: Contracts.fetch_optional_map!")
+    refute String.contains?(source, "raw_payload_shape")
+    refute String.contains?(source, "bounded_evidence_projection")
+    refute String.contains?(source, "ExecutionEvidenceBoundary")
   end
 
   defp assert_error_contains(fragment, fun) do

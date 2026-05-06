@@ -30,7 +30,7 @@ defmodule ExecutionPlane.Contracts.LowerSimulationEvidenceTest do
       })
 
     assert {:error, %ArgumentError{} = error} = LowerSimulationEvidence.new(attrs)
-    assert error.message =~ "input_fingerprint must not carry raw body"
+    assert String.contains?(error.message, "input_fingerprint must not carry raw body")
   end
 
   test "evidence rejects route lineage mismatch" do
@@ -40,6 +40,6 @@ defmodule ExecutionPlane.Contracts.LowerSimulationEvidenceTest do
       |> put_in(["lineage", "route_id"], "route-other")
 
     assert {:error, %ArgumentError{} = error} = LowerSimulationEvidence.new(attrs)
-    assert error.message =~ "route_id must match lineage.route_id"
+    assert String.contains?(error.message, "route_id must match lineage.route_id")
   end
 end

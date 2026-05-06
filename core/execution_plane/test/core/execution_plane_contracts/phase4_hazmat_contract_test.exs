@@ -59,7 +59,7 @@ defmodule ExecutionPlane.Contracts.Phase4HazmatContractTest do
                  granted_capabilities: ["attach.read"]
                })
 
-      assert message =~ "principal_ref or system_actor_ref"
+      assert String.contains?(message, "principal_ref or system_actor_ref")
     end
   end
 
@@ -95,7 +95,7 @@ defmodule ExecutionPlane.Contracts.Phase4HazmatContractTest do
                })
              )
 
-    assert message =~ "current_load"
+    assert String.contains?(message, "current_load")
 
     accepted =
       @base_scope
@@ -135,7 +135,7 @@ defmodule ExecutionPlane.Contracts.Phase4HazmatContractTest do
              |> Map.put(:last_event_position, -1)
              |> StreamAttachRevocation.new()
 
-    assert message =~ "last_event_position"
+    assert String.contains?(message, "last_event_position")
   end
 
   test "ExecutionPlane.NoBypassScan.v1 fails closed on forbidden hazmat imports" do
@@ -170,6 +170,6 @@ defmodule ExecutionPlane.Contracts.Phase4HazmatContractTest do
                  ]
              })
 
-    assert message =~ "clear no-bypass scan"
+    assert String.contains?(message, "clear no-bypass scan")
   end
 end

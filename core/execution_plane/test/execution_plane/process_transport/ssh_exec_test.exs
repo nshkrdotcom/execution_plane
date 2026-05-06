@@ -54,8 +54,8 @@ defmodule ExecutionPlane.Process.Transport.SSHExecTest do
     assert FakeSSH.wait_until_written(fake_ssh, 1_000) == :ok
 
     manifest = FakeSSH.read_manifest!(fake_ssh)
-    assert manifest =~ "destination=ssh.test.example"
-    assert manifest =~ "port=2222"
+    assert String.contains?(manifest, "destination=ssh.test.example")
+    assert String.contains?(manifest, "port=2222")
   end
 
   test "interrupt/1 propagates through the SSH surface" do

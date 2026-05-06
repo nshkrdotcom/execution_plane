@@ -40,7 +40,7 @@ defmodule ExecutionPlaneProcessPackageTest do
 
       assert result.plan.intent.clear_env == true
       assert result.plan.intent.env_projection == %{}
-      refute inspect(result) =~ "ambient-env05-secret"
+      refute String.contains?(inspect(result), "ambient-env05-secret")
     end)
   end
 
@@ -61,7 +61,7 @@ defmodule ExecutionPlaneProcessPackageTest do
       assert result.plan.intent.clear_env == true
       assert result.plan.intent.env_projection == %{"LEASE_TOKEN" => "explicit-lease-token"}
       refute Map.has_key?(result.plan.intent.env_projection, "EXECUTION_PLANE_ENV05_TOKEN")
-      refute inspect(result) =~ "ambient-token"
+      refute String.contains?(inspect(result), "ambient-token")
     end)
   end
 

@@ -326,7 +326,7 @@ defmodule ExecutionPlane.Process.Transport.SubprocessTest do
     assert_receive {:stderr_line, "err-one"}, 2_000
     assert_receive {:execution_plane_process, ^ref, {:stderr, stderr_chunk}}, 2_000
 
-    assert stderr_chunk =~ "err-one"
+    assert String.contains?(stderr_chunk, "err-one")
     File.write!(gate_path, "release")
     assert_receive {:execution_plane_process, ^ref, {:message, "out"}}, 2_000
     assert_receive {:stderr_line, "err-two"}, 2_000
