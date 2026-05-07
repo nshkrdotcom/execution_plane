@@ -27,3 +27,7 @@ Current packet status:
   policy, timeout policy, and retry policy. Its side-effect retry scope is
   `intent_id + idempotency_key`.
 - minimal-lane family-specific payload shapes remain provisional until Wave 3
+
+## Persistence Documentation
+
+See `docs/persistence.md` for tiers, defaults, adapters, unsupported selections, config examples, restart claims, durability claims, debug sidecar behavior, redaction guarantees, migration or preflight behavior, and no-bypass scope when applicable.

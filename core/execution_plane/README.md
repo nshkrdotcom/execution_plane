@@ -148,3 +148,7 @@ gate uses Blitz and is not part of this package's published dependency graph.
 ## License
 
 MIT
+
+## Persistence Documentation
+
+See `docs/persistence.md` for tiers, defaults, adapters, unsupported selections, config examples, restart claims, durability claims, debug sidecar behavior, redaction guarantees, migration or preflight behavior, and no-bypass scope when applicable.
