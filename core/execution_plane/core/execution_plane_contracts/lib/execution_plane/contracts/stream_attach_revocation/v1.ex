@@ -28,7 +28,8 @@ defmodule ExecutionPlane.Contracts.StreamAttachRevocation.V1 do
     :lease_ref,
     :revocation_ref,
     :termination_ref,
-    :last_event_position
+    :last_event_position,
+    :persistence_posture
   ]
 
   @type t :: %__MODULE__{}
@@ -84,7 +85,9 @@ defmodule ExecutionPlane.Contracts.StreamAttachRevocation.V1 do
       lease_ref: Contracts.fetch_required_stringish!(attrs, :lease_ref),
       revocation_ref: Contracts.fetch_required_stringish!(attrs, :revocation_ref),
       termination_ref: Contracts.fetch_required_stringish!(attrs, :termination_ref),
-      last_event_position: Contracts.fetch_required_non_neg_integer!(attrs, :last_event_position)
+      last_event_position: Contracts.fetch_required_non_neg_integer!(attrs, :last_event_position),
+      persistence_posture:
+        ExecutionPlane.Contracts.PersistencePosture.resolve(:stream_attach_state, attrs)
     }
   end
 

@@ -3,6 +3,7 @@ defmodule ExecutionPlane.Contracts.Phase5TargetAttachContractTest do
 
   alias ExecutionPlane.Contracts.AttachGrant.V1, as: AttachGrant
   alias ExecutionPlane.Contracts.ExecutionIntentEnvelope.V1, as: ExecutionIntentEnvelope
+  alias ExecutionPlane.Contracts.PersistencePosture
   alias ExecutionPlane.Contracts.TargetPosture.V1, as: TargetPosture
 
   @base_scope %{
@@ -39,10 +40,21 @@ defmodule ExecutionPlane.Contracts.Phase5TargetAttachContractTest do
     assert posture.target_auth_posture == "materialize_on_attach"
     assert posture.target_auth_posture_ref == @target_posture_ref
 
+    assert posture.persistence_posture.persistence_profile_ref ==
+             "persistence-profile://mickey_mouse"
+
+    assert posture.persistence_posture.raw_process_state_persistence? == false
+    assert grant.persistence_posture.component == :attach_grant
+
+    assert grant.persistence_posture.persistence_profile_ref ==
+             "persistence-profile://mickey_mouse"
+
     assert {:ok, evidence} = TargetPosture.authorize_attach(posture, grant, envelope)
     assert evidence.target_ref == @target_ref
     assert evidence.attach_grant_ref == @attach_grant_ref
     assert evidence.credential_handle_refs == [@credential_handle_ref]
+    assert evidence.persistence_posture.component == :target_descriptor
+    assert evidence.persistence_posture.durable? == false
     assert evidence.raw_material_present? == false
 
     rendered = inspect(evidence)
@@ -98,10 +110,52 @@ defmodule ExecutionPlane.Contracts.Phase5TargetAttachContractTest do
     assert event.target_ref == @target_ref
     assert event.materialized_state_refs == []
     assert event.cleanup_refs == ["cleanup://tenant-1/local-process/1"]
+    assert event.persistence_posture.component == :cleanup_receipt
+
+    assert event.persistence_posture.persistence_profile_ref ==
+             "persistence-profile://mickey_mouse"
+
+    assert event.persistence_posture.raw_process_state_persistence? == false
 
     rendered = inspect(event)
     refute String.contains?(rendered, "raw_token")
     refute String.contains?(rendered, "secret")
+  end
+
+  test "durable persistence posture changes storage evidence without changing attach authority" do
+    posture = target_posture(%{profile: :ops_durable})
+    grant = attach_grant(%{profile: :ops_durable})
+    envelope = intent_envelope()
+
+    assert posture.persistence_posture.persistence_profile_ref ==
+             "persistence-profile://ops_durable"
+
+    assert posture.persistence_posture.durable? == true
+    assert posture.persistence_posture.raw_process_state_persistence? == false
+
+    assert grant.persistence_posture.persistence_profile_ref ==
+             "persistence-profile://ops_durable"
+
+    assert :ok =
+             PersistencePosture.preflight(
+               :target_descriptor,
+               %{profile: :ops_durable},
+               [PersistencePosture.durable_capability(:target_descriptor, :temporal_durable)]
+             )
+
+    assert {:ok, evidence} = TargetPosture.authorize_attach(posture, grant, envelope)
+    assert evidence.target_ref == @target_ref
+    assert evidence.credential_handle_refs == [@credential_handle_ref]
+    assert evidence.persistence_posture.durable? == true
+
+    event = TargetPosture.cleanup_event(posture, :phase6_durable_cleanup)
+
+    assert event.persistence_posture.component == :cleanup_receipt
+
+    assert event.persistence_posture.persistence_profile_ref ==
+             "persistence-profile://ops_durable"
+
+    assert event.persistence_posture.raw_process_state_persistence? == false
   end
 
   defp target_posture(overrides \\ %{}) do

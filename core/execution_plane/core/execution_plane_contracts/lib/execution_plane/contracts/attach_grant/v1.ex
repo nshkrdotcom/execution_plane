@@ -36,6 +36,7 @@ defmodule ExecutionPlane.Contracts.AttachGrant.V1 do
     :grant_scope,
     :expires_at,
     :revocation_ref,
+    :persistence_posture,
     credential_handle_refs: [],
     provider_account_refs: [],
     connector_instance_refs: [],
@@ -71,6 +72,7 @@ defmodule ExecutionPlane.Contracts.AttachGrant.V1 do
           grant_scope: map(),
           expires_at: String.t(),
           revocation_ref: String.t(),
+          persistence_posture: map() | nil,
           credential_handle_refs: [String.t()],
           provider_account_refs: [String.t()],
           connector_instance_refs: [String.t()],
@@ -148,6 +150,8 @@ defmodule ExecutionPlane.Contracts.AttachGrant.V1 do
         |> Contracts.fetch_required_stringish!(:expires_at)
         |> Contracts.validate_iso8601!("expires_at"),
       revocation_ref: Contracts.fetch_required_stringish!(attrs, :revocation_ref),
+      persistence_posture:
+        ExecutionPlane.Contracts.PersistencePosture.resolve(:attach_grant, attrs),
       credential_handle_refs:
         Contracts.fetch_optional_list!(
           attrs,

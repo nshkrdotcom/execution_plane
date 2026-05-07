@@ -69,6 +69,7 @@ defmodule ExecutionPlane.MixProject do
 
   defp deps do
     [
+      {:ground_plane_persistence_policy, path: "../../../ground_plane/core/persistence_policy"},
       {:jason, "~> 1.4"},
       {:telemetry, "~> 1.3"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},

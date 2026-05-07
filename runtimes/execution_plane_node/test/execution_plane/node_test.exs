@@ -84,6 +84,11 @@ defmodule ExecutionPlane.NodeTest do
              )
 
     assert descriptor.attested_capability_classes == ["local-erlexec-weak"]
+
+    assert descriptor.persistence_posture.persistence_profile_ref ==
+             "persistence-profile://mickey_mouse"
+
+    assert descriptor.persistence_posture.raw_process_state_persistence? == false
   end
 
   test "rejects target claims with no matching verifier and never routes them", %{server: server} do
@@ -291,6 +296,11 @@ defmodule ExecutionPlane.NodeTest do
       assert record.attestation_class == "local-erlexec-weak"
       assert record.lane_id == "process"
       assert record.authority_verifier_id == "test-authority"
+
+      assert record.persistence_posture.persistence_profile_ref ==
+               "persistence-profile://mickey_mouse"
+
+      assert record.persistence_posture.raw_process_state_persistence? == false
     end)
   end
 
@@ -305,6 +315,9 @@ defmodule ExecutionPlane.NodeTest do
     assert [%{"verifier_id" => "test-target-verifier"}] = descriptor.registered_target_verifiers
     assert [%Descriptor{}] = descriptor.verified_targets
     assert descriptor.authority_verifier == "test-authority"
+
+    assert descriptor.metadata["persistence_posture"]["persistence_profile_ref"] ==
+             "persistence-profile://mickey_mouse"
   end
 
   test "boundary contracts JSON round trip all remote values with contract version" do

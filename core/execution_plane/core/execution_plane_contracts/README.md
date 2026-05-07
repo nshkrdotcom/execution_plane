@@ -17,6 +17,10 @@ Current packet status:
   `ExecutionPlane.NoEgressPolicy.v1` so lower simulation reports persist only
   bounded shapes, refs, and scan results while `ExecutionOutcome.v1.raw_payload`
   remains the raw lower-family outcome.
+- Phase 6 persistence posture adds memory-by-default and explicit durable
+  storage evidence for target descriptors, attach grants, boundary sessions,
+  stream attach state, cleanup receipts, and execution evidence. It never
+  persists raw process state and does not change target attach authority.
 - Phase 4 durable workflow activities use
   `ExecutionPlane.ActivitySideEffectIdempotency.v1` to bind tenant, actor,
   workflow, activity, lower run, execution intent, lease evidence, heartbeat

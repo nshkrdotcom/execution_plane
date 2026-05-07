@@ -4,6 +4,7 @@ defmodule ExecutionPlane.Node.Server do
   use GenServer
 
   alias ExecutionPlane.Admission.{Decision, Rejection, Request}
+  alias ExecutionPlane.Contracts.PersistencePosture
   alias ExecutionPlane.Evidence
   alias ExecutionPlane.ExecutionRef
   alias ExecutionPlane.ExecutionRequest
@@ -20,6 +21,7 @@ defmodule ExecutionPlane.Node.Server do
             evidence_sinks: %{},
             authority_verifier: nil,
             registration_complete?: false,
+            persistence_posture: %{},
             targets: %{},
             target_clients: %{},
             executions: %{}
@@ -62,7 +64,8 @@ defmodule ExecutionPlane.Node.Server do
   def init(opts) do
     {:ok,
      %__MODULE__{
-       node_id: Keyword.get(opts, :node_id, "node-#{System.system_time(:millisecond)}")
+       node_id: Keyword.get(opts, :node_id, "node-#{System.system_time(:millisecond)}"),
+       persistence_posture: PersistencePosture.resolve(:node_state, opts)
      }}
   end
 
@@ -126,7 +129,11 @@ defmodule ExecutionPlane.Node.Server do
         registered_target_verifiers: target_verifier_descriptors(state),
         verified_targets: Enum.map(state.targets, fn {_id, descriptor} -> descriptor end),
         authority_verifier: authority_verifier_id(state),
-        registration_complete: state.registration_complete?
+        registration_complete: state.registration_complete?,
+        metadata: %{
+          "persistence_posture" =>
+            ExecutionPlane.Contracts.stringify_keys(state.persistence_posture)
+        }
       )
 
     {:reply, {:ok, descriptor}, state}
@@ -350,7 +357,11 @@ defmodule ExecutionPlane.Node.Server do
       lane_id: request.lane_id,
       operation: request.operation,
       payload: request.payload,
-      provenance: request.provenance
+      provenance: request.provenance,
+      metadata: %{
+        "node_persistence_posture" =>
+          ExecutionPlane.Contracts.stringify_keys(state.persistence_posture)
+      }
     )
   end
 
@@ -431,7 +442,11 @@ defmodule ExecutionPlane.Node.Server do
         target_verifier_id: target && target.verifier_id,
         attestation_class: decision && decision.attestation_class,
         authority_verifier_id: authority_verifier_id(state),
-        payload: ExecutionPlane.Boundary.dump_value(payload)
+        payload: ExecutionPlane.Boundary.dump_value(payload),
+        persistence_posture:
+          PersistencePosture.resolve(:execution_evidence, %{
+            persistence_posture: state.persistence_posture
+          })
       )
 
     Enum.each(state.evidence_sinks, fn {_id, sink} -> sink.emit(evidence, []) end)

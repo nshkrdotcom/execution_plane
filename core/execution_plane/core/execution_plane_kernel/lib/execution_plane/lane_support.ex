@@ -4,6 +4,7 @@ defmodule ExecutionPlane.LaneSupport do
   alias ExecutionPlane.Contracts
   alias ExecutionPlane.Contracts.ExecutionIntentEnvelope.V1, as: ExecutionIntentEnvelope
   alias ExecutionPlane.Contracts.ExecutionRoute.V1, as: ExecutionRoute
+  alias ExecutionPlane.Contracts.PersistencePosture
 
   @required_lineage_keys [
     :tenant_id,
@@ -82,7 +83,10 @@ defmodule ExecutionPlane.LaneSupport do
       deadline_at: Contracts.fetch_value(attrs, :deadline_at),
       cancellation_ref: Contracts.fetch_value(attrs, :cancellation_ref),
       requested_capabilities: requested_capabilities(attrs, capability),
-      extensions: Contracts.fetch_value(attrs, :extensions) || %{}
+      extensions:
+        attrs
+        |> Contracts.fetch_value(:extensions)
+        |> put_persistence_posture_extension(attrs)
     })
   end
 
@@ -118,10 +122,23 @@ defmodule ExecutionPlane.LaneSupport do
       resolved_target:
         attrs
         |> Contracts.fetch_optional_map!(:resolved_target, %{})
-        |> Map.merge(target),
+        |> Map.merge(target)
+        |> Map.put_new(
+          "persistence_posture",
+          :target_descriptor
+          |> PersistencePosture.resolve(attrs)
+          |> Contracts.stringify_keys()
+        ),
       resolved_budget: budget,
       lineage: lineage
     })
+  end
+
+  @spec persistence_posture(atom(), map() | keyword() | nil) :: map()
+  def persistence_posture(component \\ :lane_runtime_state, attrs \\ %{})
+
+  def persistence_posture(component, attrs) do
+    PersistencePosture.resolve(component, normalize_optional_attrs(attrs))
   end
 
   @spec kernel_opts(keyword()) :: keyword()
@@ -147,6 +164,21 @@ defmodule ExecutionPlane.LaneSupport do
   end
 
   defp maybe_put_timeout(budget, _timeout_ms), do: budget
+
+  defp put_persistence_posture_extension(nil, attrs),
+    do: put_persistence_posture_extension(%{}, attrs)
+
+  defp put_persistence_posture_extension(extensions, attrs) when is_map(extensions) do
+    posture =
+      :lane_runtime_state
+      |> PersistencePosture.resolve(attrs)
+      |> Contracts.stringify_keys()
+
+    Map.update(extensions, "execution_plane", %{"persistence_posture" => posture}, fn
+      %{} = execution_plane -> Map.put(execution_plane, "persistence_posture", posture)
+      _other -> %{"persistence_posture" => posture}
+    end)
+  end
 
   defp fetch_or_default(attrs, key, default) do
     Contracts.fetch_value(attrs, key) || default

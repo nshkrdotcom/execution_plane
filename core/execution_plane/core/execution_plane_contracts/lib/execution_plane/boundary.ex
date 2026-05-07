@@ -420,6 +420,7 @@ defmodule ExecutionPlane.Target.Descriptor do
     attestation_id: nil,
     attested_at: nil,
     expires_at: nil,
+    persistence_posture: %{},
     metadata: %{},
     signature: nil
   )
@@ -440,6 +441,8 @@ defmodule ExecutionPlane.Target.Descriptor do
        attestation_id: ExecutionPlane.Boundary.fetch(attrs, :attestation_id, nil),
        attested_at: ExecutionPlane.Boundary.fetch(attrs, :attested_at, nil),
        expires_at: ExecutionPlane.Boundary.fetch(attrs, :expires_at, nil),
+       persistence_posture:
+         ExecutionPlane.Contracts.PersistencePosture.resolve(:target_descriptor, attrs),
        metadata: ExecutionPlane.Boundary.fetch(attrs, :metadata, %{}),
        signature: ExecutionPlane.Boundary.fetch(attrs, :signature, nil)
      }}
@@ -655,6 +658,7 @@ defmodule ExecutionPlane.Evidence do
     lane_id: nil,
     authority_verifier_id: nil,
     payload: %{},
+    persistence_posture: %{},
     emitted_at: nil
   )
 
@@ -684,6 +688,8 @@ defmodule ExecutionPlane.Evidence do
        lane_id: ExecutionPlane.Boundary.fetch(attrs, :lane_id, nil),
        authority_verifier_id: ExecutionPlane.Boundary.fetch(attrs, :authority_verifier_id, nil),
        payload: ExecutionPlane.Boundary.fetch(attrs, :payload, %{}),
+       persistence_posture:
+         ExecutionPlane.Contracts.PersistencePosture.resolve(:execution_evidence, attrs),
        emitted_at: ExecutionPlane.Boundary.fetch(attrs, :emitted_at, nil)
      }}
   rescue

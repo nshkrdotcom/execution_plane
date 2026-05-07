@@ -56,6 +56,7 @@ defmodule ExecutionPlane.Contracts.ExecutionEvidenceBoundary.V1 do
     :claim_check_ref_or_null,
     :redacted_preview_ref_or_null,
     :schema_ref,
+    :persistence_posture,
     :scan_result
   ]
 
@@ -69,6 +70,7 @@ defmodule ExecutionPlane.Contracts.ExecutionEvidenceBoundary.V1 do
           claim_check_ref_or_null: String.t() | nil,
           redacted_preview_ref_or_null: String.t() | nil,
           schema_ref: String.t(),
+          persistence_posture: map() | nil,
           scan_result: map()
         }
 
@@ -110,6 +112,12 @@ defmodule ExecutionPlane.Contracts.ExecutionEvidenceBoundary.V1 do
       claim_check_ref_or_null: Keyword.get(opts, :claim_check_ref_or_null),
       redacted_preview_ref_or_null: Keyword.get(opts, :redacted_preview_ref_or_null),
       schema_ref: Keyword.get(opts, :schema_ref, @schema_ref),
+      persistence_posture:
+        Keyword.get(
+          opts,
+          :persistence_posture,
+          ExecutionPlane.Contracts.PersistencePosture.memory(:execution_evidence)
+        ),
       scan_result: scan_result("passed")
     })
   end
@@ -127,6 +135,7 @@ defmodule ExecutionPlane.Contracts.ExecutionEvidenceBoundary.V1 do
       "claim_check_ref_or_null" => boundary.claim_check_ref_or_null,
       "redacted_preview_ref_or_null" => boundary.redacted_preview_ref_or_null,
       "schema_ref" => boundary.schema_ref,
+      "persistence_posture" => Contracts.stringify_keys(boundary.persistence_posture),
       "scan_result" => Contracts.stringify_keys(boundary.scan_result)
     }
   end
@@ -181,6 +190,8 @@ defmodule ExecutionPlane.Contracts.ExecutionEvidenceBoundary.V1 do
           Contracts.fetch_required_stringish!(attrs, :schema_ref),
           "schema_ref"
         ),
+      persistence_posture:
+        ExecutionPlane.Contracts.PersistencePosture.resolve(:execution_evidence, attrs),
       scan_result: validate_scan_result!(attrs)
     }
   end

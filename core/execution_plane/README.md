@@ -65,9 +65,15 @@ their HTTP or GraphQL family kit.
 - Placement descriptors under `ExecutionPlane.Placements`
 - Route validation, pure dispatch planning, and lower simulation helpers
 - Testkit fixtures for downstream conformance
+- Ref-only persistence posture for lower target, attach, boundary-session,
+  stream-attach, cleanup, and evidence contracts
 
 The package is intentionally lane-light. It does not depend on `erlexec`,
 `finch`, `mint_web_socket`, `server_sent_events`, or `ex_ratatui`.
+
+Persistence posture defaults to the memory-only `mickey_mouse` profile. Durable
+profiles are opt-in storage evidence that add store/tier/receipt refs while
+leaving target authority unchanged and forbidding raw process-state persistence.
 
 ## Repository Position
 

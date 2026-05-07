@@ -59,6 +59,7 @@ defmodule ExecutionPlane.Contracts.TargetPosture.V1 do
     :process_target_identity_ref,
     :stream_target_identity_ref,
     :service_identity_ref,
+    :persistence_posture,
     allowed_provider_families: [],
     allowed_provider_account_refs: [],
     allowed_connector_instance_refs: [],
@@ -82,6 +83,7 @@ defmodule ExecutionPlane.Contracts.TargetPosture.V1 do
           process_target_identity_ref: String.t() | nil,
           stream_target_identity_ref: String.t() | nil,
           service_identity_ref: String.t() | nil,
+          persistence_posture: map() | nil,
           allowed_provider_families: [String.t()],
           allowed_provider_account_refs: [String.t()],
           allowed_connector_instance_refs: [String.t()],
@@ -231,6 +233,10 @@ defmodule ExecutionPlane.Contracts.TargetPosture.V1 do
       target_auth_posture_ref: posture.target_auth_posture_ref,
       cleanup_reason: to_string(reason),
       cleanup_refs: posture.cleanup_refs,
+      persistence_posture:
+        ExecutionPlane.Contracts.PersistencePosture.resolve(:cleanup_receipt, %{
+          persistence_posture: posture.persistence_posture
+        }),
       materialized_state_refs: [],
       raw_material_present?: false
     }
@@ -260,6 +266,8 @@ defmodule ExecutionPlane.Contracts.TargetPosture.V1 do
         fetch_optional_ref!(attrs, :stream_target_identity_ref, "stream-target-identity://"),
       service_identity_ref:
         fetch_optional_ref!(attrs, :service_identity_ref, "service-identity://"),
+      persistence_posture:
+        ExecutionPlane.Contracts.PersistencePosture.resolve(:target_descriptor, attrs),
       allowed_provider_families: fetch_optional_string_list!(attrs, :allowed_provider_families),
       allowed_provider_account_refs:
         fetch_optional_ref_list!(attrs, :allowed_provider_account_refs, "provider-account://"),
@@ -404,6 +412,7 @@ defmodule ExecutionPlane.Contracts.TargetPosture.V1 do
       stream_target_identity_ref: posture.stream_target_identity_ref,
       credential_handle_refs: envelope.credential_handle_refs,
       cleanup_refs: posture.cleanup_refs,
+      persistence_posture: posture.persistence_posture,
       cleanup_required?: true,
       raw_material_present?: false
     }

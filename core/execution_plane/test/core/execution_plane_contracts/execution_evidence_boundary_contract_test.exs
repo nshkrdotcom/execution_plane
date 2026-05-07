@@ -31,6 +31,11 @@ defmodule ExecutionPlane.Contracts.ExecutionEvidenceBoundaryContractTest do
     assert boundary.owner_repo == "execution_plane"
     assert boundary.bounded_status == "succeeded"
 
+    assert boundary.persistence_posture.persistence_profile_ref ==
+             "persistence-profile://mickey_mouse"
+
+    assert boundary.persistence_posture.raw_process_state_persistence? == false
+
     assert String.contains?(
              boundary.input_fingerprint_ref,
              "fingerprint://execution-plane/input/"
@@ -46,6 +51,47 @@ defmodule ExecutionPlane.Contracts.ExecutionEvidenceBoundaryContractTest do
              "status_code"
            ]
 
+    assert dump["persistence_posture"]["component"] == :execution_evidence
+    assert dump["persistence_posture"]["durable?"] == false
+    assert dump["persistence_posture"]["raw_process_state_persistence?"] == false
+
+    refute String.contains?(inspect(dump), "raw provider body kept")
+    refute Map.has_key?(dump, "raw_payload")
+  end
+
+  test "boundary can emit durable storage posture without persisting raw outcome payload" do
+    outcome = ContractFixtures.execution_outcome()
+
+    boundary =
+      ExecutionEvidenceBoundary.from_outcome!(outcome,
+        lower_simulation_evidence: ContractFixtures.lower_simulation_evidence(),
+        persistence_posture: %{
+          persistence_profile_ref: "persistence-profile://ops_durable",
+          persistence_tier_ref: "persistence-tier://postgres_shared",
+          capture_level_ref: "capture-level://audit_only",
+          store_set_ref: "store-set://ops_primary",
+          store_partition_ref: "store-partition://postgres_shared/default",
+          retention_policy_ref: "retention://postgres_shared",
+          persistence_receipt_ref: "persistence-receipt://execution-plane/evidence/ops",
+          store_ref: "store://postgres_shared",
+          durable?: true,
+          restart_durability_claim: :durable_restart,
+          raw_process_state_persistence?: true
+        }
+      )
+
+    assert boundary.persistence_posture.component == :execution_evidence
+
+    assert boundary.persistence_posture.persistence_profile_ref ==
+             "persistence-profile://ops_durable"
+
+    assert boundary.persistence_posture.durable? == true
+    assert boundary.persistence_posture.raw_process_state_persistence? == false
+
+    dump = ExecutionEvidenceBoundary.dump(boundary)
+
+    assert dump["persistence_posture"]["durable?"] == true
+    assert dump["persistence_posture"]["raw_process_state_persistence?"] == false
     refute String.contains?(inspect(dump), "raw provider body kept")
     refute Map.has_key?(dump, "raw_payload")
   end

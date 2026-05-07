@@ -14,6 +14,7 @@ defmodule ExecutionPlane.Contracts.BoundarySessionDescriptor.V1 do
     :session_status,
     :attach_state,
     :workspace_ref,
+    :persistence_posture,
     artifact_refs: [],
     lease_refs: [],
     approval_refs: [],
@@ -28,6 +29,7 @@ defmodule ExecutionPlane.Contracts.BoundarySessionDescriptor.V1 do
           session_status: String.t(),
           attach_state: String.t(),
           workspace_ref: String.t(),
+          persistence_posture: map() | nil,
           artifact_refs: [String.t()],
           lease_refs: [String.t()],
           approval_refs: [String.t()],
@@ -66,6 +68,7 @@ defmodule ExecutionPlane.Contracts.BoundarySessionDescriptor.V1 do
       "session_status" => descriptor.session_status,
       "attach_state" => descriptor.attach_state,
       "workspace_ref" => descriptor.workspace_ref,
+      "persistence_posture" => Contracts.stringify_keys(descriptor.persistence_posture),
       "artifact_refs" => descriptor.artifact_refs,
       "lease_refs" => descriptor.lease_refs,
       "approval_refs" => descriptor.approval_refs,
@@ -84,6 +87,8 @@ defmodule ExecutionPlane.Contracts.BoundarySessionDescriptor.V1 do
       session_status: Contracts.fetch_required_stringish!(attrs, :session_status),
       attach_state: Contracts.fetch_required_stringish!(attrs, :attach_state),
       workspace_ref: Contracts.fetch_required_stringish!(attrs, :workspace_ref),
+      persistence_posture:
+        ExecutionPlane.Contracts.PersistencePosture.resolve(:boundary_session, attrs),
       artifact_refs:
         Contracts.fetch_optional_list!(
           attrs,
