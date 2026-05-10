@@ -94,6 +94,17 @@
       hex: "~> 0.1.0",
       default_order: [:path, :github, :hex],
       publish_order: [:hex]
+    },
+    ground_plane_persistence_policy: %{
+      path: "../ground_plane/core/persistence_policy",
+      github: %{
+        repo: "nshkrdotcom/ground_plane",
+        branch: "main",
+        subdir: "core/persistence_policy"
+      },
+      hex: "~> 0.1.0",
+      default_order: [:path, :github, :hex],
+      publish_order: [:hex]
     }
   }
 }
