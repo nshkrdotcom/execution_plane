@@ -4,6 +4,11 @@ defmodule ExecutionPlaneWebSocket.MixProject do
   @version "0.1.0"
   @source_url "https://github.com/nshkrdotcom/execution_plane"
   @execution_plane_version "~> 0.1.0"
+  @execution_plane_source [
+    github: "nshkrdotcom/execution_plane",
+    branch: "main",
+    subdir: "core/execution_plane"
+  ]
 
   def project do
     [
@@ -40,8 +45,16 @@ defmodule ExecutionPlaneWebSocket.MixProject do
 
   defp execution_plane_dep do
     case workspace_dep_path("../../core/execution_plane") do
-      nil -> {:execution_plane, @execution_plane_version}
+      nil -> external_execution_plane_dep()
       path -> {:execution_plane, path: path}
+    end
+  end
+
+  defp external_execution_plane_dep do
+    if hex_packaging_task?() do
+      {:execution_plane, @execution_plane_version}
+    else
+      {:execution_plane, @execution_plane_source}
     end
   end
 

@@ -22,6 +22,9 @@ execution_plane-*.tar
 # Temporary files, for example, from tests.
 /tmp/
 
+# Local dependency-source overrides.
+/.dependency_sources.local.exs
+
 # Nested workspace package artifacts
 **/_build/
 **/deps/

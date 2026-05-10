@@ -188,3 +188,18 @@ and move that behavior to Jido Integration, Citadel, or Mezzanine.
 ## Blitz 0.3.0 operational note
 
 Root workspace Blitz uses published Hex `~> 0.3.0` by default; `.blitz/` is committed compact impact state after green QC. Source and `mix.exs` changes cascade through reverse workspace dependencies; docs-only changes should stay owner-local.
+
+## Dependency Sources And Runtime Env
+
+- The repo-wide dependency-source manifest is
+  `build_support/dependency_sources.config.exs`; the shared helper is
+  `build_support/dependency_sources.exs`.
+- Local dependency-source overrides belong in `.dependency_sources.local.exs`,
+  which is intentionally gitignored.
+- Dependency source selection must not use environment variables.
+- Runtime application code under `lib/**` must not call direct OS env APIs.
+  Runtime env reads belong in `config/runtime.exs` or a `Config.Provider`.
+- Execution Plane is not a Weld consumer in this pass. Do not add Weld here
+  unless a separate approved Weld-adoption change is made. Weld still owns
+  helper drift, dependency-source manifests, clone/publish checks, and publish
+  order for repos that consume it.

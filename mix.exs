@@ -1,3 +1,7 @@
+unless Code.ensure_loaded?(DependencySources) do
+  Code.require_file("build_support/dependency_sources.exs", __DIR__)
+end
+
 defmodule ExecutionPlane.Workspace.MixProject do
   use Mix.Project
 
@@ -38,7 +42,7 @@ defmodule ExecutionPlane.Workspace.MixProject do
 
   defp deps do
     [
-      {:blitz, "~> 0.3.0", runtime: false},
+      DependencySources.dep(:blitz, __DIR__, runtime: false),
       {:ex_doc, "~> 0.40", only: :dev, runtime: false}
     ]
   end
@@ -72,7 +76,7 @@ defmodule ExecutionPlane.Workspace.MixProject do
         unset_env: ["HEX_API_KEY"]
       ],
       parallelism: [
-        env: "EXECUTION_PLANE_WORKSPACE_MAX_CONCURRENCY",
+        max_concurrency: nil,
         multiplier: :auto,
         base: [
           deps_get: 4,
