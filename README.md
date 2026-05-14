@@ -1,8 +1,17 @@
-# Execution Plane Workspace
+<p align="center">
+  <img src="assets/execution_plane.svg" width="200" height="200" alt="Execution Plane logo" />
+</p>
 
 <p align="center">
-  <img src="assets/execution_plane.svg" width="200" height="200" alt="Execution Plane logo">
+  <a href="https://github.com/nshkrdotcom/execution_plane">
+    <img alt="GitHub: execution_plane" src="https://img.shields.io/badge/GitHub-execution_plane-0b0f14?logo=github" />
+  </a>
+  <a href="https://github.com/nshkrdotcom/execution_plane/blob/main/LICENSE">
+    <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-0b0f14.svg" />
+  </a>
 </p>
+
+# Execution Plane Workspace
 
 This repository is a non-umbrella Mix workspace. The repository root is a
 tooling project only; it is not the `execution_plane` Hex package.
@@ -66,6 +75,37 @@ Recent work fixed dependency-source fallback behavior, added the local TRE Rhai
 runner lane under the process package, added target posture attach contracts,
 required lower authority refs, governed process environment inheritance, and
 cleaned up atom/regex/env hazards.
+
+## Runtime Diagrams
+
+```mermaid
+flowchart TD
+  Client["ExecutionPlane.Runtime.Client"] --> Request["Execution request"]
+  Request --> Authority["Authority verifier"]
+  Request --> Target["Target verifier"]
+  Authority --> Decision["Admission decision"]
+  Target --> Decision
+  Decision --> Node["Lane-neutral runtime node"]
+  Node --> Process["Process lane"]
+  Node --> HTTP["HTTP lane"]
+  Node --> JSONRPC["JSON-RPC lane"]
+  Node --> Streams["SSE and WebSocket lanes"]
+  Process --> Evidence["Lower evidence packet"]
+  HTTP --> Evidence
+  JSONRPC --> Evidence
+  Streams --> Evidence
+```
+
+```mermaid
+flowchart LR
+  Policy["Higher-layer policy"] --> Calls["Separate runtime-client calls"]
+  Calls --> Strong["Strong target rung"]
+  Calls --> Weak["Weak target rung"]
+  Strong --> Rejected["Rejected evidence"]
+  Weak --> Accepted["Accepted evidence"]
+  Rejected --> Owner["Fallback owner records ladder"]
+  Accepted --> Owner
+```
 
 ## Mix Projects
 
