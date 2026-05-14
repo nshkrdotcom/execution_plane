@@ -107,6 +107,30 @@ flowchart LR
   Accepted --> Owner
 ```
 
+## Developer Flow Diagrams
+
+```mermaid
+flowchart TD
+  Client["Runtime<br/>client"] --> Node["Runtime<br/>node"]
+  Node --> Caps["Lane<br/>capabilities"]
+  Caps --> Adapter["Lane<br/>adapter"]
+  Adapter --> Events["Runtime<br/>events"]
+  Adapter --> Result["Lower<br/>result"]
+  Events --> Sink["Evidence<br/>sink"]
+  Result --> Sink
+```
+
+```mermaid
+flowchart LR
+  Request["Execution<br/>request"] --> Auth["Authority<br/>verify"]
+  Request --> Target["Target<br/>verify"]
+  Auth --> Sandbox["Sandbox<br/>constraints"]
+  Target --> Attest["Attestation<br/>class"]
+  Sandbox --> Decision["Admit<br/>or reject"]
+  Attest --> Decision
+  Decision --> Evidence["Evidence<br/>packet"]
+```
+
 ## Mix Projects
 
 The checkout contains exactly eight active Mix projects:
