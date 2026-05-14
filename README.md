@@ -11,6 +11,62 @@ The publishable common substrate package lives at `core/execution_plane`.
 Blitz and workspace orchestration live only in the root project so they cannot
 enter the published `execution_plane` package dependency graph.
 
+Execution Plane is the lowest runtime substrate in the ranked stack. It owns
+packets, lane protocols, placements, target attestations, runtime-client
+contracts, and raw lower evidence. It does not own product intent, governance
+policy, connector semantics, or durable workflow truth.
+
+## Stack Position
+
+```text
+products / AppKit / Mezzanine / Citadel / Jido Integration
+  -> ExecutionPlane.Runtime.Client
+      -> execution_plane_node
+          -> process, HTTP, JSON-RPC, SSE, WebSocket, terminal lanes
+              -> concrete runtimes and targets
+```
+
+Higher layers decide why something should run and what authority applies.
+Execution Plane decides whether a lower execution request is structurally
+valid, whether the target and attestation are acceptable, which lane can carry
+the request, and what lower evidence packet describes the result.
+
+The node is intentionally lane-neutral. It can route to registered lanes and
+verified targets, but it must not invent fallback ladders or infer business
+semantics. If a policy owner allows multiple target classes, that owner issues
+separate runtime-client calls and records each rejected or accepted rung.
+
+## What The Common Package Carries
+
+The publishable `execution_plane` package carries shared lower values and
+behaviours:
+
+- admission requests, decisions, and rejections
+- authority refs and host-registered authority verifiers
+- sandbox profiles and acceptable attestation classes as opaque policy data
+- target descriptors, target attestations, target clients, and target verifiers
+- execution requests, results, events, refs, evidence, and provenance
+- placement descriptors for local, SSH, and guest targets
+- lane adapter behaviours and capability descriptions
+- lower-boundary simulation and conformance helpers
+
+The common package does not enforce an OS sandbox by itself. It carries policy
+and evidence. Real isolation claims must come from a verified target and a
+lane/host implementation that can substantiate the attestation.
+
+## Current Delivery State
+
+The current checkout has a usable common package, process lane, HTTP lane,
+JSON-RPC lane, SSE/WebSocket stream lanes, runtime node, and operator-terminal
+package. StackLab currently proves node composition through local process/HTTP
+execution, target-attestation rejection, authority rejection, and Jido
+Integration-owned fallback evidence.
+
+Recent work fixed dependency-source fallback behavior, added the local TRE Rhai
+runner lane under the process package, added target posture attach contracts,
+required lower authority refs, governed process environment inheritance, and
+cleaned up atom/regex/env hazards.
+
 ## Mix Projects
 
 The checkout contains exactly eight active Mix projects:
