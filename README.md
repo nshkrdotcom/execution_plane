@@ -80,17 +80,17 @@ cleaned up atom/regex/env hazards.
 
 ```mermaid
 flowchart TD
-  Client["ExecutionPlane.Runtime.Client"] --> Request["Execution request"]
-  Request --> Authority["Authority verifier"]
-  Request --> Target["Target verifier"]
-  Authority --> Decision["Admission decision"]
+  Client["Runtime<br/>client"] --> Request["Execution<br/>request"]
+  Request --> Authority["Authority<br/>verifier"]
+  Request --> Target["Target<br/>verifier"]
+  Authority --> Decision["Admission<br/>decision"]
   Target --> Decision
-  Decision --> Node["Lane-neutral runtime node"]
-  Node --> Process["Process lane"]
-  Node --> HTTP["HTTP lane"]
-  Node --> JSONRPC["JSON-RPC lane"]
-  Node --> Streams["SSE and WebSocket lanes"]
-  Process --> Evidence["Lower evidence packet"]
+  Decision --> Node["Runtime<br/>node"]
+  Node --> Process["Process<br/>lane"]
+  Node --> HTTP["HTTP<br/>lane"]
+  Node --> JSONRPC["JSON-RPC<br/>lane"]
+  Node --> Streams["Stream<br/>lanes"]
+  Process --> Evidence["Evidence<br/>packet"]
   HTTP --> Evidence
   JSONRPC --> Evidence
   Streams --> Evidence
@@ -98,12 +98,12 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-  Policy["Higher-layer policy"] --> Calls["Separate runtime-client calls"]
-  Calls --> Strong["Strong target rung"]
-  Calls --> Weak["Weak target rung"]
-  Strong --> Rejected["Rejected evidence"]
-  Weak --> Accepted["Accepted evidence"]
-  Rejected --> Owner["Fallback owner records ladder"]
+  Policy["Higher<br/>policy"] --> Calls["Runtime<br/>calls"]
+  Calls --> Strong["Strong<br/>rung"]
+  Calls --> Weak["Weak<br/>rung"]
+  Strong --> Rejected["Rejected<br/>evidence"]
+  Weak --> Accepted["Accepted<br/>evidence"]
+  Rejected --> Owner["Fallback<br/>owner"]
   Accepted --> Owner
 ```
 
