@@ -3,12 +3,20 @@ defmodule ExecutionPlane.Process.Transport.TaggedRelay do
 
   use GenServer
 
+  alias ExecutionPlane.Process.TransportSupervisor
+
   @type event_mapper :: (term() -> [term()])
 
   @spec start(pid(), reference(), keyword()) :: {:ok, pid()} | {:error, term()}
   def start(target_pid, target_tag, opts)
       when is_pid(target_pid) and is_reference(target_tag) and is_list(opts) do
-    GenServer.start(__MODULE__, {target_pid, target_tag, opts})
+    TransportSupervisor.start_child(__MODULE__, {target_pid, target_tag, opts})
+  end
+
+  @spec start_link({pid(), reference(), keyword()}) :: GenServer.on_start()
+  def start_link({target_pid, target_tag, opts})
+      when is_pid(target_pid) and is_reference(target_tag) and is_list(opts) do
+    GenServer.start_link(__MODULE__, {target_pid, target_tag, opts})
   end
 
   @spec attach_transport(pid(), pid()) :: :ok

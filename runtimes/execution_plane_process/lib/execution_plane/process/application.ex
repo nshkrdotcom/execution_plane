@@ -8,7 +8,8 @@ defmodule ExecutionPlane.Process.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      {Task.Supervisor, name: ExecutionPlane.TaskSupervisor}
+      {Task.Supervisor, name: ExecutionPlane.TaskSupervisor},
+      ExecutionPlane.Process.TransportSupervisor
     ]
 
     Supervisor.start_link(children,

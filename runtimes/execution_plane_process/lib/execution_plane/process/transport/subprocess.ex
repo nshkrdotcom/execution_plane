@@ -10,6 +10,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   alias ExecutionPlane.{Command, LineFraming, ProcessExit, TaskSupport}
   alias ExecutionPlane.Process.Transport
   alias ExecutionPlane.Process.Transport.{Error, Info, Options, RunOptions, RunResult}
+  alias ExecutionPlane.Process.TransportSupervisor
 
   @behaviour Transport
 
@@ -83,7 +84,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
     case Options.new(opts) do
       {:ok, options} ->
         with :ok <- maybe_preflight_startup(options),
-             {:ok, pid} <- GenServer.start(__MODULE__, options) do
+             {:ok, pid} <- TransportSupervisor.start_child(__MODULE__, options) do
           {:ok, pid}
         else
           {:error, %Error{} = error} -> transport_error(error)

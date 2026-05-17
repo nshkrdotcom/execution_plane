@@ -39,18 +39,49 @@ defmodule ExecutionPlane.SSE do
     ref = make_ref()
     parent = self()
 
-    {worker_pid, worker_monitor_ref} =
-      spawn_monitor(fn -> run_stream(parent, ref, request, finch_name) end)
+    case start_stream_task(fn -> run_stream(parent, ref, request, finch_name) end) do
+      {:ok, worker_pid} ->
+        %{
+          buffer: "",
+          done?: false,
+          finch_name: finch_name,
+          receive_timeout: receive_timeout,
+          ref: ref,
+          start_error: nil,
+          worker_monitor_ref: Process.monitor(worker_pid),
+          worker_pid: worker_pid
+        }
 
-    %{
-      buffer: "",
-      done?: false,
-      finch_name: finch_name,
-      receive_timeout: receive_timeout,
-      ref: ref,
-      worker_monitor_ref: worker_monitor_ref,
-      worker_pid: worker_pid
-    }
+      {:error, reason} ->
+        %{
+          buffer: "",
+          done?: false,
+          finch_name: finch_name,
+          receive_timeout: receive_timeout,
+          ref: ref,
+          start_error: {:stream_worker_start_failed, reason},
+          worker_monitor_ref: nil,
+          worker_pid: nil
+        }
+    end
+  end
+
+  defp start_stream_task(fun) when is_function(fun, 0) do
+    with :ok <- ensure_task_supervisor_started() do
+      Task.Supervisor.start_child(ExecutionPlane.SSE.TaskSupervisor, fun)
+    end
+  catch
+    :exit, {:noproc, _} -> {:error, :noproc}
+    :exit, :noproc -> {:error, :noproc}
+    :exit, reason -> {:error, {:task_start_failed, reason}}
+  end
+
+  defp ensure_task_supervisor_started do
+    case Application.ensure_all_started(:execution_plane_sse) do
+      {:ok, _started} -> :ok
+      {:error, {:already_started, _app}} -> :ok
+      {:error, reason} -> {:error, {:application_start_failed, reason}}
+    end
   end
 
   defp run_stream(parent, ref, request, finch_name) do
@@ -92,6 +123,10 @@ defmodule ExecutionPlane.SSE do
 
   defp next_item(%{done?: true} = state), do: {:halt, state}
 
+  defp next_item(%{start_error: reason} = state) when not is_nil(reason) do
+    {[{:transport_error, reason}], %{state | done?: true, start_error: nil}}
+  end
+
   defp next_item(state) do
     receive do
       {ref, :status, status} when ref == state.ref ->
@@ -128,7 +163,9 @@ defmodule ExecutionPlane.SSE do
   end
 
   defp cleanup(%{worker_monitor_ref: monitor_ref, worker_pid: worker_pid}) do
-    Process.demonitor(monitor_ref, [:flush])
+    if is_reference(monitor_ref) do
+      Process.demonitor(monitor_ref, [:flush])
+    end
 
     if is_pid(worker_pid) and Process.alive?(worker_pid) do
       Process.exit(worker_pid, :kill)

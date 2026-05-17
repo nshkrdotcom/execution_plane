@@ -15,6 +15,7 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
   alias ExecutionPlane.Process.Transport.Options
   alias ExecutionPlane.Process.Transport.RunResult
   alias ExecutionPlane.Process.Transport.Surface.{Adapter, Capabilities}
+  alias ExecutionPlane.Process.TransportSupervisor
 
   @behaviour Adapter
   @behaviour Transport
@@ -150,7 +151,7 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
   def start(opts) when is_list(opts) do
     case Options.new(opts) do
       {:ok, options} ->
-        case GenServer.start(__MODULE__, options) do
+        case TransportSupervisor.start_child(__MODULE__, options) do
           {:ok, pid} -> {:ok, pid}
           {:error, {:transport, %Error{} = error}} -> transport_error(error)
           {:error, reason} -> transport_error(reason)
