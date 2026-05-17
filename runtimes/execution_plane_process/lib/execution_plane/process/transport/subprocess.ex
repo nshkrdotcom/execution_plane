@@ -100,6 +100,19 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   end
 
   @impl Transport
+  def start_link(%Options{} = options) do
+    with :ok <- maybe_preflight_startup(options),
+         {:ok, pid} <- GenServer.start_link(__MODULE__, options) do
+      {:ok, pid}
+    else
+      {:error, %Error{} = error} -> transport_error(error)
+      {:error, reason} -> transport_error(reason)
+    end
+  catch
+    :exit, reason ->
+      transport_error(reason)
+  end
+
   def start_link(opts) when is_list(opts) do
     case Options.new(opts) do
       {:ok, options} ->

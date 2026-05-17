@@ -3,6 +3,8 @@ defmodule ExecutionPlaneProcessPackageTest do
 
   alias ExecutionPlane.Process.Transport.GuestBridge
   alias ExecutionPlane.Process.Transport.LowerSimulation
+  alias ExecutionPlane.Process.Transport.Options
+  alias ExecutionPlane.Process.Transport.Subprocess
   alias ExecutionPlane.Process.Transport.Surface
   alias ExecutionPlane.Process.Transport.Surface.Capabilities
 
@@ -115,6 +117,21 @@ defmodule ExecutionPlaneProcessPackageTest do
                command: "cat",
                execution_surface: %{"surface_kind" => :local_subprocess, "surface_ref" => 123}
              )
+  end
+
+  test "subprocess child start accepts normalized transport options" do
+    assert {:ok, options} =
+             Options.new(
+               command: "/bin/sleep",
+               args: ["1"],
+               startup_mode: :eager,
+               headless_timeout_ms: 5_000
+             )
+
+    assert {:ok, pid} = Subprocess.start_link(options)
+    assert Process.alive?(pid)
+
+    assert :ok = Subprocess.close(pid)
   end
 
   test "process capabilities reject unknown atomish strings without runtime atom creation" do
