@@ -3,6 +3,12 @@ defmodule ExecutionPlane.MixProject do
 
   @version "0.1.0"
   @source_url "https://github.com/nshkrdotcom/execution_plane"
+  @ground_plane_contracts_version "~> 0.1.0"
+  @ground_plane_contracts_source [
+    github: "nshkrdotcom/ground_plane",
+    branch: "main",
+    subdir: "core/ground_plane_contracts"
+  ]
   @ground_plane_persistence_policy_version "~> 0.1.0"
   @ground_plane_persistence_policy_source [
     github: "nshkrdotcom/ground_plane",
@@ -75,6 +81,7 @@ defmodule ExecutionPlane.MixProject do
 
   defp deps do
     [
+      ground_plane_contracts_dep(),
       ground_plane_persistence_policy_dep(),
       {:jason, "~> 1.4"},
       {:telemetry, "~> 1.3"},
@@ -82,6 +89,21 @@ defmodule ExecutionPlane.MixProject do
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.40", only: :dev, runtime: false}
     ]
+  end
+
+  defp ground_plane_contracts_dep do
+    case workspace_dep_path("../../../ground_plane/core/ground_plane_contracts") do
+      nil -> external_ground_plane_contracts_dep()
+      path -> {:ground_plane_contracts, path: path}
+    end
+  end
+
+  defp external_ground_plane_contracts_dep do
+    if hex_packaging_task?() do
+      {:ground_plane_contracts, @ground_plane_contracts_version}
+    else
+      {:ground_plane_contracts, @ground_plane_contracts_source}
+    end
   end
 
   defp ground_plane_persistence_policy_dep do

@@ -228,11 +228,11 @@ defmodule ExecutionPlane.LowerSimulation do
   end
 
   defp fingerprint(value) do
-    bytes = :erlang.term_to_binary(Contracts.stringify_keys(value))
+    encoded = value |> Contracts.stringify_keys() |> ExecutionPlane.Codec.encode!()
 
     %{
-      "sha256" => "sha256:" <> Base.encode16(:crypto.hash(:sha256, bytes), case: :lower),
-      "byte_size" => byte_size(bytes)
+      "sha256" => value |> Contracts.stringify_keys() |> ExecutionPlane.Codec.digest(),
+      "byte_size" => byte_size(encoded)
     }
   end
 

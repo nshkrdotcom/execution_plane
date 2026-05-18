@@ -575,7 +575,8 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   defp maybe_preflight_startup(%Options{}), do: :ok
 
   defp start_subprocess(state, %Options{} = options) do
-    with :ok <- preflight_startup(options),
+    with {:ok, state} <- add_bootstrap_subscriber(state, options.subscriber),
+         :ok <- preflight_startup(options),
          exec_opts <-
            build_exec_opts(
              options.cwd,
@@ -586,9 +587,8 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
            ),
          argv <- normalize_command_argv(options.command, options.args),
          {:ok, pid, os_pid} <- exec_run(options.command, argv, exec_opts),
-         :ok <- maybe_close_stdin_on_start(pid, options.close_stdin_on_start?),
-         {:ok, state} <-
-           add_bootstrap_subscriber(connected_state(state, pid, os_pid), options.subscriber) do
+         :ok <- maybe_close_stdin_on_start(pid, options.close_stdin_on_start?) do
+      state = connected_state(state, pid, os_pid)
       {:ok, maybe_schedule_headless_timer(%{state | startup_options: nil})}
     end
   end

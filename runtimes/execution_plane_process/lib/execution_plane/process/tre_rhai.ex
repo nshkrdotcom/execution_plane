@@ -11,6 +11,7 @@ defmodule ExecutionPlane.Process.TreRhai do
 
   alias ExecutionPlane.Runtimes.Process, as: ProcessRuntime
   alias ExecutionPlane.Runtimes.Process.{Exit, RunResult}
+  alias GroundPlane.Boundary.Codec, as: BoundaryCodec
 
   @version "nshkr.execution_plane.tre.v1"
   @receipt_contract "ExecutionPlane.TreRhaiReceipt.v1"
@@ -260,7 +261,7 @@ defmodule ExecutionPlane.Process.TreRhai do
         @required_refs ++ ["declared_actions", "allowed_actions", "resource_scope_refs", "limits"]
       )
       |> Map.put("runner_contract", @version)
-      |> Map.put("script_arguments_hash", sha256(Jason.encode!(script_arguments)))
+      |> Map.put("script_arguments_hash", boundary_digest(script_arguments))
       |> Map.put("materialized_files", %{
         "script_file" => "script.rhai",
         "policy_file" => "policy.cedar",
@@ -278,7 +279,7 @@ defmodule ExecutionPlane.Process.TreRhai do
        "policy_file" => policy_file,
        "script_arguments_file" => args_file,
        "runner_envelope_file" => envelope_file,
-       "runner_envelope_hash" => sha256(Jason.encode!(runner_envelope))
+       "runner_envelope_hash" => boundary_digest(runner_envelope)
      }}
   rescue
     error -> {:error, "materialization_failed", Exception.message(error)}
@@ -531,6 +532,12 @@ defmodule ExecutionPlane.Process.TreRhai do
 
   defp sha256(value) do
     "sha256:" <> Base.encode16(:crypto.hash(:sha256, IO.iodata_to_binary(value)), case: :lower)
+  end
+
+  defp boundary_digest(value) do
+    value
+    |> ExecutionPlane.Boundary.dump_value()
+    |> BoundaryCodec.digest()
   end
 
   defp default_work_root do

@@ -131,11 +131,24 @@ defmodule ExecutionPlane.Codec do
   def encode!(%_{} = value) do
     value
     |> value.__struct__.dump()
-    |> Jason.encode!()
+    |> GroundPlane.Boundary.Codec.encode!()
   end
 
   def encode!(value) when is_map(value),
-    do: Jason.encode!(ExecutionPlane.Boundary.dump_value(value))
+    do: value |> ExecutionPlane.Boundary.dump_value() |> GroundPlane.Boundary.Codec.encode!()
+
+  @spec digest(struct() | map() | list() | String.t() | integer() | boolean() | nil) :: String.t()
+  def digest(%_{} = value) do
+    value
+    |> value.__struct__.dump()
+    |> GroundPlane.Boundary.Codec.digest()
+  end
+
+  def digest(value) do
+    value
+    |> ExecutionPlane.Boundary.dump_value()
+    |> GroundPlane.Boundary.Codec.digest()
+  end
 
   @spec decode!(String.t(), module()) :: struct()
   def decode!(json, module) when is_binary(json) and is_atom(module) do
