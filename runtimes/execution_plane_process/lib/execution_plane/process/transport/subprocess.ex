@@ -12,6 +12,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   alias ExecutionPlane.Process.Transport.Subprocess.{
     Framing,
     Launcher,
+    LongLineSpool,
     RequestTracker,
     SignalControl,
     State,
@@ -1057,7 +1058,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
 
   defp promote_long_line(%{stdout_framer: %LineFraming{buffer: buffer}} = state)
        when is_binary(buffer) do
-    case open_long_line_spool() do
+    case LongLineSpool.open() do
       {:ok, spool} ->
         case write_long_line_data(spool, buffer, state) do
           {:ok, spool} ->
@@ -1140,14 +1141,14 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   end
 
   defp finish_chunked_long_line(state, spool, payload, rest) do
-    case finalize_long_line_spool(spool) do
+    case LongLineSpool.finalize(spool) do
       {:ok, line} ->
         state
         |> Map.put(:long_line_spool, nil)
         |> maybe_emit_stdout_line(line)
         |> append_stdout_data(rest)
 
-      {:error, reason} ->
+      {:error, {:spool_read_failed, reason, spool}} ->
         long_line_spool_read_failed(state, spool, payload, reason)
     end
   end
@@ -1191,13 +1192,13 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   defp flush_chunked_long_line_fragment(%{long_line_spool: nil} = state), do: state
 
   defp flush_chunked_long_line_fragment(%{long_line_spool: spool} = state) do
-    case finalize_long_line_spool(spool) do
+    case LongLineSpool.finalize(spool) do
       {:ok, line} ->
         state
         |> Map.put(:long_line_spool, nil)
         |> maybe_emit_stdout_line(line)
 
-      {:error, reason} ->
+      {:error, {:spool_read_failed, reason, spool}} ->
         fatal_buffer_overflow(
           %{state | long_line_spool: spool},
           spool.bytes,
@@ -1244,101 +1245,27 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
       line_recovery_attempted?: not is_nil(spool),
       max_recoverable_line_bytes: state.max_recoverable_line_bytes,
       oversize_line_chunk_bytes: state.oversize_line_chunk_bytes,
-      bytes_preserved: long_line_bytes_preserved(spool),
-      chunk_count: long_line_chunk_count(spool),
       first_fatal?: true
     }
+    |> Map.merge(LongLineSpool.context(spool))
     |> Map.merge(extra)
-  end
-
-  defp long_line_bytes_preserved(%{bytes: bytes}) when is_integer(bytes), do: bytes
-  defp long_line_bytes_preserved(_spool), do: 0
-
-  defp long_line_chunk_count(%{chunk_count: count}) when is_integer(count), do: count
-  defp long_line_chunk_count(_spool), do: 0
-
-  defp open_long_line_spool do
-    path =
-      Path.join(
-        System.tmp_dir!(),
-        "external_runtime_transport_long_line_#{System.unique_integer([:positive])}.tmp"
-      )
-
-    case File.open(path, [:write, :binary]) do
-      {:ok, io} ->
-        {:ok, %{path: path, io: io, bytes: 0, chunk_count: 0, preview: "", pending_cr?: false}}
-
-      {:error, reason} ->
-        {:error, reason}
-    end
   end
 
   defp write_long_line_data(spool, "", _state), do: {:ok, spool}
 
   defp write_long_line_data(spool, data, state) when is_binary(data) do
-    do_write_long_line_data(spool, data, state.oversize_line_chunk_bytes, state)
-  end
-
-  defp do_write_long_line_data(spool, "", _chunk_bytes, _state), do: {:ok, spool}
-
-  defp do_write_long_line_data(spool, data, chunk_bytes, state) do
-    size = min(byte_size(data), chunk_bytes)
-    chunk = binary_part(data, 0, size)
-    rest = binary_part(data, size, byte_size(data) - size)
-    next_size = spool.bytes + byte_size(chunk)
-
-    if next_size > state.max_recoverable_line_bytes do
-      {:error, {:recoverable_ceiling_exceeded, next_size, spool}}
-    else
-      case :file.write(spool.io, chunk) do
-        :ok ->
-          spool =
-            %{
-              spool
-              | bytes: next_size,
-                chunk_count: spool.chunk_count + 1,
-                preview: Framing.extend_preview(spool.preview, chunk)
-            }
-
-          do_write_long_line_data(spool, rest, chunk_bytes, state)
-
-        {:error, reason} ->
-          {:error, {:spool_write_failed, reason, spool}}
-      end
-    end
-  end
-
-  defp finalize_long_line_spool(spool) do
-    :ok = File.close(spool.io)
-
-    case File.read(spool.path) do
-      {:ok, line} ->
-        _ = File.rm(spool.path)
-        {:ok, line}
-
-      {:error, reason} ->
-        _ = File.rm(spool.path)
-        {:error, reason}
-    end
-  rescue
-    error ->
-      _ = File.rm(spool.path)
-      {:error, error}
+    LongLineSpool.write(
+      spool,
+      data,
+      state.oversize_line_chunk_bytes,
+      state.max_recoverable_line_bytes
+    )
   end
 
   defp cleanup_long_line_spool(%{long_line_spool: nil} = state), do: state
 
-  defp cleanup_long_line_spool(%{long_line_spool: spool} = state) when is_map(spool) do
-    _ = maybe_close_spool_io(spool)
-    _ = File.rm(spool.path)
+  defp cleanup_long_line_spool(%{long_line_spool: spool} = state) do
+    _ = LongLineSpool.cleanup(spool)
     %{state | long_line_spool: nil}
   end
-
-  defp maybe_close_spool_io(%{io: io}) when not is_nil(io) do
-    File.close(io)
-  rescue
-    _ -> :ok
-  end
-
-  defp maybe_close_spool_io(_spool), do: :ok
 end

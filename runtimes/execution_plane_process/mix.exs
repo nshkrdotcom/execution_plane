@@ -49,6 +49,7 @@ defmodule ExecutionPlaneProcess.MixProject do
       ground_plane_contracts_dep(),
       {:erlexec, "~> 2.3"},
       {:jason, "~> 1.4"},
+      {:telemetry, "~> 1.3"},
       {:ex_doc, "~> 0.40", only: :dev, runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false}
