@@ -79,6 +79,17 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
           tag: Transport.subscription_tag()
         }
 
+  @spec child_spec(Options.t() | keyword()) :: Supervisor.child_spec()
+  def child_spec(init_arg) do
+    %{
+      id: __MODULE__,
+      start: {__MODULE__, :start_link, [init_arg]},
+      restart: :temporary,
+      shutdown: 5_000,
+      type: :worker
+    }
+  end
+
   @impl Transport
   def start(opts) when is_list(opts) do
     case Options.new(opts) do

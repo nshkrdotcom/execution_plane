@@ -134,6 +134,27 @@ defmodule ExecutionPlaneProcessPackageTest do
     assert :ok = Subprocess.close(pid)
   end
 
+  test "supervised subprocess transports are not restarted after normal command exit" do
+    assert {:ok, _apps} = Application.ensure_all_started(:execution_plane_process)
+
+    ref = make_ref()
+
+    assert {:ok, pid} =
+             Subprocess.start(
+               command: "/bin/sh",
+               args: ["-c", "printf '%s\\n' transport_once"],
+               subscriber: {self(), ref},
+               event_tag: :transport_restart_test
+             )
+
+    assert_receive {:transport_restart_test, ^ref, {:message, "transport_once"}}, 1_000
+    assert_receive {:transport_restart_test, ^ref, {:exit, exit}}, 1_000
+    assert exit.status == :success
+
+    refute_receive {:transport_restart_test, ^ref, _event}, 100
+    refute Process.alive?(pid)
+  end
+
   test "process capabilities reject unknown atomish strings without runtime atom creation" do
     assert {:error, {:invalid_startup_kind, "provider_spawn"}} =
              Capabilities.new(%{"startup_kind" => "provider_spawn"})
