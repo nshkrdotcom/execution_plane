@@ -7,6 +7,18 @@ defmodule ExecutionPlane.Process.Transport.TaggedRelay do
 
   @type event_mapper :: (term() -> [term()])
 
+  @spec child_spec({pid(), reference(), keyword()}) :: Supervisor.child_spec()
+  def child_spec({target_pid, target_tag, opts} = init_arg)
+      when is_pid(target_pid) and is_reference(target_tag) and is_list(opts) do
+    %{
+      id: __MODULE__,
+      start: {__MODULE__, :start_link, [init_arg]},
+      restart: :temporary,
+      shutdown: 5_000,
+      type: :worker
+    }
+  end
+
   @spec start(pid(), reference(), keyword()) :: {:ok, pid()} | {:error, term()}
   def start(target_pid, target_tag, opts)
       when is_pid(target_pid) and is_reference(target_tag) and is_list(opts) do

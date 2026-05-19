@@ -84,6 +84,17 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
           %{kind: :unix_socket, path: String.t()}
           | %{kind: :tcp, host: String.t(), port: pos_integer()}
 
+  @spec child_spec(Options.t()) :: Supervisor.child_spec()
+  def child_spec(%Options{} = init_arg) do
+    %{
+      id: __MODULE__,
+      start: {__MODULE__, :start_link, [init_arg]},
+      restart: :temporary,
+      shutdown: 5_000,
+      type: :worker
+    }
+  end
+
   @impl Adapter
   def surface_kind, do: @surface_kind
 
@@ -166,17 +177,14 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
   end
 
   @impl Transport
-  def start_link(opts) when is_list(opts) do
-    case Options.new(opts) do
-      {:ok, options} ->
-        case GenServer.start_link(__MODULE__, options) do
-          {:ok, pid} -> {:ok, pid}
-          {:error, {:transport, %Error{} = error}} -> transport_error(error)
-          {:error, reason} -> transport_error(reason)
-        end
+  def start_link(opts) when is_list(opts), do: start(opts)
 
-      {:error, {:invalid_transport_options, reason}} ->
-        transport_error(Error.invalid_options(reason))
+  @doc false
+  def start_link(%Options{} = options) do
+    case GenServer.start_link(__MODULE__, options) do
+      {:ok, pid} -> {:ok, pid}
+      {:error, {:transport, %Error{} = error}} -> transport_error(error)
+      {:error, reason} -> transport_error(reason)
     end
   catch
     :exit, reason ->

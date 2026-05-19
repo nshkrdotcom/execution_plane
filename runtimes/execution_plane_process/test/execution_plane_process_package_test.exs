@@ -65,6 +65,7 @@ defmodule ExecutionPlaneProcessPackageTest do
   alias ExecutionPlane.Process.Transport.Subprocess
   alias ExecutionPlane.Process.Transport.Surface
   alias ExecutionPlane.Process.Transport.Surface.Capabilities
+  alias ExecutionPlane.Process.Transport.TaggedRelay
   alias ExecutionPlane.Runtimes.Process, as: ProcessRuntime
   alias ExecutionPlaneProcessPackageTest.OSProbe
   alias ExecutionPlaneProcessPackageTest.UnprivilegedOS
@@ -191,6 +192,52 @@ defmodule ExecutionPlaneProcessPackageTest do
       assert_receive {:signal_process_group, os_pid, "KILL"}, 1_000
       assert is_integer(os_pid)
     end)
+  end
+
+  test "subprocess public keyword start_link routes through transport supervisor" do
+    assert {:ok, _apps} = Application.ensure_all_started(:execution_plane_process)
+
+    assert {:ok, pid} =
+             Subprocess.start_link(
+               command: "/bin/sleep",
+               args: ["1"],
+               headless_timeout_ms: 5_000
+             )
+
+    assert supervised_transport_child?(pid)
+    assert :ok = Subprocess.close(pid)
+  end
+
+  test "guest bridge exposes normalized child specs for supervisor ownership" do
+    assert {:ok, options} =
+             Options.new(command: "ignored", surface_kind: :guest_bridge, transport_options: [])
+
+    assert %{
+             id: GuestBridge,
+             start: {GuestBridge, :start_link, [^options]},
+             restart: :temporary,
+             type: :worker
+           } = GuestBridge.child_spec(options)
+  end
+
+  test "tagged relay exposes child specs for supervisor ownership" do
+    ref = make_ref()
+
+    opts = [
+      core_event_tag: :core,
+      core_ref: ref,
+      public_event_tag: :public,
+      event_mapper: &List.wrap/1
+    ]
+
+    assert %{
+             id: TaggedRelay,
+             start: {TaggedRelay, :start_link, [{owner, ^ref, ^opts}]},
+             restart: :temporary,
+             type: :worker
+           } = TaggedRelay.child_spec({self(), ref, opts})
+
+    assert owner == self()
   end
 
   test "transport options reject invalid OS boundary modules" do
@@ -352,6 +399,12 @@ defmodule ExecutionPlaneProcessPackageTest do
         Process.unregister(ExecutionPlaneProcessPackageTest.OSProbeOwner)
       end
     end
+  end
+
+  defp supervised_transport_child?(pid) do
+    ExecutionPlane.Process.TransportSupervisor
+    |> DynamicSupervisor.which_children()
+    |> Enum.any?(fn {_id, child_pid, :worker, _modules} -> child_pid == pid end)
   end
 
   defp with_restored_env(key, value, fun) do

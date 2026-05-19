@@ -80,8 +80,8 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
           tag: Transport.subscription_tag()
         }
 
-  @spec child_spec(Options.t() | keyword()) :: Supervisor.child_spec()
-  def child_spec(init_arg) do
+  @spec child_spec(Options.t()) :: Supervisor.child_spec()
+  def child_spec(%Options{} = init_arg) do
     %{
       id: __MODULE__,
       start: {__MODULE__, :start_link, [init_arg]},
@@ -112,6 +112,9 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   end
 
   @impl Transport
+  def start_link(opts) when is_list(opts), do: start(opts)
+
+  @doc false
   def start_link(%Options{} = options) do
     with :ok <- maybe_preflight_startup(options),
          {:ok, pid} <- GenServer.start_link(__MODULE__, options) do
@@ -119,25 +122,6 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
     else
       {:error, %Error{} = error} -> transport_error(error)
       {:error, reason} -> transport_error(reason)
-    end
-  catch
-    :exit, reason ->
-      transport_error(reason)
-  end
-
-  def start_link(opts) when is_list(opts) do
-    case Options.new(opts) do
-      {:ok, options} ->
-        with :ok <- maybe_preflight_startup(options),
-             {:ok, pid} <- GenServer.start_link(__MODULE__, options) do
-          {:ok, pid}
-        else
-          {:error, %Error{} = error} -> transport_error(error)
-          {:error, reason} -> transport_error(reason)
-        end
-
-      {:error, {:invalid_transport_options, reason}} ->
-        transport_error(Error.invalid_options(reason))
     end
   catch
     :exit, reason ->

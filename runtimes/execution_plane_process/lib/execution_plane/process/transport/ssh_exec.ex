@@ -43,11 +43,7 @@ defmodule ExecutionPlane.Process.Transport.SSHExec do
   end
 
   @impl Transport
-  def start_link(opts) when is_list(opts) do
-    with {:ok, translated_opts} <- translate_transport_opts(opts) do
-      Subprocess.start_link(translated_opts)
-    end
-  end
+  def start_link(opts) when is_list(opts), do: start(opts)
 
   @impl Transport
   def run(%Command{} = command, opts) when is_list(opts) do
