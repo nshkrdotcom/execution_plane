@@ -1,5 +1,3 @@
-# credo:disable-for-this-file Credo.Check.Warning.StructFieldAmount
-
 defmodule ExecutionPlane.Process.Transport.Subprocess do
   @moduledoc false
 
@@ -7,10 +5,19 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
 
   import Kernel, except: [send: 2]
 
-  alias ExecutionPlane.{Command, LineFraming, ProcessExit, TaskSupport}
-  alias ExecutionPlane.Process.OS
+  alias ExecutionPlane.{LineFraming, ProcessExit, TaskSupport}
   alias ExecutionPlane.Process.Transport
   alias ExecutionPlane.Process.Transport.{Error, Info, Options, RunOptions, RunResult}
+
+  alias ExecutionPlane.Process.Transport.Subprocess.{
+    Framing,
+    Launcher,
+    RequestTracker,
+    SignalControl,
+    State,
+    SubscriberRegistry
+  }
+
   alias ExecutionPlane.Process.TransportSupervisor
 
   @behaviour Transport
@@ -19,66 +26,6 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   @default_force_close_timeout_ms 5_000
   @default_finalize_delay_ms 25
   @default_max_lines_per_batch 200
-  @exec_wait_attempts 20
-  @exec_wait_delay_ms 50
-  @run_stop_wait_ms 200
-  @run_kill_wait_ms 500
-
-  @default_interrupt_mode :signal
-
-  defstruct subprocess: nil,
-            invocation: nil,
-            surface_kind: :local_subprocess,
-            target_id: nil,
-            lease_ref: nil,
-            surface_ref: nil,
-            boundary_class: nil,
-            observability: %{},
-            adapter_capabilities: nil,
-            effective_capabilities: nil,
-            bridge_profile: nil,
-            protocol_version: nil,
-            extensions: %{},
-            adapter_metadata: %{},
-            subscribers: %{},
-            buffered_events: :queue.new(),
-            buffered_event_count: 0,
-            stdout_framer: %LineFraming{},
-            pending_lines: :queue.new(),
-            drain_scheduled?: false,
-            status: :disconnected,
-            stderr_buffer: "",
-            stderr_framer: %LineFraming{},
-            max_buffer_size: nil,
-            oversize_line_chunk_bytes: nil,
-            max_recoverable_line_bytes: nil,
-            oversize_line_mode: :chunk_then_fail,
-            buffer_overflow_mode: :fatal,
-            long_line_spool: nil,
-            max_stderr_buffer_size: nil,
-            overflowed?: false,
-            fatal_stop_scheduled?: false,
-            pending_calls: %{},
-            finalize_timer_ref: nil,
-            headless_timeout_ms: nil,
-            headless_timer_ref: nil,
-            task_supervisor: nil,
-            event_tag: nil,
-            stdout_mode: :line,
-            stdin_mode: :line,
-            pty?: false,
-            interrupt_mode: @default_interrupt_mode,
-            os: OS,
-            stderr_callback: nil,
-            replay_stderr_on_subscribe?: false,
-            buffer_events_until_subscribe?: false,
-            max_buffered_events: 128,
-            startup_options: nil
-
-  @type subscriber_info :: %{
-          monitor_ref: reference(),
-          tag: Transport.subscription_tag()
-        }
 
   @spec child_spec(Options.t()) :: Supervisor.child_spec()
   def child_spec(%Options{} = init_arg) do
@@ -131,19 +78,19 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   @impl Transport
   def run(%ExecutionPlane.Command{} = command, opts) when is_list(opts) do
     with {:ok, options} <- RunOptions.new(command, opts),
-         :ok <- validate_cwd_exists(options.command.cwd),
-         :ok <- validate_command_exists(options.command.command),
-         :ok <- ensure_erlexec_started(options.os),
+         :ok <- Launcher.validate_cwd_exists(options.command.cwd),
+         :ok <- Launcher.validate_command_exists(options.command.command),
+         :ok <- Launcher.ensure_erlexec_started(options.os),
          exec_opts <-
-           build_exec_opts(
+           Launcher.build_exec_opts(
              options.command.cwd,
              options.command.env,
              options.command.clear_env?,
              options.command.user,
              false
            ),
-         argv <- normalize_command_argv(options.command.command, options.command.args),
-         {:ok, pid, os_pid} <- exec_run(options.command.command, argv, exec_opts) do
+         argv <- Launcher.normalize_command_argv(options.command.command, options.command.args),
+         {:ok, pid, os_pid} <- Launcher.exec_run(options.command.command, argv, exec_opts) do
       run_started_exec(pid, os_pid, options)
     else
       {:error, {:invalid_run_options, reason}} ->
@@ -243,7 +190,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
 
   @impl GenServer
   def init(%Options{} = options) do
-    state = build_state(options)
+    state = State.new(options)
 
     case options.startup_mode do
       :lazy ->
@@ -286,9 +233,9 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   end
 
   def handle_call({:send, message}, from, %{subprocess: {pid, _os_pid}} = state) do
-    case start_io_task(state, fn -> send_payload(pid, message, state.stdin_mode) end) do
+    case start_io_task(state, fn -> SignalControl.send_payload(pid, message, state.stdin_mode) end) do
       {:ok, task} ->
-        {:noreply, put_pending_call(state, task.ref, from)}
+        {:noreply, RequestTracker.put(state, task.ref, from)}
 
       {:error, reason} ->
         {:reply, transport_error(reason), state}
@@ -306,9 +253,9 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   def handle_call(:info, _from, state), do: {:reply, transport_info(state), state}
 
   def handle_call(:end_input, from, %{subprocess: {pid, _os_pid}} = state) do
-    case start_io_task(state, fn -> end_input_subprocess(pid, state.pty?) end) do
+    case start_io_task(state, fn -> SignalControl.end_input(pid, state.pty?) end) do
       {:ok, task} ->
-        {:noreply, put_pending_call(state, task.ref, from)}
+        {:noreply, RequestTracker.put(state, task.ref, from)}
 
       {:error, reason} ->
         {:reply, transport_error(reason), state}
@@ -321,10 +268,10 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
 
   def handle_call(:interrupt, from, %{subprocess: {pid, os_pid}} = state) do
     case start_io_task(state, fn ->
-           interrupt_subprocess(pid, os_pid, state.interrupt_mode, state.os)
+           SignalControl.interrupt(pid, os_pid, state.interrupt_mode, state.os)
          end) do
       {:ok, task} ->
-        {:noreply, put_pending_call(state, task.ref, from)}
+        {:noreply, RequestTracker.put(state, task.ref, from)}
 
       {:error, reason} ->
         {:reply, transport_error(reason), state}
@@ -364,16 +311,15 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
     {:noreply, append_stderr_chunk(state, IO.iodata_to_binary(chunk))}
   end
 
-  def handle_info({ref, result}, %{pending_calls: pending_calls} = state)
-      when is_reference(ref) do
-    case Map.pop(pending_calls, ref) do
-      {nil, _rest} ->
+  def handle_info({ref, result}, state) when is_reference(ref) do
+    case RequestTracker.pop(state, ref) do
+      {nil, state} ->
         {:noreply, state}
 
-      {from, rest} ->
+      {from, state} ->
         Process.demonitor(ref, [:flush])
         GenServer.reply(from, normalize_call_result(result))
-        {:noreply, %{state | pending_calls: rest}}
+        {:noreply, state}
     end
   end
 
@@ -416,14 +362,13 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
     end
   end
 
-  def handle_info({:DOWN, ref, :process, pid, reason}, %{pending_calls: pending_calls} = state)
-      when is_reference(ref) do
-    case Map.pop(pending_calls, ref) do
-      {from, rest} when not is_nil(from) ->
+  def handle_info({:DOWN, ref, :process, pid, reason}, state) when is_reference(ref) do
+    case RequestTracker.pop(state, ref) do
+      {from, state} when not is_nil(from) ->
         GenServer.reply(from, transport_error(Error.send_failed(reason)))
-        {:noreply, %{state | pending_calls: rest}}
+        {:noreply, state}
 
-      {nil, _rest} ->
+      {nil, state} ->
         {:noreply, handle_subscriber_down(ref, pid, state)}
     end
   end
@@ -458,52 +403,16 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
       |> cancel_headless_timer()
       |> cleanup_long_line_spool()
 
-    demonitor_subscribers(state.subscribers)
-    cleanup_pending_calls(state.pending_calls)
+    SubscriberRegistry.demonitor(state.subscribers)
+
+    RequestTracker.cleanup(state.pending_calls, fn :transport_stopped ->
+      transport_error(Error.transport_stopped())
+    end)
+
     _ = force_stop_subprocess(state)
     :ok
   catch
     _, _ -> :ok
-  end
-
-  defp build_state(%Options{} = options) do
-    %__MODULE__{
-      invocation: options.invocation_override || build_invocation(options),
-      surface_kind: options.surface_kind,
-      target_id: options.target_id,
-      lease_ref: options.lease_ref,
-      surface_ref: options.surface_ref,
-      boundary_class: options.boundary_class,
-      observability: options.observability,
-      adapter_capabilities: options.adapter_capabilities,
-      effective_capabilities: options.effective_capabilities,
-      bridge_profile: options.bridge_profile,
-      protocol_version: options.protocol_version,
-      extensions: options.extensions,
-      adapter_metadata: options.adapter_metadata,
-      status: :disconnected,
-      buffered_events: :queue.new(),
-      buffered_event_count: 0,
-      max_buffer_size: options.max_buffer_size,
-      oversize_line_chunk_bytes: options.oversize_line_chunk_bytes,
-      max_recoverable_line_bytes: options.max_recoverable_line_bytes,
-      oversize_line_mode: options.oversize_line_mode,
-      buffer_overflow_mode: options.buffer_overflow_mode,
-      max_stderr_buffer_size: options.max_stderr_buffer_size,
-      max_buffered_events: options.max_buffered_events,
-      headless_timeout_ms: options.headless_timeout_ms,
-      task_supervisor: options.task_supervisor,
-      event_tag: options.event_tag,
-      stdout_mode: options.stdout_mode,
-      stdin_mode: options.stdin_mode,
-      pty?: options.pty?,
-      interrupt_mode: options.interrupt_mode,
-      os: options.os,
-      stderr_callback: options.stderr_callback,
-      replay_stderr_on_subscribe?: options.replay_stderr_on_subscribe?,
-      buffer_events_until_subscribe?: options.buffer_events_until_subscribe?,
-      startup_options: options
-    }
   end
 
   defp safe_call(transport, message, timeout \\ @default_call_timeout_ms)
@@ -569,198 +478,15 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   defp normalize_force_close_exit(reason), do: Error.call_exit(reason)
 
   defp maybe_preflight_startup(%Options{startup_mode: :lazy} = options),
-    do: preflight_startup(options)
+    do: Launcher.preflight(options)
 
   defp maybe_preflight_startup(%Options{}), do: :ok
 
   defp start_subprocess(state, %Options{} = options) do
     with {:ok, state} <- add_bootstrap_subscriber(state, options.subscriber),
-         :ok <- preflight_startup(options),
-         exec_opts <-
-           build_exec_opts(
-             options.cwd,
-             options.env,
-             options.clear_env?,
-             options.user,
-             options.pty?
-           ),
-         argv <- normalize_command_argv(options.command, options.args),
-         {:ok, pid, os_pid} <- exec_run(options.command, argv, exec_opts),
-         :ok <- maybe_close_stdin_on_start(pid, options.close_stdin_on_start?) do
+         {:ok, pid, os_pid} <- Launcher.start(options) do
       state = connected_state(state, pid, os_pid)
       {:ok, maybe_schedule_headless_timer(%{state | startup_options: nil})}
-    end
-  end
-
-  defp preflight_startup(%Options{} = options) do
-    with :ok <- validate_cwd_exists(options.cwd),
-         :ok <- validate_command_exists(options.command),
-         :ok <- validate_user_switch_permitted(options.user, options.os) do
-      ensure_erlexec_started(options.os)
-    end
-  end
-
-  defp validate_cwd_exists(nil), do: :ok
-
-  defp validate_cwd_exists(cwd) when is_binary(cwd) do
-    if File.dir?(cwd) do
-      :ok
-    else
-      {:error, Error.cwd_not_found(cwd)}
-    end
-  end
-
-  defp validate_command_exists(command) when is_binary(command) do
-    cond do
-      String.trim(command) == "" ->
-        {:error, Error.command_not_found(command)}
-
-      String.contains?(command, "/") ->
-        if File.exists?(command), do: :ok, else: {:error, Error.command_not_found(command)}
-
-      is_nil(System.find_executable(command)) ->
-        {:error, Error.command_not_found(command)}
-
-      true ->
-        :ok
-    end
-  end
-
-  defp validate_user_switch_permitted(nil, _os), do: :ok
-
-  defp validate_user_switch_permitted(user, os) do
-    if os.privileged_user?() do
-      :ok
-    else
-      {:error, Error.startup_failed({:user_switch_requires_privilege, user})}
-    end
-  end
-
-  defp ensure_erlexec_started(os) do
-    with :ok <- ensure_erlexec_application_started(),
-         :ok <- ensure_exec_worker(os) do
-      :ok
-    else
-      {:error, %Error{} = error} -> {:error, error}
-      {:error, reason} -> {:error, Error.startup_failed(reason)}
-    end
-  end
-
-  defp ensure_erlexec_application_started do
-    case Application.ensure_all_started(:erlexec) do
-      {:ok, _started_apps} -> :ok
-      {:error, {:already_started, _app}} -> :ok
-      {:error, {:erlexec, {:already_started, _app}}} -> :ok
-      {:error, reason} -> {:error, reason}
-    end
-  end
-
-  defp ensure_exec_worker(os) do
-    case wait_for_exec_worker(os) do
-      :ok -> :ok
-      :error -> recover_missing_exec_worker(os)
-    end
-  end
-
-  defp wait_for_exec_worker(os) do
-    case os.await(&exec_worker_alive?/0, @exec_wait_attempts, @exec_wait_delay_ms) do
-      {:ok, _evidence} -> :ok
-      {:error, _evidence} -> :error
-    end
-  end
-
-  defp recover_missing_exec_worker(os) do
-    if exec_app_alive?() do
-      {:error, :exec_not_running}
-    else
-      with :ok <- restart_erlexec_application(),
-           :ok <- wait_for_exec_worker(os) do
-        :ok
-      else
-        :error -> {:error, :exec_not_running}
-        {:error, reason} -> {:error, reason}
-      end
-    end
-  end
-
-  defp restart_erlexec_application do
-    case Application.stop(:erlexec) do
-      :ok -> ensure_erlexec_application_started()
-      {:error, {:not_started, :erlexec}} -> ensure_erlexec_application_started()
-      {:error, {:not_started, _app}} -> ensure_erlexec_application_started()
-      {:error, reason} -> {:error, reason}
-    end
-  end
-
-  defp exec_worker_alive? do
-    case Process.whereis(:exec) do
-      pid when is_pid(pid) -> Process.alive?(pid)
-      _other -> false
-    end
-  end
-
-  defp exec_app_alive? do
-    case Process.whereis(:exec_app) do
-      pid when is_pid(pid) -> Process.alive?(pid)
-      _other -> false
-    end
-  end
-
-  defp build_exec_opts(cwd, env, clear_env?, user, pty?) do
-    []
-    |> maybe_put_cwd(cwd)
-    |> maybe_put_env(env, clear_env?)
-    |> maybe_put_user(user)
-    |> maybe_put_pty(pty?)
-    |> maybe_put_process_group(pty?)
-    # Group signaling is managed explicitly by the core so child exit does not
-    # tear down erlexec's shared worker via :kill_group.
-    |> Kernel.++([:stdin, :stdout, :stderr, :monitor])
-  end
-
-  defp maybe_put_cwd(opts, nil), do: opts
-  defp maybe_put_cwd(opts, cwd), do: [{:cd, to_charlist(cwd)} | opts]
-
-  defp maybe_put_env(opts, env, false) when map_size(env) == 0, do: opts
-
-  defp maybe_put_env(opts, env, clear_env?) do
-    env =
-      env
-      |> Enum.map(fn {key, value} -> {key, value} end)
-      |> maybe_clear_env(clear_env?)
-
-    [{:env, env} | opts]
-  end
-
-  defp maybe_clear_env(env, true), do: [:clear | env]
-  defp maybe_clear_env(env, false), do: env
-
-  defp maybe_put_user(opts, nil), do: opts
-  defp maybe_put_user(opts, user), do: [{:user, to_charlist(user)} | opts]
-
-  defp maybe_put_pty(opts, true), do: [:pty | opts]
-  defp maybe_put_pty(opts, _pty?), do: opts
-
-  # erlexec's PTY path already calls setsid(), which creates an isolated
-  # session/process group. Adding {:group, 0} on top of that forces a redundant
-  # setpgid(0, 0) that can fail with EPERM under load.
-  defp maybe_put_process_group(opts, true), do: opts
-  defp maybe_put_process_group(opts, false), do: [{:group, 0} | opts]
-
-  defp normalize_command_argv(command, args) when is_binary(command) and is_list(args) do
-    [command | args] |> Enum.map(&to_charlist/1)
-  end
-
-  defp exec_run(command, argv, exec_opts) do
-    case :exec.run(argv, exec_opts) do
-      {:ok, pid, os_pid} ->
-        {:ok, pid, os_pid}
-
-      {:error, reason} when reason in [:enoent, :eacces] ->
-        {:error, Error.command_not_found(command, reason)}
-
-      {:error, reason} ->
-        {:error, Error.startup_failed(reason)}
     end
   end
 
@@ -778,27 +504,27 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
         )
 
       {:error, {:transport, %Error{}} = error} ->
-        stop_run_exec_and_confirm_down(pid, os_pid, options.os)
+        SignalControl.stop_run_and_confirm_down(pid, os_pid, options.os)
         _ = flush_run_messages(pid, os_pid, options.stderr, [], [], [])
         {:error, error}
     end
   end
 
-  defp maybe_send_run_input(pid, nil, true), do: send_run_eof(pid)
+  defp maybe_send_run_input(pid, nil, true), do: SignalControl.send_eof(pid)
   defp maybe_send_run_input(_pid, nil, false), do: :ok
 
   defp maybe_send_run_input(pid, stdin, close_stdin) do
     with {:ok, payload} <- normalize_run_input(stdin),
-         :ok <- send_run_payload(pid, payload) do
+         :ok <- SignalControl.send_payload(pid, payload, :raw) do
       maybe_send_run_eof(pid, close_stdin)
     end
   end
 
   defp maybe_send_run_eof(_pid, false), do: :ok
-  defp maybe_send_run_eof(pid, true), do: send_run_eof(pid)
+  defp maybe_send_run_eof(pid, true), do: SignalControl.send_eof(pid)
 
   defp normalize_run_input(stdin) do
-    {:ok, normalize_payload(stdin)}
+    {:ok, SignalControl.normalize_payload(stdin)}
   rescue
     error ->
       transport_error(Error.send_failed({:invalid_input, error}))
@@ -806,25 +532,6 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
     kind, reason ->
       transport_error(Error.send_failed({kind, reason}))
   end
-
-  defp send_run_payload(pid, payload) when is_binary(payload) do
-    :exec.send(pid, payload)
-    :ok
-  catch
-    kind, reason ->
-      transport_error(Error.send_failed({kind, reason}))
-  end
-
-  defp send_run_eof(pid) do
-    :exec.send(pid, :eof)
-    :ok
-  catch
-    kind, reason ->
-      transport_error(Error.send_failed({kind, reason}))
-  end
-
-  defp maybe_close_stdin_on_start(_pid, false), do: :ok
-  defp maybe_close_stdin_on_start(pid, true), do: send_run_eof(pid)
 
   defp collect_run_output(pid, os_pid, options, :infinity, stdout, stderr, output) do
     receive do
@@ -895,7 +602,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   end
 
   defp handle_run_timeout(pid, os_pid, options, stdout, stderr, output) do
-    stop_run_exec_and_confirm_down(pid, os_pid, options.os)
+    SignalControl.stop_run_and_confirm_down(pid, os_pid, options.os)
 
     {stdout, stderr, output} =
       flush_run_messages(pid, os_pid, options.stderr, stdout, stderr, output)
@@ -969,44 +676,6 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
     end
   end
 
-  defp stop_run_exec_and_confirm_down(pid, os_pid, os) do
-    _ = kill_process_group(os_pid, "TERM", os)
-    stop_exec(pid)
-
-    case await_down(pid, os_pid, @run_stop_wait_ms) do
-      :down ->
-        :ok
-
-      :timeout ->
-        _ = kill_process_group(os_pid, "KILL", os)
-        kill_exec(pid)
-        _ = await_down(pid, os_pid, @run_kill_wait_ms)
-        :ok
-    end
-  end
-
-  defp await_down(pid, os_pid, timeout_ms) do
-    receive do
-      {:DOWN, ^os_pid, :process, ^pid, _reason} -> :down
-    after
-      timeout_ms -> :timeout
-    end
-  end
-
-  defp stop_exec(pid) do
-    :exec.stop(pid)
-    :ok
-  catch
-    _, _ -> :ok
-  end
-
-  defp kill_exec(pid) do
-    :exec.kill(pid, 9)
-    :ok
-  catch
-    _, _ -> :ok
-  end
-
   defp connected_state(state, pid, os_pid) do
     %{state | subprocess: {pid, os_pid}, status: :connected}
   end
@@ -1059,28 +728,16 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   end
 
   defp put_subscriber(state, pid, tag) do
-    subscribers =
-      case Map.fetch(state.subscribers, pid) do
-        {:ok, %{monitor_ref: monitor_ref}} ->
-          Map.put(state.subscribers, pid, %{monitor_ref: monitor_ref, tag: tag})
-
-        :error ->
-          monitor_ref = Process.monitor(pid)
-          Map.put(state.subscribers, pid, %{monitor_ref: monitor_ref, tag: tag})
-      end
-
-    %{state | subscribers: subscribers}
+    %{state | subscribers: SubscriberRegistry.put(state.subscribers, pid, tag)}
     |> cancel_headless_timer()
   end
 
   defp remove_subscriber(state, pid) do
-    case Map.pop(state.subscribers, pid) do
+    case SubscriberRegistry.remove(state.subscribers, pid) do
       {nil, _subscribers} ->
         state
 
-      {%{monitor_ref: monitor_ref}, subscribers} ->
-        Process.demonitor(monitor_ref, [:flush])
-
+      {_monitor_ref, subscribers} ->
         %{state | subscribers: subscribers}
         |> maybe_schedule_headless_timer()
     end
@@ -1093,7 +750,13 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
        when is_pid(pid) and is_binary(stderr_buffer) and stderr_buffer != "" do
     case Map.fetch(state.subscribers, pid) do
       {:ok, subscriber_info} ->
-        dispatch_event(pid, subscriber_info, {:stderr, stderr_buffer}, state.event_tag)
+        SubscriberRegistry.dispatch(
+          pid,
+          subscriber_info,
+          {:stderr, stderr_buffer},
+          state.event_tag
+        )
+
         state
 
       :error ->
@@ -1112,7 +775,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
     case Map.fetch(state.subscribers, pid) do
       {:ok, subscriber_info} ->
         Enum.each(:queue.to_list(state.buffered_events), fn event ->
-          dispatch_event(pid, subscriber_info, event, state.event_tag)
+          SubscriberRegistry.dispatch(pid, subscriber_info, event, state.event_tag)
         end)
 
         %{state | buffered_events: :queue.new(), buffered_event_count: 0}
@@ -1125,25 +788,14 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   defp maybe_replay_buffered_events_to_subscriber(state, _pid, _first_subscriber?), do: state
 
   defp buffer_event(%{buffered_events: events, buffered_event_count: count} = state, event) do
-    events = :queue.in(event, events)
-    count = count + 1
+    {events, count} =
+      SubscriberRegistry.buffer_event(events, count, state.max_buffered_events, event)
 
-    if count > state.max_buffered_events do
-      {{:value, _dropped}, events} = :queue.out(events)
-      %{state | buffered_events: events, buffered_event_count: count - 1}
-    else
-      %{state | buffered_events: events, buffered_event_count: count}
-    end
+    %{state | buffered_events: events, buffered_event_count: count}
   end
 
   defp handle_subscriber_down(ref, pid, state) do
-    subscribers =
-      case Map.pop(state.subscribers, pid) do
-        {%{monitor_ref: ^ref}, rest} -> rest
-        {_value, rest} -> rest
-      end
-
-    %{state | subscribers: subscribers}
+    %{state | subscribers: SubscriberRegistry.handle_down(state.subscribers, ref, pid)}
     |> maybe_schedule_headless_timer()
   end
 
@@ -1200,10 +852,6 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
     end
   end
 
-  defp put_pending_call(state, ref, from) do
-    %{state | pending_calls: Map.put(state.pending_calls, ref, from)}
-  end
-
   defp start_io_task(state, fun) when is_function(fun, 0) do
     TaskSupport.async_nolink(state.task_supervisor, fun)
   end
@@ -1217,8 +865,10 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   end
 
   defp append_stderr_chunk(state, data) when is_binary(data) do
-    stderr_buffer = append_stderr_data(state.stderr_buffer, data, state.max_stderr_buffer_size)
-    {stderr_lines, stderr_framer} = LineFraming.push(state.stderr_framer, data)
+    stderr_buffer =
+      Framing.append_stderr_buffer(state.stderr_buffer, data, state.max_stderr_buffer_size)
+
+    {stderr_lines, stderr_framer} = Framing.push_stderr(state.stderr_framer, data)
 
     dispatch_stderr_callback(state.stderr_callback, stderr_lines)
     state = emit_event(state, {:stderr, data})
@@ -1226,66 +876,8 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
     %{state | stderr_buffer: stderr_buffer, stderr_framer: stderr_framer}
   end
 
-  defp send_payload(pid, message, stdin_mode) do
-    payload =
-      message
-      |> normalize_payload()
-      |> maybe_ensure_newline(stdin_mode)
-
-    :exec.send(pid, payload)
-    :ok
-  catch
-    kind, reason ->
-      transport_error(Error.send_failed({kind, reason}))
-  end
-
-  defp send_eof(pid) do
-    :exec.send(pid, :eof)
-    :ok
-  catch
-    kind, reason ->
-      transport_error(Error.send_failed({kind, reason}))
-  end
-
-  # PTY sessions need terminal EOF semantics rather than closing the underlying
-  # file descriptor. Sending Ctrl-D preserves the PTY session while allowing the
-  # foreground program to observe EOF in canonical mode.
-  defp end_input_subprocess(pid, true), do: send_payload(pid, <<4>>, :raw)
-  defp end_input_subprocess(pid, false), do: send_eof(pid)
-
-  defp interrupt_subprocess(pid, _os_pid, {:stdin, payload}, _os)
-       when is_pid(pid) and is_binary(payload) do
-    :exec.send(pid, payload)
-    :ok
-  catch
-    kind, reason ->
-      transport_error(Error.send_failed({kind, reason}))
-  end
-
-  defp interrupt_subprocess(_pid, os_pid, :signal, os) when is_integer(os_pid) and os_pid > 0 do
-    case os.signal_process_group(os_pid, "INT") do
-      :ok ->
-        :ok
-
-      {:error, :kill_command_not_found} ->
-        transport_error(Error.send_failed(:kill_command_not_found))
-
-      {:error, {:kill_exit_status, status, output}} ->
-        transport_error(Error.send_failed({:kill_exit_status, status, output}))
-    end
-  catch
-    _, _ ->
-      transport_error(Error.not_connected())
-  end
-
-  defp send_event(subscribers, event, event_tag) do
-    Enum.each(subscribers, fn {pid, info} ->
-      dispatch_event(pid, info, event, event_tag)
-    end)
-  end
-
   defp emit_event(%{subscribers: subscribers} = state, event) when map_size(subscribers) > 0 do
-    send_event(subscribers, event, state.event_tag)
+    SubscriberRegistry.send_event(subscribers, event, state.event_tag)
     state
   end
 
@@ -1294,11 +886,6 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   end
 
   defp emit_event(state, _event), do: state
-
-  defp dispatch_event(pid, %{tag: tag}, event, event_tag)
-       when (is_pid(tag) or is_reference(tag)) and is_atom(event_tag) do
-    Kernel.send(pid, {event_tag, tag, event})
-  end
 
   defp subscribe_with_tag(transport, pid, tag)
        when is_pid(transport) and is_pid(pid) and (is_pid(tag) or is_reference(tag)) do
@@ -1309,7 +896,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   end
 
   defp append_stdout_data(%{overflowed?: true} = state, data) when is_binary(data) do
-    case drop_until_next_newline(data) do
+    case Framing.drop_until_next_newline(data) do
       :none ->
         state
 
@@ -1329,9 +916,9 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   end
 
   defp append_stdout_data(state, data) when is_binary(data) do
-    {lines, stdout_framer} = LineFraming.push(state.stdout_framer, data)
+    {lines, stdout_framer} = Framing.push_stdout(state.stdout_framer, data)
 
-    pending_lines = enqueue_lines(state.pending_lines, lines)
+    pending_lines = Framing.enqueue_lines(state.pending_lines, lines)
 
     state = %{
       state
@@ -1352,7 +939,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
           state,
           byte_size(stdout_framer.buffer),
           state.max_recoverable_line_bytes || state.max_buffer_size,
-          preview(stdout_framer.buffer)
+          Framing.preview(stdout_framer.buffer)
         )
     end
   end
@@ -1389,7 +976,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   end
 
   defp flush_stdout_fragment(state) do
-    {[line], stdout_framer} = LineFraming.flush(state.stdout_framer)
+    {[line], stdout_framer} = Framing.flush_stdout(state.stdout_framer)
 
     state = %{
       state
@@ -1410,7 +997,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   defp flush_stderr_fragment(%{stderr_framer: %LineFraming{buffer: ""}} = state), do: state
 
   defp flush_stderr_fragment(state) do
-    {lines, stderr_framer} = LineFraming.flush(state.stderr_framer)
+    {lines, stderr_framer} = Framing.flush_stderr(state.stderr_framer)
     dispatch_stderr_callback(state.stderr_callback, lines)
     %{state | stderr_framer: stderr_framer}
   end
@@ -1433,21 +1020,6 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
 
   defp flush_finalize_message(_other), do: :ok
 
-  defp append_stderr_data(_existing, _data, max_size)
-       when not is_integer(max_size) or max_size <= 0,
-       do: ""
-
-  defp append_stderr_data(existing, data, max_size) do
-    combined = existing <> data
-    combined_size = byte_size(combined)
-
-    if combined_size <= max_size do
-      combined
-    else
-      :binary.part(combined, combined_size - max_size, max_size)
-    end
-  end
-
   defp dispatch_stderr_callback(callback, lines)
        when is_function(callback, 1) and is_list(lines) do
     Enum.each(lines, callback)
@@ -1455,97 +1027,12 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
 
   defp dispatch_stderr_callback(_callback, _lines), do: :ok
 
-  defp cleanup_pending_calls(pending_calls) do
-    Enum.each(pending_calls, fn {ref, from} ->
-      Process.demonitor(ref, [:flush])
-      GenServer.reply(from, transport_error(Error.transport_stopped()))
-    end)
-  end
-
-  defp demonitor_subscribers(subscribers) do
-    Enum.each(subscribers, fn {_pid, %{monitor_ref: ref}} ->
-      Process.demonitor(ref, [:flush])
-    end)
-  end
-
   defp force_stop_subprocess(%{subprocess: {pid, os_pid}} = state) do
-    stop_subprocess(pid, os_pid, state.os)
+    SignalControl.force_stop({pid, os_pid}, state.os)
     %{state | subprocess: nil, status: :disconnected}
   end
 
   defp force_stop_subprocess(state), do: state
-
-  defp stop_subprocess(pid, os_pid, os) when is_pid(pid) do
-    _ = kill_process_group(os_pid, "KILL", os)
-    _ = :exec.kill(pid, 9)
-    :ok
-  catch
-    _, _ -> :ok
-  end
-
-  defp kill_process_group(os_pid, signal, os) when is_integer(os_pid) and os_pid > 0 do
-    _ = os.signal_process_group(os_pid, signal)
-    :ok
-  end
-
-  defp kill_process_group(_os_pid, _signal, _os), do: :ok
-
-  defp drop_until_next_newline(data) when is_binary(data) do
-    case :binary.match(data, "\n") do
-      :nomatch ->
-        :none
-
-      {idx, 1} ->
-        rest_start = idx + 1
-        rest_size = byte_size(data) - rest_start
-
-        rest =
-          if rest_size > 0 do
-            :binary.part(data, rest_start, rest_size)
-          else
-            ""
-          end
-
-        {:rest, rest}
-    end
-  end
-
-  defp preview(data) when is_binary(data) do
-    max_preview = 160
-
-    if byte_size(data) <= max_preview do
-      data
-    else
-      :binary.part(data, 0, max_preview)
-    end
-  end
-
-  defp build_invocation(%Options{} = options) do
-    Command.new(options.command, options.args,
-      cwd: options.cwd,
-      env: options.env,
-      clear_env?: options.clear_env?,
-      user: options.user
-    )
-  end
-
-  defp normalize_payload(message) when is_binary(message), do: message
-  defp normalize_payload(message) when is_map(message), do: Jason.encode!(message)
-
-  defp normalize_payload(message) when is_list(message) do
-    IO.iodata_to_binary(message)
-  rescue
-    ArgumentError ->
-      Jason.encode!(message)
-  end
-
-  defp normalize_payload(message), do: to_string(message)
-
-  defp maybe_ensure_newline(payload, :line) do
-    if String.ends_with?(payload, "\n"), do: payload, else: payload <> "\n"
-  end
-
-  defp maybe_ensure_newline(payload, :raw), do: payload
 
   defp transport_error({:transport, %Error{}} = error), do: {:error, error}
   defp transport_error(%Error{} = error), do: {:error, {:transport, error}}
@@ -1554,17 +1041,13 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   defp maybe_stop_after_fatal(%{fatal_stop_scheduled?: true} = state), do: {:stop, :normal, state}
   defp maybe_stop_after_fatal(state), do: {:noreply, state}
 
-  defp enqueue_lines(queue, lines) when is_list(lines) do
-    Enum.reduce(lines, queue, fn line, acc -> :queue.in(line, acc) end)
-  end
-
   defp maybe_emit_stdout_line(state, line) when is_binary(line) do
     if byte_size(line) > state.max_recoverable_line_bytes do
       fatal_buffer_overflow(
         state,
         byte_size(line),
         state.max_recoverable_line_bytes,
-        preview(line),
+        Framing.preview(line),
         %{line_recovery_attempted?: false, bytes_preserved: 0, chunk_count: 0}
       )
     else
@@ -1585,7 +1068,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
               %{state | long_line_spool: spool},
               actual_size,
               state.max_recoverable_line_bytes,
-              preview(buffer),
+              Framing.preview(buffer),
               long_line_context(spool, state, line_recovery_attempted?: true)
             )
 
@@ -1594,7 +1077,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
               %{state | long_line_spool: spool},
               spool.bytes,
               state.max_recoverable_line_bytes,
-              preview(buffer),
+              Framing.preview(buffer),
               long_line_context(spool, state,
                 line_recovery_attempted?: true,
                 failure: {:spool_write_failed, reason}
@@ -1607,7 +1090,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
           state,
           byte_size(buffer),
           state.max_recoverable_line_bytes,
-          preview(buffer),
+          Framing.preview(buffer),
           %{line_recovery_attempted?: true, failure: {:spool_open_failed, reason}}
         )
     end
@@ -1617,7 +1100,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
     data = if spool.pending_cr?, do: "\r" <> data, else: data
     state = %{state | long_line_spool: %{spool | pending_cr?: false}}
 
-    case split_long_line_data(data) do
+    case Framing.split_long_line_data(data) do
       {:incomplete, payload, pending_cr?} ->
         handle_incomplete_chunked_long_line(state, payload, pending_cr?)
 
@@ -1674,7 +1157,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
       %{state | long_line_spool: spool},
       actual_size,
       state.max_recoverable_line_bytes,
-      preview(payload),
+      Framing.preview(payload),
       long_line_context(spool, state, line_recovery_attempted?: true)
     )
   end
@@ -1684,7 +1167,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
       %{state | long_line_spool: spool},
       max(spool.bytes, 1),
       state.max_recoverable_line_bytes,
-      preview(payload),
+      Framing.preview(payload),
       long_line_context(spool, state,
         line_recovery_attempted?: true,
         failure: {:spool_write_failed, reason}
@@ -1697,7 +1180,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
       %{state | long_line_spool: spool},
       spool.bytes,
       state.max_recoverable_line_bytes,
-      preview(payload),
+      Framing.preview(payload),
       long_line_context(spool, state,
         line_recovery_attempted?: true,
         failure: {:spool_read_failed, reason}
@@ -1719,7 +1202,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
           %{state | long_line_spool: spool},
           spool.bytes,
           state.max_recoverable_line_bytes,
-          preview(spool.preview),
+          Framing.preview(spool.preview),
           long_line_context(spool, state,
             line_recovery_attempted?: true,
             failure: {:spool_read_failed, reason}
@@ -1814,7 +1297,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
               spool
               | bytes: next_size,
                 chunk_count: spool.chunk_count + 1,
-                preview: extend_preview(spool.preview, chunk)
+                preview: Framing.extend_preview(spool.preview, chunk)
             }
 
           do_write_long_line_data(spool, rest, chunk_bytes, state)
@@ -1858,74 +1341,4 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   end
 
   defp maybe_close_spool_io(_spool), do: :ok
-
-  defp split_long_line_data(data) when is_binary(data) do
-    case find_line_boundary(data) do
-      :none ->
-        {payload, pending_cr?} = split_trailing_cr(data)
-        {:incomplete, payload, pending_cr?}
-
-      {:complete, payload, rest} ->
-        {:complete, payload, rest}
-    end
-  end
-
-  defp find_line_boundary(data) when is_binary(data) do
-    do_find_line_boundary(data, 0)
-  end
-
-  defp do_find_line_boundary(data, index) when index >= byte_size(data), do: :none
-
-  defp do_find_line_boundary(data, index) do
-    case :binary.at(data, index) do
-      ?\n ->
-        prefix_end =
-          if index > 0 and :binary.at(data, index - 1) == ?\r, do: index - 1, else: index
-
-        payload = binary_part(data, 0, prefix_end)
-        rest_start = index + 1
-        rest = binary_part(data, rest_start, byte_size(data) - rest_start)
-        {:complete, payload, rest}
-
-      ?\r ->
-        cond do
-          index == byte_size(data) - 1 ->
-            :none
-
-          :binary.at(data, index + 1) == ?\n ->
-            payload = binary_part(data, 0, index)
-            rest_start = index + 2
-            rest = binary_part(data, rest_start, byte_size(data) - rest_start)
-            {:complete, payload, rest}
-
-          true ->
-            payload = binary_part(data, 0, index)
-            rest_start = index + 1
-            rest = binary_part(data, rest_start, byte_size(data) - rest_start)
-            {:complete, payload, rest}
-        end
-
-      _other ->
-        do_find_line_boundary(data, index + 1)
-    end
-  end
-
-  defp split_trailing_cr(""), do: {"", false}
-
-  defp split_trailing_cr(data) do
-    size = byte_size(data)
-
-    if size > 0 and :binary.at(data, size - 1) == ?\r do
-      {binary_part(data, 0, size - 1), true}
-    else
-      {data, false}
-    end
-  end
-
-  defp extend_preview(preview, _chunk) when byte_size(preview) >= 160, do: preview
-
-  defp extend_preview(preview, chunk) do
-    needed = 160 - byte_size(preview)
-    preview <> binary_part(chunk, 0, min(byte_size(chunk), needed))
-  end
 end
