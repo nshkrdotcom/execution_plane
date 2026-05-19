@@ -7,14 +7,19 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge.Protocol do
   @capability_value_aliases %{
     "attach" => :attach,
     "bridge" => :bridge,
+    "error" => :error,
+    "exit" => :exit,
     "guest" => :guest,
     "local" => :local,
     "none" => :none,
     "remote" => :remote,
     "rpc" => :rpc,
+    "separate" => :separate,
     "signal" => :signal,
     "spawn" => :spawn,
-    "stdin" => :stdin
+    "stdin" => :stdin,
+    "stdout" => :stdout,
+    "success" => :success
   }
 
   def version, do: @version
@@ -170,6 +175,27 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge.Protocol do
 
   def capabilities_from_external(other), do: {:error, {:invalid_capabilities_payload, other}}
 
+  @doc false
+  def decode_atomish(nil), do: nil
+  def decode_atomish(value) when is_atom(value), do: value
+
+  def decode_atomish(value) when is_binary(value) do
+    Map.get(@capability_value_aliases, value, value)
+  end
+
+  def decode_atomish(value), do: value
+
+  @doc false
+  def decode_atomish(value, allowed_atoms) when is_list(allowed_atoms) do
+    decoded = decode_atomish(value)
+
+    if decoded in allowed_atoms do
+      {:ok, decoded}
+    else
+      {:error, {:invalid_atomish_value, value, allowed_atoms}}
+    end
+  end
+
   defp do_decode_frames(<<>>, frames), do: {:ok, Enum.reverse(frames), <<>>}
 
   defp do_decode_frames(buffer, frames) when byte_size(buffer) < 4 do
@@ -197,12 +223,4 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge.Protocol do
 
   defp encode_atomish(value) when is_atom(value), do: Atom.to_string(value)
   defp encode_atomish(value), do: value
-
-  defp decode_atomish(value) when is_atom(value), do: value
-
-  defp decode_atomish(value) when is_binary(value) do
-    Map.get(@capability_value_aliases, value, value)
-  end
-
-  defp decode_atomish(value), do: value
 end

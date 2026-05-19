@@ -1,5 +1,3 @@
-# credo:disable-for-this-file Credo.Check.Warning.StructFieldAmount
-
 defmodule ExecutionPlane.Process.Transport.GuestBridge do
   @moduledoc false
 
@@ -10,7 +8,11 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
   alias ExecutionPlane.{Command, LineFraming, ProcessExit}
   alias ExecutionPlane.Process.Transport
   alias ExecutionPlane.Process.Transport.Error
+  alias ExecutionPlane.Process.Transport.GuestBridge.Payload
   alias ExecutionPlane.Process.Transport.GuestBridge.Protocol
+  alias ExecutionPlane.Process.Transport.GuestBridge.RequestTracker
+  alias ExecutionPlane.Process.Transport.GuestBridge.State
+  alias ExecutionPlane.Process.Transport.GuestBridge.SubscriberRegistry
   alias ExecutionPlane.Process.Transport.Info
   alias ExecutionPlane.Process.Transport.Options
   alias ExecutionPlane.Process.Transport.RunResult
@@ -25,60 +27,10 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
   @default_protocol_versions [1]
   @default_request_timeout_ms 5_000
   @default_connect_timeout_ms 5_000
-  @capability_value_aliases %{
-    "attach" => :attach,
-    "bridge" => :bridge,
-    "guest" => :guest,
-    "local" => :local,
-    "none" => :none,
-    "remote" => :remote,
-    "rpc" => :rpc,
-    "signal" => :signal,
-    "spawn" => :spawn,
-    "stdin" => :stdin
-  }
   @transport_option_keys ~w(endpoint bridge_ref attach_token bridge_profile supported_protocol_versions extensions connect_timeout_ms request_timeout_ms)a
   @transport_option_key_aliases Map.new(@transport_option_keys, fn key ->
                                   {Atom.to_string(key), key}
                                 end)
-
-  defstruct socket: nil,
-            buffer: "",
-            invocation: nil,
-            surface_kind: @surface_kind,
-            transport_options: [],
-            target_id: nil,
-            lease_ref: nil,
-            surface_ref: nil,
-            boundary_class: nil,
-            observability: %{},
-            adapter_capabilities: nil,
-            effective_capabilities: nil,
-            bridge_profile: nil,
-            protocol_version: nil,
-            extensions: %{},
-            adapter_metadata: %{},
-            status: :disconnected,
-            stdout_mode: :line,
-            stdin_mode: :line,
-            pty?: false,
-            interrupt_mode: :signal,
-            stderr_buffer: "",
-            stdout_framer: %LineFraming{},
-            subscribers: %{},
-            event_tag: :execution_plane_process,
-            replay_stderr_on_subscribe?: false,
-            buffer_events_until_subscribe?: false,
-            buffered_events: :queue.new(),
-            buffered_event_count: 0,
-            max_buffered_events: 128,
-            pending_requests: %{},
-            request_seq: 0
-
-  @type subscriber_info :: %{
-          monitor_ref: reference(),
-          tag: Transport.subscription_tag()
-        }
 
   @type endpoint ::
           %{kind: :unix_socket, path: String.t()}
@@ -368,8 +320,8 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
       :ok ->
         payload =
           message
-          |> normalize_payload()
-          |> maybe_ensure_newline(state.stdin_mode)
+          |> Payload.normalize()
+          |> Payload.ensure_newline(state.stdin_mode)
 
         queue_request(state, from, "stdin", %{"data" => Protocol.encode_bytes(payload)})
 
@@ -461,13 +413,8 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
   end
 
   def handle_info({:DOWN, ref, :process, pid, _reason}, state) do
-    subscribers =
-      Enum.reject(state.subscribers, fn {subscriber_pid, info} ->
-        info.monitor_ref == ref or pid == subscriber_pid
-      end)
-      |> Map.new()
-
-    {:noreply, %{state | subscribers: subscribers}}
+    {:noreply,
+     %{state | subscribers: SubscriberRegistry.handle_down(state.subscribers, ref, pid)}}
   end
 
   def handle_info(_other, state), do: {:noreply, state}
@@ -476,35 +423,13 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
   def terminate(_reason, state) do
     maybe_send_close_frame(state)
     close_socket(state.socket)
-    demonitor_subscribers(state.subscribers)
+    SubscriberRegistry.demonitor(state.subscribers)
     cleanup_pending_requests(state.pending_requests)
     :ok
   end
 
   defp build_state(%Options{} = options, %Capabilities{} = adapter_capabilities) do
-    %__MODULE__{
-      invocation: options.invocation_override || build_invocation(options),
-      transport_options: options.transport_options,
-      target_id: options.target_id,
-      lease_ref: options.lease_ref,
-      surface_ref: options.surface_ref,
-      boundary_class: options.boundary_class,
-      observability: options.observability,
-      adapter_capabilities: adapter_capabilities,
-      status: :disconnected,
-      stdout_mode: options.stdout_mode,
-      stdin_mode: options.stdin_mode,
-      pty?: options.pty?,
-      interrupt_mode: options.interrupt_mode,
-      event_tag: options.event_tag,
-      replay_stderr_on_subscribe?: options.replay_stderr_on_subscribe?,
-      buffer_events_until_subscribe?: options.buffer_events_until_subscribe?,
-      max_buffered_events: options.max_buffered_events,
-      adapter_metadata: %{
-        endpoint: Keyword.get(options.transport_options, :endpoint),
-        bridge_ref: Keyword.get(options.transport_options, :bridge_ref)
-      }
-    }
+    State.new(options, adapter_capabilities)
   end
 
   defp maybe_put_initial_subscriber(state, nil), do: state
@@ -762,7 +687,7 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
     request_timeout_ms =
       Keyword.get(transport_options, :request_timeout_ms) || @default_request_timeout_ms
 
-    payload = launch_payload(build_invocation(options), effective_capabilities)
+    payload = launch_payload(State.invocation(options), effective_capabilities)
     request_id = "start-session-1"
 
     case send_frame(socket, Protocol.request(request_id, "start_session", payload)) do
@@ -836,7 +761,7 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
         capability =
           error_payload
           |> Map.get("capability")
-          |> decode_atomish()
+          |> known_atomish_or_unknown()
 
         {:error, Error.unsupported_capability(capability || :unknown, @surface_kind)}
 
@@ -897,16 +822,11 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
   defp capability_key_to_name(_other), do: :unknown
 
   defp queue_request(state, from, op, payload) do
-    request_id = Integer.to_string(state.request_seq + 1)
+    {request_id, queued_state} = RequestTracker.next(state, from)
 
     case send_frame(state.socket, Protocol.request(request_id, op, payload)) do
       :ok ->
-        {:noreply,
-         %{
-           state
-           | request_seq: state.request_seq + 1,
-             pending_requests: Map.put(state.pending_requests, request_id, from)
-         }}
+        {:noreply, queued_state}
 
       {:error, %Error{} = error} ->
         {:reply, transport_error(error), state}
@@ -973,11 +893,11 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
   end
 
   defp handle_frame(%{"kind" => "response", "id" => id} = frame, state) do
-    case Map.pop(state.pending_requests, id) do
-      {nil, pending_requests} ->
-        %{state | pending_requests: pending_requests}
+    case RequestTracker.pop(state, id) do
+      {nil, state} ->
+        state
 
-      {from, pending_requests} ->
+      {from, state} ->
         reply =
           case expect_ok_payload(frame) do
             {:ok, _payload} -> :ok
@@ -985,7 +905,7 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
           end
 
         GenServer.reply(from, reply)
-        %{state | pending_requests: pending_requests}
+        state
     end
   end
 
@@ -1031,7 +951,7 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
           capability =
             payload
             |> Map.get("capability")
-            |> decode_atomish()
+            |> known_atomish_or_unknown()
 
           Error.unsupported_capability(capability || :unknown, @surface_kind)
 
@@ -1072,21 +992,13 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
   end
 
   defp append_stderr_chunk(state, chunk) when is_binary(chunk) do
-    stderr_buffer = trim_stderr_buffer(state.stderr_buffer <> chunk)
+    stderr_buffer = Payload.trim_stderr(state.stderr_buffer <> chunk)
     state = %{state | stderr_buffer: stderr_buffer}
     emit_event(state, {:stderr, chunk})
   end
 
-  defp trim_stderr_buffer(buffer) when byte_size(buffer) <= 262_144, do: buffer
-
-  defp trim_stderr_buffer(buffer) do
-    size = byte_size(buffer)
-    :binary.part(buffer, size - 262_144, 262_144)
-  end
-
   defp emit_event(%{subscribers: subscribers} = state, event) when map_size(subscribers) > 0 do
-    Enum.each(subscribers, fn {pid, info} -> dispatch_event(pid, info, event, state.event_tag) end)
-
+    SubscriberRegistry.send_event(subscribers, event, state.event_tag)
     state
   end
 
@@ -1096,34 +1008,27 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
 
   defp emit_event(state, _event), do: state
 
-  defp dispatch_event(pid, %{tag: tag}, event, event_tag)
-       when (is_pid(tag) or is_reference(tag)) and is_atom(event_tag) do
-    Kernel.send(pid, {event_tag, tag, event})
-  end
-
   defp buffer_event(state, event) do
-    buffered_events =
-      if state.buffered_event_count >= state.max_buffered_events do
-        {_dropped, queue} = :queue.out(state.buffered_events)
-        :queue.in(event, queue)
-      else
-        :queue.in(event, state.buffered_events)
-      end
+    {buffered_events, buffered_event_count} =
+      SubscriberRegistry.buffer_event(
+        state.buffered_events,
+        state.buffered_event_count,
+        state.max_buffered_events,
+        event
+      )
 
-    buffered_event_count = min(state.buffered_event_count + 1, state.max_buffered_events)
     %{state | buffered_events: buffered_events, buffered_event_count: buffered_event_count}
   end
 
   defp put_subscriber(state, pid, tag) do
-    subscriber_info = %{monitor_ref: Process.monitor(pid), tag: tag}
-    %{state | subscribers: Map.put(state.subscribers, pid, subscriber_info)}
+    %{state | subscribers: SubscriberRegistry.put(state.subscribers, pid, tag)}
   end
 
   defp maybe_replay_stderr(%{replay_stderr_on_subscribe?: true, stderr_buffer: data} = state, pid)
        when is_binary(data) and data != "" do
     case Map.fetch(state.subscribers, pid) do
       {:ok, subscriber_info} ->
-        dispatch_event(pid, subscriber_info, {:stderr, data}, state.event_tag)
+        SubscriberRegistry.dispatch(pid, subscriber_info, {:stderr, data}, state.event_tag)
         state
 
       :error ->
@@ -1140,20 +1045,13 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
 
     state.buffered_events
     |> :queue.to_list()
-    |> Enum.each(fn event -> dispatch_event(pid, info, event, state.event_tag) end)
+    |> Enum.each(fn event -> SubscriberRegistry.dispatch(pid, info, event, state.event_tag) end)
 
     %{state | buffered_events: :queue.new(), buffered_event_count: 0}
   end
 
   defp drop_subscriber(state, pid) do
-    case Map.pop(state.subscribers, pid) do
-      {nil, subscribers} ->
-        %{state | subscribers: subscribers}
-
-      {%{monitor_ref: ref}, subscribers} ->
-        Process.demonitor(ref, [:flush])
-        %{state | subscribers: subscribers}
-    end
+    %{state | subscribers: SubscriberRegistry.drop(state.subscribers, pid)}
   end
 
   defp subscribe_with_tag(transport, pid, tag)
@@ -1172,14 +1070,8 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
   defp maybe_send_close_frame(_state), do: :ok
 
   defp cleanup_pending_requests(pending_requests) do
-    Enum.each(pending_requests, fn {_id, from} ->
-      GenServer.reply(from, transport_error(Error.transport_stopped()))
-    end)
-  end
-
-  defp demonitor_subscribers(subscribers) do
-    Enum.each(subscribers, fn {_pid, %{monitor_ref: ref}} ->
-      Process.demonitor(ref, [:flush])
+    RequestTracker.cleanup(pending_requests, fn ->
+      transport_error(Error.transport_stopped())
     end)
   end
 
@@ -1215,15 +1107,6 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
     }
   end
 
-  defp build_invocation(%Options{} = options) do
-    Command.new(options.command, options.args,
-      cwd: options.cwd,
-      env: options.env,
-      clear_env?: options.clear_env?,
-      user: options.user
-    )
-  end
-
   defp launch_payload(%Command{} = command, %Capabilities{} = capabilities) do
     %{
       "command" => command.command,
@@ -1246,9 +1129,13 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
   defp run_result_from_payload(payload, %Command{} = invocation) when is_map(payload) do
     stdout = Map.get(payload, "stdout", "")
     stderr = Map.get(payload, "stderr", "")
-    stderr_mode = decode_atomish(Map.get(payload, "stderr_mode", "separate"))
 
-    with {:ok, exit} <- exit_from_payload(Map.get(payload, "exit", %{}), stderr) do
+    with {:ok, stderr_mode} <-
+           Protocol.decode_atomish(Map.get(payload, "stderr_mode", "separate"), [
+             :separate,
+             :stdout
+           ]),
+         {:ok, exit} <- exit_from_payload(Map.get(payload, "exit", %{}), stderr) do
       output = if stderr_mode == :stdout, do: stdout <> stderr, else: stdout
 
       {:ok,
@@ -1260,22 +1147,33 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
          exit: exit,
          stderr_mode: stderr_mode
        }}
+    else
+      {:error, reason} -> {:error, Error.bridge_protocol_error(reason)}
     end
   end
 
   defp exit_from_payload(payload, stderr) when is_map(payload) do
-    status = decode_atomish(Map.get(payload, "status", "error"))
+    case Protocol.decode_atomish(Map.get(payload, "status", "error"), [
+           :success,
+           :exit,
+           :signal,
+           :error
+         ]) do
+      {:ok, status} ->
+        exit =
+          %ProcessExit{
+            status: status,
+            code: Map.get(payload, "code"),
+            signal: Protocol.decode_atomish(Map.get(payload, "signal")),
+            reason: Map.get(payload, "reason"),
+            stderr: Map.get(payload, "stderr", stderr)
+          }
 
-    exit =
-      %ProcessExit{
-        status: status,
-        code: Map.get(payload, "code"),
-        signal: decode_atomish(Map.get(payload, "signal")),
-        reason: Map.get(payload, "reason"),
-        stderr: Map.get(payload, "stderr", stderr)
-      }
+        {:ok, exit}
 
-    {:ok, exit}
+      {:error, reason} ->
+        {:error, Error.bridge_protocol_error(reason)}
+    end
   end
 
   defp exit_from_payload(other, _stderr),
@@ -1288,23 +1186,6 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
     end
   end
 
-  defp normalize_payload(message) when is_binary(message), do: message
-  defp normalize_payload(message) when is_map(message), do: Jason.encode!(message)
-
-  defp normalize_payload(message) when is_list(message) do
-    IO.iodata_to_binary(message)
-  rescue
-    ArgumentError -> Jason.encode!(message)
-  end
-
-  defp normalize_payload(message), do: to_string(message)
-
-  defp maybe_ensure_newline(payload, :line) do
-    if String.ends_with?(payload, "\n"), do: payload, else: payload <> "\n"
-  end
-
-  defp maybe_ensure_newline(payload, _stdin_mode), do: payload
-
   defp fetch_option(%Options{} = options, key), do: Map.get(options, key)
   defp fetch_option(opts, key) when is_list(opts), do: Keyword.get(opts, key)
 
@@ -1312,14 +1193,12 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
   defp encode_atomish(value) when is_atom(value), do: Atom.to_string(value)
   defp encode_atomish(value), do: value
 
-  defp decode_atomish(nil), do: nil
-  defp decode_atomish(value) when is_atom(value), do: value
-
-  defp decode_atomish(value) when is_binary(value) do
-    Map.get(@capability_value_aliases, value, value)
+  defp known_atomish_or_unknown(value) do
+    case Protocol.decode_atomish(value) do
+      atom when is_atom(atom) -> atom
+      _other -> :unknown
+    end
   end
-
-  defp decode_atomish(value), do: value
 
   defp validate_runtime_capability(nil, _capability, _surface_kind),
     do: {:error, Error.not_connected()}
