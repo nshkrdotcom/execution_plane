@@ -8,6 +8,7 @@ defmodule ExecutionPlane.Runtimes.Process do
   alias ExecutionPlane.Kernel.DispatchPlan
   alias ExecutionPlane.LowerSimulation
   alias ExecutionPlane.Placements.Surface
+  alias ExecutionPlane.Process.OS
   alias ExecutionPlane.Runtimes.Process.{Exit, RunResult}
 
   @default_timeout_ms 30_000
@@ -15,7 +16,7 @@ defmodule ExecutionPlane.Runtimes.Process do
   @exec_wait_delay_ms 50
   @run_stop_wait_ms 200
   @run_kill_wait_ms 500
-  @kill_paths ["/bin/kill", "/usr/bin/kill"]
+  @default_os OS
 
   @spec family() :: String.t()
   def family, do: "process"
@@ -32,13 +33,13 @@ defmodule ExecutionPlane.Runtimes.Process do
           intent: %{__struct__: ExecutionPlane.Contracts.ProcessExecutionIntent.V1} = intent,
           placement_surface: surface
         } = plan,
-        _opts
+        opts
       ) do
     start_ms = System.monotonic_time(:millisecond)
 
     case LowerSimulation.execute_if_configured("process", intent, plan.route, start_ms) do
       :not_configured ->
-        execute_process(intent, surface, plan, start_ms)
+        execute_process(intent, surface, plan, start_ms, opts)
 
       {:ok, execution} ->
         {:ok, execution}
@@ -48,17 +49,17 @@ defmodule ExecutionPlane.Runtimes.Process do
     end
   end
 
-  defp execute_process(intent, surface, plan, start_ms) do
+  defp execute_process(intent, surface, plan, start_ms, opts) do
     if supports_surface?(surface) do
       intent
-      |> run_process_intent(surface, plan)
+      |> run_process_intent(surface, plan, opts)
       |> process_execution_result(start_ms)
     else
       unsupported_process_surface_result(surface, start_ms)
     end
   end
 
-  defp run_process_intent(intent, surface, plan) do
+  defp run_process_intent(intent, surface, plan, opts) do
     run(
       command: intent.command,
       argv: intent.argv,
@@ -70,7 +71,8 @@ defmodule ExecutionPlane.Runtimes.Process do
       stderr: intent.stderr_mode |> normalize_stderr_mode(),
       close_stdin: intent.close_stdin,
       timeout: plan.timeout_ms,
-      surface_kind: surface.surface_kind
+      surface_kind: surface.surface_kind,
+      os: Keyword.get(opts, :os, @default_os)
     )
   end
 
@@ -145,8 +147,8 @@ defmodule ExecutionPlane.Runtimes.Process do
          :ok <- validate_surface(normalized.surface_kind),
          :ok <- validate_cwd_exists(normalized.cwd),
          :ok <- validate_command_exists(normalized.command),
-         :ok <- validate_user_switch_permitted(normalized.user),
-         :ok <- ensure_erlexec_started(),
+         :ok <- validate_user_switch_permitted(normalized.user, normalized.os),
+         :ok <- ensure_erlexec_started(normalized.os),
          exec_opts <-
            build_exec_opts(
              normalized.cwd,
@@ -176,6 +178,7 @@ defmodule ExecutionPlane.Runtimes.Process do
       timeout: Keyword.get(opts, :timeout, @default_timeout_ms),
       stderr: Keyword.get(opts, :stderr, :separate),
       close_stdin: Keyword.get(opts, :close_stdin, true),
+      os: Keyword.get(opts, :os, @default_os),
       surface_kind:
         Keyword.get(opts, :surface_kind, "local_subprocess")
         |> normalize_surface_kind()
@@ -187,6 +190,7 @@ defmodule ExecutionPlane.Runtimes.Process do
          :ok <- validate_timeout(normalized.timeout),
          :ok <- validate_stderr_mode(normalized.stderr),
          :ok <- validate_close_stdin(normalized.close_stdin),
+         :ok <- validate_os(normalized.os),
          :ok <- validate_optional_user(normalized.user) do
       {:ok, normalized}
     end
@@ -220,6 +224,16 @@ defmodule ExecutionPlane.Runtimes.Process do
   defp validate_close_stdin(value) when is_boolean(value), do: :ok
   defp validate_close_stdin(value), do: {:error, {:invalid_close_stdin, value}}
 
+  defp validate_os(module) when is_atom(module) do
+    if OS.valid_boundary?(module) do
+      :ok
+    else
+      {:error, {:invalid_os, module}}
+    end
+  end
+
+  defp validate_os(module), do: {:error, {:invalid_os, module}}
+
   defp validate_optional_user(nil), do: :ok
   defp validate_optional_user(user) when is_binary(user) and user != "", do: :ok
   defp validate_optional_user(user), do: {:error, {:invalid_user, user}}
@@ -243,34 +257,19 @@ defmodule ExecutionPlane.Runtimes.Process do
     end
   end
 
-  defp validate_user_switch_permitted(nil), do: :ok
+  defp validate_user_switch_permitted(nil, _os), do: :ok
 
-  defp validate_user_switch_permitted(user) do
-    if privileged_user?() do
+  defp validate_user_switch_permitted(user, os) do
+    if os.privileged_user?() do
       :ok
     else
       {:error, {:user_switch_requires_privilege, user}}
     end
   end
 
-  defp privileged_user? do
-    case :os.type() do
-      {:unix, _name} ->
-        case System.cmd("id", ["-u"], stderr_to_stdout: true) do
-          {"0\n", 0} -> true
-          _other -> false
-        end
-
-      _other ->
-        false
-    end
-  rescue
-    _error -> false
-  end
-
-  defp ensure_erlexec_started do
+  defp ensure_erlexec_started(os) do
     case ensure_erlexec_application_started() do
-      :ok -> ensure_exec_worker()
+      :ok -> ensure_exec_worker(os)
       {:error, reason} -> {:error, reason}
     end
   end
@@ -284,30 +283,26 @@ defmodule ExecutionPlane.Runtimes.Process do
     end
   end
 
-  defp ensure_exec_worker do
-    case wait_for_exec_worker(@exec_wait_attempts) do
+  defp ensure_exec_worker(os) do
+    case wait_for_exec_worker(os) do
       :ok -> :ok
-      :error -> recover_missing_exec_worker()
+      :error -> recover_missing_exec_worker(os)
     end
   end
 
-  defp wait_for_exec_worker(0), do: if(exec_worker_alive?(), do: :ok, else: :error)
-
-  defp wait_for_exec_worker(attempts_remaining) when attempts_remaining > 0 do
-    if exec_worker_alive?() do
-      :ok
-    else
-      Process.sleep(@exec_wait_delay_ms)
-      wait_for_exec_worker(attempts_remaining - 1)
+  defp wait_for_exec_worker(os) do
+    case os.await(&exec_worker_alive?/0, @exec_wait_attempts, @exec_wait_delay_ms) do
+      {:ok, _evidence} -> :ok
+      {:error, _evidence} -> :error
     end
   end
 
-  defp recover_missing_exec_worker do
+  defp recover_missing_exec_worker(os) do
     if exec_app_alive?() do
       {:error, {:startup_failed, :exec_not_running}}
     else
       with :ok <- restart_erlexec_application(),
-           :ok <- wait_for_exec_worker(@exec_wait_attempts) do
+           :ok <- wait_for_exec_worker(os) do
         :ok
       else
         :error -> {:error, {:startup_failed, :exec_not_running}}
@@ -385,7 +380,7 @@ defmodule ExecutionPlane.Runtimes.Process do
         collect_run_output(pid, os_pid, opts, timeout_deadline(opts.timeout), [], [], [])
 
       {:error, reason} ->
-        stop_run_exec_and_confirm_down(pid, os_pid)
+        stop_run_exec_and_confirm_down(pid, os_pid, opts.os)
         _ = flush_run_messages(pid, os_pid, opts.stderr, [], [], [])
         {:error, reason}
     end
@@ -487,7 +482,7 @@ defmodule ExecutionPlane.Runtimes.Process do
   end
 
   defp handle_run_timeout(pid, os_pid, opts, stdout, stderr, output) do
-    stop_run_exec_and_confirm_down(pid, os_pid)
+    stop_run_exec_and_confirm_down(pid, os_pid, opts.os)
 
     {stdout, stderr, output} =
       flush_run_messages(pid, os_pid, opts.stderr, stdout, stderr, output)
@@ -538,8 +533,8 @@ defmodule ExecutionPlane.Runtimes.Process do
     if remaining <= 0, do: :expired, else: remaining
   end
 
-  defp stop_run_exec_and_confirm_down(pid, os_pid) do
-    _ = kill_process_group(os_pid, "TERM")
+  defp stop_run_exec_and_confirm_down(pid, os_pid, os) do
+    _ = kill_process_group(os_pid, "TERM", os)
     stop_exec(pid)
 
     case await_down(pid, os_pid, @run_stop_wait_ms) do
@@ -547,7 +542,7 @@ defmodule ExecutionPlane.Runtimes.Process do
         :ok
 
       :timeout ->
-        _ = kill_process_group(os_pid, "KILL")
+        _ = kill_process_group(os_pid, "KILL", os)
         kill_exec(pid)
         _ = await_down(pid, os_pid, @run_kill_wait_ms)
         :ok
@@ -576,21 +571,12 @@ defmodule ExecutionPlane.Runtimes.Process do
     _, _ -> :ok
   end
 
-  defp kill_process_group(os_pid, signal) when is_integer(os_pid) and os_pid > 0 do
-    case kill_executable() do
-      nil ->
-        :ok
-
-      executable ->
-        _ = System.cmd(executable, ["-#{signal}", "--", "-#{os_pid}"], stderr_to_stdout: true)
-    end
+  defp kill_process_group(os_pid, signal, os) when is_integer(os_pid) and os_pid > 0 do
+    _ = os.signal_process_group(os_pid, signal)
+    :ok
   end
 
-  defp kill_process_group(_os_pid, _signal), do: :ok
-
-  defp kill_executable do
-    Enum.find(@kill_paths, &File.exists?/1)
-  end
+  defp kill_process_group(_os_pid, _signal, _os), do: :ok
 
   defp normalize_surface_kind(value) when is_atom(value), do: Atom.to_string(value)
   defp normalize_surface_kind(value) when is_binary(value), do: value

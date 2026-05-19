@@ -5,6 +5,7 @@ defmodule ExecutionPlane.Process.Transport.Options do
   """
 
   alias ExecutionPlane.Command
+  alias ExecutionPlane.Process.OS
   alias ExecutionPlane.Process.Transport
   alias ExecutionPlane.Process.Transport.Surface
   alias ExecutionPlane.Process.Transport.Surface.Capabilities
@@ -23,6 +24,7 @@ defmodule ExecutionPlane.Process.Transport.Options do
   @default_stdout_mode :line
   @default_stdin_mode :line
   @default_close_stdin_on_start? false
+  @default_os OS
 
   @enforce_keys [:command]
   # credo:disable-for-next-line
@@ -50,6 +52,7 @@ defmodule ExecutionPlane.Process.Transport.Options do
             stdin_mode: @default_stdin_mode,
             pty?: false,
             interrupt_mode: :signal,
+            os: @default_os,
             subscriber: nil,
             startup_mode: @default_startup_mode,
             task_supervisor: @default_task_supervisor,
@@ -94,6 +97,7 @@ defmodule ExecutionPlane.Process.Transport.Options do
           stdin_mode: :line | :raw,
           pty?: boolean(),
           interrupt_mode: :signal | {:stdin, binary()},
+          os: module(),
           subscriber: subscriber(),
           startup_mode: :eager | :lazy,
           task_supervisor: pid() | atom(),
@@ -130,6 +134,7 @@ defmodule ExecutionPlane.Process.Transport.Options do
           | {:invalid_stdin_mode, term()}
           | {:invalid_pty, term()}
           | {:invalid_interrupt_mode, term()}
+          | {:invalid_os, term()}
           | {:invalid_subscriber, term()}
           | {:invalid_startup_mode, term()}
           | {:invalid_task_supervisor, term()}
@@ -169,6 +174,7 @@ defmodule ExecutionPlane.Process.Transport.Options do
          :ok <- validate_stdin_mode(normalized.stdin_mode),
          :ok <- validate_pty(normalized.pty?),
          :ok <- validate_interrupt_mode(normalized.interrupt_mode),
+         :ok <- validate_os(normalized.os),
          :ok <- validate_subscriber(normalized.subscriber),
          :ok <- validate_startup_mode(normalized.startup_mode),
          :ok <- validate_task_supervisor(normalized.task_supervisor),
@@ -285,6 +291,7 @@ defmodule ExecutionPlane.Process.Transport.Options do
                  default_interrupt_mode(Keyword.get(opts, :pty?, false))
                )
              ),
+           os: Keyword.get(opts, :os, @default_os),
            subscriber: Keyword.get(opts, :subscriber),
            startup_mode: Keyword.get(opts, :startup_mode, @default_startup_mode),
            task_supervisor: Keyword.get(opts, :task_supervisor, @default_task_supervisor),
@@ -336,6 +343,7 @@ defmodule ExecutionPlane.Process.Transport.Options do
                  default_interrupt_mode(Keyword.get(opts, :pty?, false))
                )
              ),
+           os: Keyword.get(opts, :os, @default_os),
            subscriber: Keyword.get(opts, :subscriber),
            startup_mode: Keyword.get(opts, :startup_mode, @default_startup_mode),
            task_supervisor: Keyword.get(opts, :task_supervisor, @default_task_supervisor),
@@ -461,6 +469,16 @@ defmodule ExecutionPlane.Process.Transport.Options do
     do: :ok
 
   defp validate_interrupt_mode(mode), do: {:error, {:invalid_interrupt_mode, mode}}
+
+  defp validate_os(module) when is_atom(module) do
+    if OS.valid_boundary?(module) do
+      :ok
+    else
+      {:error, {:invalid_os, module}}
+    end
+  end
+
+  defp validate_os(module), do: {:error, {:invalid_os, module}}
 
   defp validate_subscriber(nil), do: :ok
   defp validate_subscriber(pid) when is_pid(pid), do: :ok

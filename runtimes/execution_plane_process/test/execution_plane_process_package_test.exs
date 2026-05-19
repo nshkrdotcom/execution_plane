@@ -1,12 +1,73 @@
+defmodule ExecutionPlaneProcessPackageTest.OSProbe do
+  @behaviour ExecutionPlane.Process.OS
+
+  @owner ExecutionPlaneProcessPackageTest.OSProbeOwner
+
+  def privileged_user? do
+    notify(:privileged_user_checked)
+    true
+  end
+
+  def await(predicate, attempts, delay_ms) do
+    notify({:await_called, attempts, delay_ms})
+    _ = predicate.()
+    {:ok, %{checks: 1, attempts_remaining: attempts, delay_ms: delay_ms}}
+  end
+
+  def signal_process_group(os_pid, signal) do
+    notify({:signal_process_group, os_pid, signal})
+    :ok
+  end
+
+  defp notify(message) do
+    case Process.whereis(@owner) do
+      pid when is_pid(pid) -> send(pid, message)
+      _other -> :ok
+    end
+  end
+end
+
+defmodule ExecutionPlaneProcessPackageTest.UnprivilegedOS do
+  @behaviour ExecutionPlane.Process.OS
+
+  @owner ExecutionPlaneProcessPackageTest.OSProbeOwner
+
+  def privileged_user? do
+    notify(:privileged_user_checked)
+    false
+  end
+
+  def await(_predicate, attempts, delay_ms) do
+    notify({:await_called, attempts, delay_ms})
+    {:ok, %{checks: 1, attempts_remaining: attempts, delay_ms: delay_ms}}
+  end
+
+  def signal_process_group(os_pid, signal) do
+    notify({:signal_process_group, os_pid, signal})
+    :ok
+  end
+
+  defp notify(message) do
+    case Process.whereis(@owner) do
+      pid when is_pid(pid) -> send(pid, message)
+      _other -> :ok
+    end
+  end
+end
+
 defmodule ExecutionPlaneProcessPackageTest do
   use ExUnit.Case, async: false
 
+  alias ExecutionPlane.Command
   alias ExecutionPlane.Process.Transport.GuestBridge
   alias ExecutionPlane.Process.Transport.LowerSimulation
   alias ExecutionPlane.Process.Transport.Options
   alias ExecutionPlane.Process.Transport.Subprocess
   alias ExecutionPlane.Process.Transport.Surface
   alias ExecutionPlane.Process.Transport.Surface.Capabilities
+  alias ExecutionPlane.Runtimes.Process, as: ProcessRuntime
+  alias ExecutionPlaneProcessPackageTest.OSProbe
+  alias ExecutionPlaneProcessPackageTest.UnprivilegedOS
 
   test "starts the standalone process application supervisor" do
     assert {:ok, _apps} = Application.ensure_all_started(:execution_plane_process)
@@ -67,23 +128,14 @@ defmodule ExecutionPlaneProcessPackageTest do
     end)
   end
 
-  test "rejects local user switching on unprivileged hosts before spawning" do
-    if unprivileged_host?() do
-      assert {:error, result} =
-               ExecutionPlane.Process.run(
-                 %{
-                   command: "true",
-                   user: "nobody",
-                   execution_surface: %{surface_kind: "local_subprocess"}
-                 },
-                 lineage: %{idempotency_key: "user-switch-preflight"}
-               )
+  test "process runtime rejects user switching through injected OS preflight" do
+    with_os_probe_owner(fn ->
+      assert {:error, {:user_switch_requires_privilege, "nobody"}} =
+               ProcessRuntime.run(command: "true", user: "nobody", os: UnprivilegedOS)
 
-      assert result.outcome.status == "failed"
-      assert result.outcome.failure.reason == "user switch requires privileged erlexec"
-      assert result.outcome.raw_payload.user == "nobody"
-      assert result.outcome.raw_payload.required_privilege == "root"
-    end
+      assert_receive :privileged_user_checked, 250
+      refute_receive {:await_called, _attempts, _delay_ms}, 100
+    end)
   end
 
   test "process surface rejects unknown binary transport option keys" do
@@ -120,18 +172,73 @@ defmodule ExecutionPlaneProcessPackageTest do
   end
 
   test "subprocess child start accepts normalized transport options" do
-    assert {:ok, options} =
-             Options.new(
-               command: "/bin/sleep",
-               args: ["1"],
-               startup_mode: :eager,
-               headless_timeout_ms: 5_000
-             )
+    with_os_probe_owner(fn ->
+      assert {:ok, options} =
+               Options.new(
+                 command: "/bin/sleep",
+                 args: ["1"],
+                 startup_mode: :eager,
+                 headless_timeout_ms: 5_000,
+                 os: OSProbe
+               )
 
-    assert {:ok, pid} = Subprocess.start_link(options)
-    assert Process.alive?(pid)
+      assert options.os == OSProbe
+      assert {:ok, pid} = Subprocess.start_link(options)
+      assert_receive {:await_called, 20, 50}, 1_000
+      assert Process.alive?(pid)
 
-    assert :ok = Subprocess.close(pid)
+      assert :ok = Subprocess.close(pid)
+      assert_receive {:signal_process_group, os_pid, "KILL"}, 1_000
+      assert is_integer(os_pid)
+    end)
+  end
+
+  test "transport options reject invalid OS boundary modules" do
+    assert {:error, {:invalid_transport_options, {:invalid_os, String}}} =
+             Options.new(command: "true", os: String)
+  end
+
+  test "subprocess interrupt and force close use injected OS signal boundary" do
+    with_os_probe_owner(fn ->
+      assert {:ok, pid} =
+               Subprocess.start(
+                 command: "/bin/sleep",
+                 args: ["5"],
+                 os: OSProbe,
+                 headless_timeout_ms: 5_000
+               )
+
+      assert_receive {:await_called, 20, 50}, 1_000
+      assert :ok = Subprocess.interrupt(pid)
+      assert_receive {:signal_process_group, os_pid, "INT"}, 1_000
+      assert is_integer(os_pid)
+
+      assert :ok = Subprocess.force_close(pid)
+      assert_receive {:signal_process_group, ^os_pid, "KILL"}, 1_000
+    end)
+  end
+
+  test "subprocess one-shot timeout uses injected OS signal boundary" do
+    with_os_probe_owner(fn ->
+      command = Command.new("/bin/sleep", ["1"])
+
+      assert {:error, {:transport, error}} = Subprocess.run(command, timeout: 0, os: OSProbe)
+      assert error.reason == :timeout
+      assert_receive {:await_called, 20, 50}, 1_000
+      assert_receive {:signal_process_group, os_pid, "TERM"}, 1_000
+      assert is_integer(os_pid)
+    end)
+  end
+
+  test "process runtime timeout uses injected OS signal boundary" do
+    with_os_probe_owner(fn ->
+      assert {:error, {:timeout, _context}} =
+               ProcessRuntime.run(command: "/bin/sleep", argv: ["1"], timeout: 0, os: OSProbe)
+
+      assert_receive {:await_called, 20, 50}, 1_000
+      assert_receive {:signal_process_group, os_pid, "TERM"}, 1_000
+      assert is_integer(os_pid)
+    end)
   end
 
   test "supervised subprocess transports are not restarted after normal command exit" do
@@ -192,22 +299,6 @@ defmodule ExecutionPlaneProcessPackageTest do
              LowerSimulation.normalize_transport_options(options)
   end
 
-  defp unprivileged_host? do
-    case :os.type() do
-      {:unix, _name} ->
-        case System.cmd("id", ["-u"], stderr_to_stdout: true) do
-          {"0\n", 0} -> false
-          {_uid, 0} -> true
-          _other -> true
-        end
-
-      _other ->
-        true
-    end
-  rescue
-    _error -> true
-  end
-
   defp governed_envelope do
     [
       lease_ref: "lease://env-05-process",
@@ -250,6 +341,18 @@ defmodule ExecutionPlaneProcessPackageTest do
   end
 
   defp lineage(ref), do: %{idempotency_key: ref}
+
+  defp with_os_probe_owner(fun) do
+    Process.register(self(), ExecutionPlaneProcessPackageTest.OSProbeOwner)
+
+    try do
+      fun.()
+    after
+      if Process.whereis(ExecutionPlaneProcessPackageTest.OSProbeOwner) == self() do
+        Process.unregister(ExecutionPlaneProcessPackageTest.OSProbeOwner)
+      end
+    end
+  end
 
   defp with_restored_env(key, value, fun) do
     previous = System.get_env(key)

@@ -8,6 +8,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   import Kernel, except: [send: 2]
 
   alias ExecutionPlane.{Command, LineFraming, ProcessExit, TaskSupport}
+  alias ExecutionPlane.Process.OS
   alias ExecutionPlane.Process.Transport
   alias ExecutionPlane.Process.Transport.{Error, Info, Options, RunOptions, RunResult}
   alias ExecutionPlane.Process.TransportSupervisor
@@ -22,7 +23,6 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   @exec_wait_delay_ms 50
   @run_stop_wait_ms 200
   @run_kill_wait_ms 500
-  @kill_paths ["/bin/kill", "/usr/bin/kill"]
 
   @default_interrupt_mode :signal
 
@@ -68,6 +68,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
             stdin_mode: :line,
             pty?: false,
             interrupt_mode: @default_interrupt_mode,
+            os: OS,
             stderr_callback: nil,
             replay_stderr_on_subscribe?: false,
             buffer_events_until_subscribe?: false,
@@ -148,7 +149,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
     with {:ok, options} <- RunOptions.new(command, opts),
          :ok <- validate_cwd_exists(options.command.cwd),
          :ok <- validate_command_exists(options.command.command),
-         :ok <- ensure_erlexec_started(),
+         :ok <- ensure_erlexec_started(options.os),
          exec_opts <-
            build_exec_opts(
              options.command.cwd,
@@ -335,7 +336,9 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   end
 
   def handle_call(:interrupt, from, %{subprocess: {pid, os_pid}} = state) do
-    case start_io_task(state, fn -> interrupt_subprocess(pid, os_pid, state.interrupt_mode) end) do
+    case start_io_task(state, fn ->
+           interrupt_subprocess(pid, os_pid, state.interrupt_mode, state.os)
+         end) do
       {:ok, task} ->
         {:noreply, put_pending_call(state, task.ref, from)}
 
@@ -511,6 +514,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
       stdin_mode: options.stdin_mode,
       pty?: options.pty?,
       interrupt_mode: options.interrupt_mode,
+      os: options.os,
       stderr_callback: options.stderr_callback,
       replay_stderr_on_subscribe?: options.replay_stderr_on_subscribe?,
       buffer_events_until_subscribe?: options.buffer_events_until_subscribe?,
@@ -607,8 +611,8 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   defp preflight_startup(%Options{} = options) do
     with :ok <- validate_cwd_exists(options.cwd),
          :ok <- validate_command_exists(options.command),
-         :ok <- validate_user_switch_permitted(options.user) do
-      ensure_erlexec_started()
+         :ok <- validate_user_switch_permitted(options.user, options.os) do
+      ensure_erlexec_started(options.os)
     end
   end
 
@@ -638,34 +642,19 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
     end
   end
 
-  defp validate_user_switch_permitted(nil), do: :ok
+  defp validate_user_switch_permitted(nil, _os), do: :ok
 
-  defp validate_user_switch_permitted(user) do
-    if privileged_user?() do
+  defp validate_user_switch_permitted(user, os) do
+    if os.privileged_user?() do
       :ok
     else
       {:error, Error.startup_failed({:user_switch_requires_privilege, user})}
     end
   end
 
-  defp privileged_user? do
-    case :os.type() do
-      {:unix, _name} ->
-        case System.cmd("id", ["-u"], stderr_to_stdout: true) do
-          {"0\n", 0} -> true
-          _other -> false
-        end
-
-      _other ->
-        false
-    end
-  rescue
-    _error -> false
-  end
-
-  defp ensure_erlexec_started do
+  defp ensure_erlexec_started(os) do
     with :ok <- ensure_erlexec_application_started(),
-         :ok <- ensure_exec_worker() do
+         :ok <- ensure_exec_worker(os) do
       :ok
     else
       {:error, %Error{} = error} -> {:error, error}
@@ -682,32 +671,26 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
     end
   end
 
-  defp ensure_exec_worker do
-    case wait_for_exec_worker(@exec_wait_attempts) do
+  defp ensure_exec_worker(os) do
+    case wait_for_exec_worker(os) do
       :ok -> :ok
-      :error -> recover_missing_exec_worker()
+      :error -> recover_missing_exec_worker(os)
     end
   end
 
-  defp wait_for_exec_worker(0) do
-    if exec_worker_alive?(), do: :ok, else: :error
-  end
-
-  defp wait_for_exec_worker(attempts_remaining) when attempts_remaining > 0 do
-    if exec_worker_alive?() do
-      :ok
-    else
-      Process.sleep(@exec_wait_delay_ms)
-      wait_for_exec_worker(attempts_remaining - 1)
+  defp wait_for_exec_worker(os) do
+    case os.await(&exec_worker_alive?/0, @exec_wait_attempts, @exec_wait_delay_ms) do
+      {:ok, _evidence} -> :ok
+      {:error, _evidence} -> :error
     end
   end
 
-  defp recover_missing_exec_worker do
+  defp recover_missing_exec_worker(os) do
     if exec_app_alive?() do
       {:error, :exec_not_running}
     else
       with :ok <- restart_erlexec_application(),
-           :ok <- wait_for_exec_worker(@exec_wait_attempts) do
+           :ok <- wait_for_exec_worker(os) do
         :ok
       else
         :error -> {:error, :exec_not_running}
@@ -811,7 +794,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
         )
 
       {:error, {:transport, %Error{}} = error} ->
-        stop_run_exec_and_confirm_down(pid, os_pid)
+        stop_run_exec_and_confirm_down(pid, os_pid, options.os)
         _ = flush_run_messages(pid, os_pid, options.stderr, [], [], [])
         {:error, error}
     end
@@ -928,7 +911,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   end
 
   defp handle_run_timeout(pid, os_pid, options, stdout, stderr, output) do
-    stop_run_exec_and_confirm_down(pid, os_pid)
+    stop_run_exec_and_confirm_down(pid, os_pid, options.os)
 
     {stdout, stderr, output} =
       flush_run_messages(pid, os_pid, options.stderr, stdout, stderr, output)
@@ -1002,8 +985,8 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
     end
   end
 
-  defp stop_run_exec_and_confirm_down(pid, os_pid) do
-    _ = kill_process_group(os_pid, "TERM")
+  defp stop_run_exec_and_confirm_down(pid, os_pid, os) do
+    _ = kill_process_group(os_pid, "TERM", os)
     stop_exec(pid)
 
     case await_down(pid, os_pid, @run_stop_wait_ms) do
@@ -1011,7 +994,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
         :ok
 
       :timeout ->
-        _ = kill_process_group(os_pid, "KILL")
+        _ = kill_process_group(os_pid, "KILL", os)
         kill_exec(pid)
         _ = await_down(pid, os_pid, @run_kill_wait_ms)
         :ok
@@ -1286,7 +1269,7 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   defp end_input_subprocess(pid, true), do: send_payload(pid, <<4>>, :raw)
   defp end_input_subprocess(pid, false), do: send_eof(pid)
 
-  defp interrupt_subprocess(pid, _os_pid, {:stdin, payload})
+  defp interrupt_subprocess(pid, _os_pid, {:stdin, payload}, _os)
        when is_pid(pid) and is_binary(payload) do
     :exec.send(pid, payload)
     :ok
@@ -1295,21 +1278,16 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
       transport_error(Error.send_failed({kind, reason}))
   end
 
-  defp interrupt_subprocess(_pid, os_pid, :signal) when is_integer(os_pid) and os_pid > 0 do
-    case kill_executable() do
-      nil ->
+  defp interrupt_subprocess(_pid, os_pid, :signal, os) when is_integer(os_pid) and os_pid > 0 do
+    case os.signal_process_group(os_pid, "INT") do
+      :ok ->
+        :ok
+
+      {:error, :kill_command_not_found} ->
         transport_error(Error.send_failed(:kill_command_not_found))
 
-      kill_executable ->
-        case System.cmd(kill_executable, ["-INT", "--", "-#{os_pid}"], stderr_to_stdout: true) do
-          {_output, 0} ->
-            :ok
-
-          {output, status} ->
-            transport_error(
-              Error.send_failed({:kill_exit_status, status, String.trim_trailing(output)})
-            )
-        end
+      {:error, {:kill_exit_status, status, output}} ->
+        transport_error(Error.send_failed({:kill_exit_status, status, output}))
     end
   catch
     _, _ ->
@@ -1507,38 +1485,26 @@ defmodule ExecutionPlane.Process.Transport.Subprocess do
   end
 
   defp force_stop_subprocess(%{subprocess: {pid, os_pid}} = state) do
-    stop_subprocess(pid, os_pid)
+    stop_subprocess(pid, os_pid, state.os)
     %{state | subprocess: nil, status: :disconnected}
   end
 
   defp force_stop_subprocess(state), do: state
 
-  defp stop_subprocess(pid, os_pid) when is_pid(pid) do
-    _ = kill_process_group(os_pid, "KILL")
+  defp stop_subprocess(pid, os_pid, os) when is_pid(pid) do
+    _ = kill_process_group(os_pid, "KILL", os)
     _ = :exec.kill(pid, 9)
     :ok
   catch
     _, _ -> :ok
   end
 
-  defp kill_process_group(os_pid, signal) when is_integer(os_pid) and os_pid > 0 do
-    case kill_executable() do
-      nil ->
-        :ok
-
-      kill_executable ->
-        _ =
-          System.cmd(kill_executable, ["-#{signal}", "--", "-#{os_pid}"], stderr_to_stdout: true)
-
-        :ok
-    end
+  defp kill_process_group(os_pid, signal, os) when is_integer(os_pid) and os_pid > 0 do
+    _ = os.signal_process_group(os_pid, signal)
+    :ok
   end
 
-  defp kill_process_group(_os_pid, _signal), do: :ok
-
-  defp kill_executable do
-    Enum.find(@kill_paths, &File.exists?/1)
-  end
+  defp kill_process_group(_os_pid, _signal, _os), do: :ok
 
   defp drop_until_next_newline(data) when is_binary(data) do
     case :binary.match(data, "\n") do
