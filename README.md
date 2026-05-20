@@ -76,6 +76,11 @@ runner lane under the process package, added target posture attach contracts,
 required lower authority refs, governed process environment inheritance, and
 cleaned up atom/regex/env hazards.
 
+Maintainers should read
+[Code Smell Remediation](guides/code_smell_remediation.md) before changing
+subprocess transport state, public starts, OS command ownership, file spooling,
+or guest bridge state.
+
 ## Runtime Diagrams
 
 ```mermaid

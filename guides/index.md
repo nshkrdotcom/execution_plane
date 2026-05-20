@@ -109,3 +109,9 @@ From the repository root, this gate uses Blitz to run every package-local
 `mix ci`. From a package directory, it runs that package's formatting checks,
 compile warnings-as-errors, tests, Credo, Dialyzer, and docs with warnings
 treated as errors.
+
+## Remediation Notes
+
+See [Code Smell Remediation](code_smell_remediation.md) before changing
+transport supervision, OS command ownership, file spooling, or guest bridge
+state.

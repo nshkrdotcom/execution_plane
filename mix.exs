@@ -113,6 +113,7 @@ defmodule ExecutionPlane.Workspace.MixProject do
         {"CHANGELOG.md", filename: "changelog"},
         {"LICENSE", filename: "license"},
         {"guides/index.md", filename: "guides_index"},
+        {"guides/code_smell_remediation.md", filename: "code_smell_remediation"},
         {"technical/02_repo_topology_and_package_map.md", filename: "repo_topology"},
         {"technical/07_brain_spine_and_harness_alignment.md", filename: "brain_spine_alignment"},
         {"core/execution_plane/README.md", filename: "execution_plane"},
@@ -138,7 +139,7 @@ defmodule ExecutionPlane.Workspace.MixProject do
          filename: "execution_plane_operator_terminal"}
       ],
       groups_for_extras: [
-        Overview: ["README.md", "guides/index.md"],
+        Overview: ["README.md", "guides/index.md", "guides/code_smell_remediation.md"],
         Publishing: ["CHANGELOG.md", "LICENSE"],
         Technical: [
           "technical/02_repo_topology_and_package_map.md",
