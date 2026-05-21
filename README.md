@@ -76,6 +76,21 @@ runner lane under the process package, added target posture attach contracts,
 required lower authority refs, governed process environment inheritance, and
 cleaned up atom/regex/env hazards.
 
+The Synapse governed-effect lift adds the deterministic diagnostic lane used by
+StackLab staged-live proof. `ExecutionPlane.Lanes.DiagnosticLane` validates a
+lower execution request, runs the selected diagnostic action, applies timeout
+and output-size limits, and returns an `ExecutionPlane.DiagnosticResult` through
+the common execution result shape. It is deliberately provider-neutral: higher
+layers decide authority, product meaning, and connector placement; Execution
+Plane only owns lower request validation, lane execution, and result evidence.
+
+The cross-stack conformance command is:
+
+```bash
+cd /home/home/p/g/n/stack_lab
+MIX_ENV=test mix stack_lab.synapse.staged_live.v1 --json
+```
+
 Maintainers should read
 [Code Smell Remediation](guides/code_smell_remediation.md) before changing
 subprocess transport state, public starts, OS command ownership, file spooling,
