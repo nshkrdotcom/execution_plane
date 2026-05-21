@@ -21,6 +21,11 @@ Current packet status:
   storage evidence for target descriptors, attach grants, boundary sessions,
   stream attach state, cleanup receipts, and execution evidence. It never
   persists raw process state and does not change target attach authority.
+- Native-agent Phase 7 adds `ExecutionPlane.LaneFact.v1`, the neutral bounded
+  lower-lane fact shape for start, chunk, frame, complete, fail, timeout, and
+  cancel evidence. It carries refs, bounded shapes, hashes, and lineage, not raw
+  stdout, stderr, HTTP bodies, credentials, Citadel bypass flags, or product
+  workflow decisions.
 - Phase 4 durable workflow activities use
   `ExecutionPlane.ActivitySideEffectIdempotency.v1` to bind tenant, actor,
   workflow, activity, lower run, execution intent, lease evidence, heartbeat

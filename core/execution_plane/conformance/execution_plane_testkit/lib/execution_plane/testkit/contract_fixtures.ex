@@ -16,6 +16,7 @@ defmodule ExecutionPlane.Testkit.ContractFixtures do
   alias ExecutionPlane.Contracts.Failure
   alias ExecutionPlane.Contracts.HttpExecutionIntent.V1, as: HttpExecutionIntent
   alias ExecutionPlane.Contracts.JsonRpcExecutionIntent.V1, as: JsonRpcExecutionIntent
+  alias ExecutionPlane.Contracts.LaneFact.V1, as: LaneFact
   alias ExecutionPlane.Contracts.LowerSimulationEvidence.V1, as: LowerSimulationEvidence
   alias ExecutionPlane.Contracts.LowerSimulationScenario.V1, as: LowerSimulationScenario
   alias ExecutionPlane.Contracts.NoBypassScan.V1, as: NoBypassScan
@@ -308,6 +309,30 @@ defmodule ExecutionPlane.Testkit.ContractFixtures do
       audience: "github_api",
       expires_at: "2026-04-10T12:00:00Z",
       rotation_policy: "short_lived"
+    })
+  end
+
+  @spec lane_fact() :: LaneFact.t()
+  def lane_fact do
+    LaneFact.new!(%{
+      fact_ref: "lane-fact://route-1/completed/0",
+      route_id: http_execution_route().route_id,
+      lane_id: "http",
+      family: "http",
+      protocol: "http",
+      phase: "completed",
+      transport_ref: "transport://execution-plane/http/route-1",
+      timestamp: "2026-04-10T11:55:00Z",
+      sequence: 0,
+      output_byte_size: 128,
+      max_output_bytes: 65_536,
+      output_hash_ref: "sha256:" <> String.duplicate("9", 64),
+      lineage: lineage(route_id: http_execution_route().route_id),
+      payload_shape: %{
+        "family" => "http",
+        "raw_payload_shape" => ["body", "headers", "status_code"]
+      },
+      evidence_refs: ["evidence://execution-plane/route-1/completed"]
     })
   end
 

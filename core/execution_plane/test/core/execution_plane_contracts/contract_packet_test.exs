@@ -22,6 +22,7 @@ defmodule ExecutionPlane.Contracts.ContractPacketTest do
       ContractFixtures.execution_route(),
       ContractFixtures.attach_grant(),
       ContractFixtures.credential_handle_ref(),
+      ContractFixtures.lane_fact(),
       ContractFixtures.execution_event(),
       ContractFixtures.execution_outcome(),
       ContractFixtures.execution_failure_outcome(),
