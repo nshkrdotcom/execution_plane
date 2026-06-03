@@ -255,3 +255,19 @@ MIT
 ## Persistence Documentation
 
 See `docs/persistence.md` for tiers, defaults, adapters, unsupported selections, config examples, restart claims, durability claims, debug sidecar behavior, redaction guarantees, migration or preflight behavior, and no-bypass scope when applicable.
+
+## Trial Replay & Scoring Lane Role
+
+Execution Plane executes replay and scoring lanes for Chassis Evolution
+candidates. `Chassis.Evolution.Scorer` can invoke Execution Plane lanes to
+replay a failure batch and baseline cases against an isolated trial worker,
+then return bounded lane evidence to Chassis and Mezzanine for scoring
+reduction. Lane jobs remain sandboxed replay jobs with explicit authority,
+target, timeout, output bounds, and evidence packet refs.
+
+## ExecutionPlane Executes; Chassis Provisions
+
+Chassis provisions the isolated trial runtime, host placement, mount posture,
+release/image candidate, and rollback checkpoints. Execution Plane runs the
+lanes. Chassis does not own job execution semantics; Execution Plane does not
+own substrate placement, Chassis receipts, or candidate promotion authority.
