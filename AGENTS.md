@@ -43,6 +43,42 @@ and proof path.
   aliases. Lane packages must also pass their package-local gate before claims
   are made.
 
+## Design Intent — Effect Isolation (North Star)
+
+Execution Plane exists to be the hard boundary between *deciding* to do
+something and *actually doing it*. Everything above it (planning, governance,
+semantics, product) reasons in refs and policy; this layer is the only one that
+turns an approved execution request into a real OS-level effect — spawn a
+process, open a PTY, run a command over SSH.
+
+The eventuality this repo is shaped for, even where today's wiring is
+co-located, is that **Execution Plane runs (optionally) as a separate BEAM
+node** so side-effecting execution ("Effects") is *hard-isolated* from the
+governance/planning core: fault isolation (a runaway or crashing child cannot
+take down the deciding node), security isolation (the effect surface is a
+distinct trust/attestation domain), and blast-radius containment (Effects run
+where they can be killed, sandboxed, or placed on a different host).
+
+That is why the substrate is built around placement, targets, attestations, and
+a runtime node rather than direct calls:
+
+- `local-erlexec-weak` is the *weak, co-located* rung — same node, `:exec.run`,
+  no real isolation. It is the default today because it is finished, not because
+  it is the destination.
+- Verified remote/target attestations are the *strong* rung — a distinct
+  node/host/sandbox whose isolation is an attested claim, not an assumption.
+- `ExecutionPlane.Runtime.Client` is the governed entry point precisely so
+  callers never bind to a transport or a node; the same call resolves to
+  co-located erlexec today and an isolated effect node later, with no caller
+  change.
+
+Current state vs. intent: the execution path is live and co-located
+(SDK → `cli_subprocess_core` → `ExecutionPlane.Process.Transport` → erlexec).
+Node separation and the strong attestation rungs are the target architecture,
+not yet the default. Do not collapse this boundary for convenience (for example
+re-absorbing transport into a caller); that forfeits the isolation eventuality
+the whole plane exists to enable.
+
 ## Current Architecture State
 
 - This checkout is intentionally workspace-shaped, not a flat `lib/` package
