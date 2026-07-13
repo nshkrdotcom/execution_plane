@@ -2,6 +2,9 @@
 [
   inputs: [
     "{mix,.formatter}.exs",
+    "build_support/*.{ex,exs}",
+    "lib/**/*.{ex,exs}",
+    "packaging/weld/**/*.{ex,exs}",
     "core/execution_plane/{mix,.formatter}.exs",
     "protocols/*/{mix,.formatter}.exs",
     "protocols/*/{lib,test}/**/*.{ex,exs}",

@@ -142,8 +142,8 @@ defmodule ExecutionPlaneProcess.MixProject do
   defp dialyzer do
     [
       plt_add_apps: [:mix, :ex_unit],
-      plt_core_path: "priv/plts/core",
-      plt_local_path: "priv/plts",
+      plt_core_path: "_build/plts/core",
+      plt_local_path: "_build/plts",
       flags: [:error_handling, :underspecs]
     ]
   end

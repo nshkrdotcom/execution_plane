@@ -49,28 +49,9 @@ defmodule ExecutionPlane.MixProject do
     []
   end
 
-  defp elixirc_paths(:test) do
-    [
-      "lib",
-      "core/execution_plane_contracts/lib",
-      "core/execution_plane_kernel/lib",
-      "placements/execution_plane_local/lib",
-      "placements/execution_plane_ssh/lib",
-      "placements/execution_plane_guest/lib",
-      "conformance/execution_plane_testkit/lib"
-    ]
-  end
+  defp elixirc_paths(:test), do: ["lib"]
 
-  defp elixirc_paths(_env) do
-    [
-      "lib",
-      "core/execution_plane_contracts/lib",
-      "core/execution_plane_kernel/lib",
-      "placements/execution_plane_local/lib",
-      "placements/execution_plane_ssh/lib",
-      "placements/execution_plane_guest/lib"
-    ]
-  end
+  defp elixirc_paths(_env), do: ["lib"]
 
   defp test_paths do
     [
@@ -190,23 +171,17 @@ defmodule ExecutionPlane.MixProject do
           README.md
           assets/execution_plane.svg
           conformance/execution_plane_testkit/README.md
-          conformance/execution_plane_testkit/lib
           core/execution_plane_contracts/.formatter.exs
           core/execution_plane_contracts/README.md
-          core/execution_plane_contracts/lib
           core/execution_plane_kernel/.formatter.exs
           core/execution_plane_kernel/README.md
-          core/execution_plane_kernel/lib
           guides/index.md
           lib
           mix.exs
           placements/execution_plane_guest/README.md
-          placements/execution_plane_guest/lib
           placements/execution_plane_local/.formatter.exs
           placements/execution_plane_local/README.md
-          placements/execution_plane_local/lib
           placements/execution_plane_ssh/README.md
-          placements/execution_plane_ssh/lib
           technical/02_repo_topology_and_package_map.md
           technical/07_brain_spine_and_harness_alignment.md
         )

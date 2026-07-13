@@ -1,24 +1,27 @@
 # Monorepo Project Map
 
 This checkout contains one non-published Mix workspace root plus eight
-publishable package projects:
+independently testable component source projects. The first public
+`execution_plane` Hex package is a Weld-generated distribution:
 
 - `./mix.exs`: non-published `execution_plane_workspace` tooling root. It owns
   Blitz orchestration and must not be treated as the Hex package.
-- `./core/execution_plane/mix.exs`: publishable `execution_plane` common
-  substrate.
+- `./core/execution_plane/mix.exs`: common-substrate source unit selected into
+  the generated `execution_plane` distribution.
 - `./protocols/execution_plane_http/mix.exs`: unary HTTP lane.
-- `./protocols/execution_plane_jsonrpc/mix.exs`: JSON-RPC framing lane.
+- `./protocols/execution_plane_jsonrpc/mix.exs`: JSON-RPC framing source unit
+  selected into the generated distribution.
 - `./streaming/execution_plane_sse/mix.exs`: SSE framing and stream lane.
 - `./streaming/execution_plane_websocket/mix.exs`: WebSocket lifecycle lane.
-- `./runtimes/execution_plane_process/mix.exs`: process/PTY/stdio lane.
+- `./runtimes/execution_plane_process/mix.exs`: process/PTY/stdio source unit
+  selected into the generated distribution.
 - `./runtimes/execution_plane_node/mix.exs`: lane-neutral runtime node.
 - `./runtimes/execution_plane_operator_terminal/mix.exs`: operator-terminal
   add-on package for local, SSH, and distributed TUIs.
 
 The repository root `./mix.exs` is a Mix project, but it is not a publishable
-package project. It is allowed to depend on Blitz for repo-wide orchestration;
-publishable manifests are not.
+package project. It owns Blitz orchestration and Weld 0.8.2 release tooling;
+neither dependency belongs in generated runtime manifests.
 
 ## Onboarding
 
@@ -27,10 +30,16 @@ and proof path.
 
 ## Execution Plane Stack Rules
 
-- `core/execution_plane/mix.exs` is the lower common substrate package. It
+- `core/execution_plane/mix.exs` is the lower common-substrate source unit. It
   must not grow lane-heavy dependencies or runtime ownership.
 - The root `mix.exs` is workspace tooling only. Blitz belongs there and must
-  not be added to publishable package manifests.
+  not be added to generated package manifests. Weld is likewise root-only
+  release tooling.
+- The public `execution_plane` 0.1.0 distribution is generated from exactly
+  `core/execution_plane`, `protocols/execution_plane_jsonrpc`, and
+  `runtimes/execution_plane_process` through `build_support/weld.exs`.
+- The selected component projects remain independently testable source units;
+  canonical edits stay in those source homes, never on the projection branch.
 - Lane packages and node/operator packages are separate Mix projects with
   their own dependency surfaces.
 - Keep active common substrate homes, add-on homes, and reserved sandbox homes
@@ -83,15 +92,11 @@ the whole plane exists to enable.
 
 - This checkout is intentionally workspace-shaped, not a flat `lib/` package
   dump.
-- The publishable `core/execution_plane` app compiles only common substrate
-  homes through `elixirc_paths`. From the repo root those active homes are:
-  - `core/execution_plane/lib`
-  - `core/execution_plane/core/execution_plane_contracts/lib`
-  - `core/execution_plane/core/execution_plane_kernel/lib`
-  - `core/execution_plane/placements/execution_plane_local/lib`
-  - `core/execution_plane/placements/execution_plane_ssh/lib`
-  - `core/execution_plane/placements/execution_plane_guest/lib`
-  - `core/execution_plane/conformance/execution_plane_testkit/lib`
+- The selected `core/execution_plane` source app compiles all active common
+  substrate modules from its conventional `core/execution_plane/lib` tree so
+  released Weld can project them without source duplication. The nested
+  contract, kernel, placement, and testkit directories retain ownership
+  READMEs but are not additional compiler roots.
 - Root-level `placements/` and `conformance/` are not active source homes for
   the package after the workspace-root correction.
 - Common substrate contracts include admission, authority refs/verifiers,
@@ -125,9 +130,9 @@ the whole plane exists to enable.
 - The workspace should keep Hex fallback behavior in downstream repos;
   local path deps are for workspace development, not a silent production
   assumption.
-- Publish `core/execution_plane` first, lane packages next,
-  `execution_plane_node` after the lane/common contracts it depends on, and
-  `execution_plane_operator_terminal` last.
+- Publish the generated `execution_plane` distribution first. The HTTP,
+  SSE/WebSocket, node, and operator-terminal projects remain separate
+  publication units and are outside the first distribution release.
 
 ## Known Direct Consumers Of `execution_plane`
 
@@ -235,7 +240,7 @@ Root workspace Blitz uses published Hex `~> 0.3.0` by default; `.blitz/` is comm
 - Dependency source selection must not use environment variables.
 - Runtime application code under `lib/**` must not call direct OS env APIs.
   Runtime env reads belong in `config/runtime.exs` or a `Config.Provider`.
-- Execution Plane is not a Weld consumer in this pass. Do not add Weld here
-  unless a separate approved Weld-adoption change is made. Weld still owns
-  helper drift, dependency-source manifests, clone/publish checks, and publish
-  order for repos that consume it.
+- Released Weld `~> 0.8.2` is the approved root-only projection and release
+  tool. `build_support/weld.exs` is the canonical artifact manifest. The
+  durable generated branch is `projection/execution_plane`; never make
+  canonical source edits there.

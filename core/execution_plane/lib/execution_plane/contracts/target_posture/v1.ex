@@ -6,6 +6,7 @@ defmodule ExecutionPlane.Contracts.TargetPosture.V1 do
   alias ExecutionPlane.Contracts
   alias ExecutionPlane.Contracts.AttachGrant.V1, as: AttachGrant
   alias ExecutionPlane.Contracts.ExecutionIntentEnvelope.V1, as: ExecutionIntentEnvelope
+  alias ExecutionPlane.Contracts.PersistencePosture
 
   @contract_version Contracts.contract_version!(:target_posture_v1)
 
@@ -234,7 +235,7 @@ defmodule ExecutionPlane.Contracts.TargetPosture.V1 do
       cleanup_reason: to_string(reason),
       cleanup_refs: posture.cleanup_refs,
       persistence_posture:
-        ExecutionPlane.Contracts.PersistencePosture.resolve(:cleanup_receipt, %{
+        PersistencePosture.resolve(:cleanup_receipt, %{
           persistence_posture: posture.persistence_posture
         }),
       materialized_state_refs: [],
@@ -266,8 +267,7 @@ defmodule ExecutionPlane.Contracts.TargetPosture.V1 do
         fetch_optional_ref!(attrs, :stream_target_identity_ref, "stream-target-identity://"),
       service_identity_ref:
         fetch_optional_ref!(attrs, :service_identity_ref, "service-identity://"),
-      persistence_posture:
-        ExecutionPlane.Contracts.PersistencePosture.resolve(:target_descriptor, attrs),
+      persistence_posture: PersistencePosture.resolve(:target_descriptor, attrs),
       allowed_provider_families: fetch_optional_string_list!(attrs, :allowed_provider_families),
       allowed_provider_account_refs:
         fetch_optional_ref_list!(attrs, :allowed_provider_account_refs, "provider-account://"),

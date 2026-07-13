@@ -4,6 +4,7 @@ defmodule ExecutionPlane.Contracts.BoundarySessionDescriptor.V1 do
   """
 
   alias ExecutionPlane.Contracts
+  alias ExecutionPlane.Contracts.PersistencePosture
 
   @contract_version Contracts.contract_version!(:boundary_session_descriptor_v1)
 
@@ -87,8 +88,7 @@ defmodule ExecutionPlane.Contracts.BoundarySessionDescriptor.V1 do
       session_status: Contracts.fetch_required_stringish!(attrs, :session_status),
       attach_state: Contracts.fetch_required_stringish!(attrs, :attach_state),
       workspace_ref: Contracts.fetch_required_stringish!(attrs, :workspace_ref),
-      persistence_posture:
-        ExecutionPlane.Contracts.PersistencePosture.resolve(:boundary_session, attrs),
+      persistence_posture: PersistencePosture.resolve(:boundary_session, attrs),
       artifact_refs:
         Contracts.fetch_optional_list!(
           attrs,

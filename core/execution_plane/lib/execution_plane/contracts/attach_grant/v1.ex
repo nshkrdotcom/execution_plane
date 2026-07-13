@@ -1,9 +1,11 @@
+# credo:disable-for-this-file Credo.Check.Warning.StructFieldAmount
 defmodule ExecutionPlane.Contracts.AttachGrant.V1 do
   @moduledoc """
   Phase 4 lease-bound attach grant for hazmat stream/session access.
   """
 
   alias ExecutionPlane.Contracts
+  alias ExecutionPlane.Contracts.PersistencePosture
 
   @contract_version Contracts.contract_version!(:attach_grant_v1)
 
@@ -150,8 +152,7 @@ defmodule ExecutionPlane.Contracts.AttachGrant.V1 do
         |> Contracts.fetch_required_stringish!(:expires_at)
         |> Contracts.validate_iso8601!("expires_at"),
       revocation_ref: Contracts.fetch_required_stringish!(attrs, :revocation_ref),
-      persistence_posture:
-        ExecutionPlane.Contracts.PersistencePosture.resolve(:attach_grant, attrs),
+      persistence_posture: PersistencePosture.resolve(:attach_grant, attrs),
       credential_handle_refs:
         Contracts.fetch_optional_list!(
           attrs,

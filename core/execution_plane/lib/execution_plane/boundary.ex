@@ -1,6 +1,7 @@
 defmodule ExecutionPlane.Boundary do
   @moduledoc false
 
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defmacro defcontract(fields) do
     quote bind_quoted: [fields: fields] do
       @fields fields
@@ -127,27 +128,29 @@ defmodule ExecutionPlane.Codec do
   Canonical JSON codec helpers for root boundary contracts.
   """
 
+  alias GroundPlane.Boundary.Codec, as: GroundCodec
+
   @spec encode!(struct() | map()) :: String.t()
   def encode!(%_{} = value) do
     value
     |> value.__struct__.dump()
-    |> GroundPlane.Boundary.Codec.encode!()
+    |> GroundCodec.encode!()
   end
 
   def encode!(value) when is_map(value),
-    do: value |> ExecutionPlane.Boundary.dump_value() |> GroundPlane.Boundary.Codec.encode!()
+    do: value |> ExecutionPlane.Boundary.dump_value() |> GroundCodec.encode!()
 
   @spec digest(struct() | map() | list() | String.t() | integer() | boolean() | nil) :: String.t()
   def digest(%_{} = value) do
     value
     |> value.__struct__.dump()
-    |> GroundPlane.Boundary.Codec.digest()
+    |> GroundCodec.digest()
   end
 
   def digest(value) do
     value
     |> ExecutionPlane.Boundary.dump_value()
-    |> GroundPlane.Boundary.Codec.digest()
+    |> GroundCodec.digest()
   end
 
   @spec decode!(String.t(), module()) :: struct()
@@ -422,6 +425,8 @@ end
 defmodule ExecutionPlane.Target.Descriptor do
   @moduledoc "Verifier-validated Target routing descriptor."
 
+  alias ExecutionPlane.Contracts.PersistencePosture
+
   import ExecutionPlane.Boundary, only: [defcontract: 1]
 
   defcontract(
@@ -454,8 +459,7 @@ defmodule ExecutionPlane.Target.Descriptor do
        attestation_id: ExecutionPlane.Boundary.fetch(attrs, :attestation_id, nil),
        attested_at: ExecutionPlane.Boundary.fetch(attrs, :attested_at, nil),
        expires_at: ExecutionPlane.Boundary.fetch(attrs, :expires_at, nil),
-       persistence_posture:
-         ExecutionPlane.Contracts.PersistencePosture.resolve(:target_descriptor, attrs),
+       persistence_posture: PersistencePosture.resolve(:target_descriptor, attrs),
        metadata: ExecutionPlane.Boundary.fetch(attrs, :metadata, %{}),
        signature: ExecutionPlane.Boundary.fetch(attrs, :signature, nil)
      }}
@@ -491,6 +495,8 @@ end
 defmodule ExecutionPlane.Admission.Request do
   @moduledoc "Runtime-client admission request."
 
+  alias ExecutionPlane.Sandbox.AcceptableAttestation
+
   import ExecutionPlane.Boundary, only: [defcontract: 1]
 
   defcontract(
@@ -501,7 +507,7 @@ defmodule ExecutionPlane.Admission.Request do
     payload: %{},
     authority_ref: nil,
     sandbox_profile: nil,
-    acceptable_attestation: ExecutionPlane.Sandbox.AcceptableAttestation.new!(),
+    acceptable_attestation: AcceptableAttestation.new!(),
     placement: nil,
     constraints: [],
     provenance: ExecutionPlane.Provenance.new!(),
@@ -514,7 +520,7 @@ defmodule ExecutionPlane.Admission.Request do
     acceptable =
       attrs
       |> ExecutionPlane.Boundary.fetch(:acceptable_attestation, %{})
-      |> ExecutionPlane.Sandbox.AcceptableAttestation.new!()
+      |> AcceptableAttestation.new!()
 
     provenance =
       attrs
@@ -656,6 +662,8 @@ end
 defmodule ExecutionPlane.Evidence do
   @moduledoc "Serializable execution evidence envelope."
 
+  alias ExecutionPlane.Contracts.PersistencePosture
+
   import ExecutionPlane.Boundary, only: [defcontract: 1]
 
   defcontract(
@@ -701,8 +709,7 @@ defmodule ExecutionPlane.Evidence do
        lane_id: ExecutionPlane.Boundary.fetch(attrs, :lane_id, nil),
        authority_verifier_id: ExecutionPlane.Boundary.fetch(attrs, :authority_verifier_id, nil),
        payload: ExecutionPlane.Boundary.fetch(attrs, :payload, %{}),
-       persistence_posture:
-         ExecutionPlane.Contracts.PersistencePosture.resolve(:execution_evidence, attrs),
+       persistence_posture: PersistencePosture.resolve(:execution_evidence, attrs),
        emitted_at: ExecutionPlane.Boundary.fetch(attrs, :emitted_at, nil)
      }}
   rescue

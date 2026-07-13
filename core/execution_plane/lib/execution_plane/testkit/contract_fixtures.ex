@@ -3,8 +3,8 @@ defmodule ExecutionPlane.Testkit.ContractFixtures do
   Wave 1 fixtures for the frozen contract packet.
   """
 
-  alias ExecutionPlane.Contracts.AttachGrant.V1, as: AttachGrant
   alias ExecutionPlane.Contracts.AdapterSelectionPolicy.V1, as: AdapterSelectionPolicy
+  alias ExecutionPlane.Contracts.AttachGrant.V1, as: AttachGrant
   alias ExecutionPlane.Contracts.AuthorityDecision.V1, as: AuthorityDecision
   alias ExecutionPlane.Contracts.BoundarySessionDescriptor.V1, as: BoundarySessionDescriptor
   alias ExecutionPlane.Contracts.CredentialHandleRef.V1, as: CredentialHandleRef

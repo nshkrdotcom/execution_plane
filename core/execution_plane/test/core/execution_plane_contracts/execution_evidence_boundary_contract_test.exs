@@ -128,10 +128,7 @@ defmodule ExecutionPlane.Contracts.ExecutionEvidenceBoundaryContractTest do
   end
 
   test "ExecutionOutcome.v1 source still carries raw_payload as raw map, not boundary shape" do
-    source =
-      File.read!(
-        "core/execution_plane_contracts/lib/execution_plane/contracts/execution_outcome/v1.ex"
-      )
+    source = File.read!("lib/execution_plane/contracts/execution_outcome/v1.ex")
 
     assert String.contains?(source, "raw_payload: Contracts.fetch_optional_map!")
     refute String.contains?(source, "raw_payload_shape")

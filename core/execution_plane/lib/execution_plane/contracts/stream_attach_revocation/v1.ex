@@ -4,6 +4,7 @@ defmodule ExecutionPlane.Contracts.StreamAttachRevocation.V1 do
   """
 
   alias ExecutionPlane.Contracts
+  alias ExecutionPlane.Contracts.PersistencePosture
 
   @contract_version Contracts.contract_version!(:stream_attach_revocation_v1)
 
@@ -86,8 +87,7 @@ defmodule ExecutionPlane.Contracts.StreamAttachRevocation.V1 do
       revocation_ref: Contracts.fetch_required_stringish!(attrs, :revocation_ref),
       termination_ref: Contracts.fetch_required_stringish!(attrs, :termination_ref),
       last_event_position: Contracts.fetch_required_non_neg_integer!(attrs, :last_event_position),
-      persistence_posture:
-        ExecutionPlane.Contracts.PersistencePosture.resolve(:stream_attach_state, attrs)
+      persistence_posture: PersistencePosture.resolve(:stream_attach_state, attrs)
     }
   end
 

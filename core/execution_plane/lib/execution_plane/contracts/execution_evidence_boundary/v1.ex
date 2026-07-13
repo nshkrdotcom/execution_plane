@@ -10,6 +10,7 @@ defmodule ExecutionPlane.Contracts.ExecutionEvidenceBoundary.V1 do
   alias ExecutionPlane.Contracts
   alias ExecutionPlane.Contracts.ExecutionOutcome.V1, as: ExecutionOutcome
   alias ExecutionPlane.Contracts.LowerSimulationEvidence.V1, as: LowerSimulationEvidence
+  alias ExecutionPlane.Contracts.PersistencePosture
 
   @contract_version Contracts.contract_version!(:execution_evidence_boundary_v1)
   @owner_repo "execution_plane"
@@ -116,7 +117,7 @@ defmodule ExecutionPlane.Contracts.ExecutionEvidenceBoundary.V1 do
         Keyword.get(
           opts,
           :persistence_posture,
-          ExecutionPlane.Contracts.PersistencePosture.memory(:execution_evidence)
+          PersistencePosture.memory(:execution_evidence)
         ),
       scan_result: scan_result("passed")
     })
@@ -190,8 +191,7 @@ defmodule ExecutionPlane.Contracts.ExecutionEvidenceBoundary.V1 do
           Contracts.fetch_required_stringish!(attrs, :schema_ref),
           "schema_ref"
         ),
-      persistence_posture:
-        ExecutionPlane.Contracts.PersistencePosture.resolve(:execution_evidence, attrs),
+      persistence_posture: PersistencePosture.resolve(:execution_evidence, attrs),
       scan_result: validate_scan_result!(attrs)
     }
   end
