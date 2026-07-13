@@ -21,6 +21,19 @@ template, attach grant, or target descriptor refs, default `clear_env` to
 authority materializers must pass any required process env as explicit
 `env_projection` input for that one effect.
 
+## Runtime Supervision
+
+The standalone `:execution_plane_process` application starts the named task
+and process-transport supervisors. The welded `:execution_plane` distribution
+starts the same named supervisors from its generated application.
+Runtime library calls check those supervisors directly and return
+`{:error, {:runtime_not_started, :execution_plane_process}}` when they are
+absent; they never try to start a component application.
+
+The subprocess launcher still calls `Application.ensure_all_started(:erlexec)`.
+That is intentional: `:erlexec` is a real external OTP dependency whose worker
+must be available before operating-system process launch.
+
 ## Installation
 
 ```elixir

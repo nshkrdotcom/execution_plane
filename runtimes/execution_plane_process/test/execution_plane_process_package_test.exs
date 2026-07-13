@@ -66,13 +66,36 @@ defmodule ExecutionPlaneProcessPackageTest do
   alias ExecutionPlane.Process.Transport.Surface
   alias ExecutionPlane.Process.Transport.Surface.Capabilities
   alias ExecutionPlane.Process.Transport.TaggedRelay
+  alias ExecutionPlane.Process.TransportSupervisor
   alias ExecutionPlane.Runtimes.Process, as: ProcessRuntime
+  alias ExecutionPlane.TaskSupport
   alias ExecutionPlaneProcessPackageTest.OSProbe
   alias ExecutionPlaneProcessPackageTest.UnprivilegedOS
 
   test "starts the standalone process application supervisor" do
-    assert {:ok, _apps} = Application.ensure_all_started(:execution_plane_process)
+    expected_app =
+      if Application.spec(:execution_plane_process),
+        do: :execution_plane_process,
+        else: :execution_plane
+
+    assert Enum.any?(Application.started_applications(), fn {app, _description, _version} ->
+             app == expected_app
+           end)
+
     assert Process.whereis(ExecutionPlane.TaskSupervisor)
+    assert Process.whereis(TransportSupervisor)
+
+    owner = self()
+    assert {:ok, _pid} = TaskSupport.start_child(fn -> send(owner, :standalone_task_started) end)
+
+    assert {:ok, _pid} =
+             TransportSupervisor.start_child(
+               Task,
+               fn -> send(owner, :standalone_transport_child_started) end
+             )
+
+    assert_receive :standalone_task_started, 250
+    assert_receive :standalone_transport_child_started, 250
   end
 
   test "runs a lower simulation through the process package" do
@@ -195,7 +218,7 @@ defmodule ExecutionPlaneProcessPackageTest do
   end
 
   test "subprocess public keyword start_link routes through transport supervisor" do
-    assert {:ok, _apps} = Application.ensure_all_started(:execution_plane_process)
+    assert Process.whereis(TransportSupervisor)
 
     assert {:ok, pid} =
              Subprocess.start_link(
@@ -289,7 +312,7 @@ defmodule ExecutionPlaneProcessPackageTest do
   end
 
   test "supervised subprocess transports are not restarted after normal command exit" do
-    assert {:ok, _apps} = Application.ensure_all_started(:execution_plane_process)
+    assert Process.whereis(TransportSupervisor)
 
     ref = make_ref()
 
@@ -402,7 +425,7 @@ defmodule ExecutionPlaneProcessPackageTest do
   end
 
   defp supervised_transport_child?(pid) do
-    ExecutionPlane.Process.TransportSupervisor
+    TransportSupervisor
     |> DynamicSupervisor.which_children()
     |> Enum.any?(fn {_id, child_pid, :worker, _modules} -> child_pid == pid end)
   end

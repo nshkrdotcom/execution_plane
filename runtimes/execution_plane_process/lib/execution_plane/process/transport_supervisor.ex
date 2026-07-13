@@ -3,8 +3,6 @@ defmodule ExecutionPlane.Process.TransportSupervisor do
 
   use DynamicSupervisor
 
-  @default_app :execution_plane_process
-
   @spec start_link(keyword()) :: Supervisor.on_start()
   def start_link(opts) do
     DynamicSupervisor.start_link(__MODULE__, opts, name: __MODULE__)
@@ -27,10 +25,9 @@ defmodule ExecutionPlane.Process.TransportSupervisor do
   end
 
   defp ensure_started do
-    case Application.ensure_all_started(@default_app) do
-      {:ok, _started} -> :ok
-      {:error, {:already_started, _app}} -> :ok
-      {:error, reason} -> {:error, {:application_start_failed, reason}}
+    case Process.whereis(__MODULE__) do
+      pid when is_pid(pid) -> :ok
+      nil -> {:error, {:runtime_not_started, :execution_plane_process}}
     end
   end
 end
