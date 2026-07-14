@@ -1,0 +1,173 @@
+# execution_plane v0.1.0 - Table of Contents
+
+> Execution Plane contracts, JSON-RPC, and process runtime
+
+## Pages
+
+- Start Here
+  - [Overview](readme.md)
+  - [Package Guide](index.md)
+
+- Guides
+  - [Code Smell Remediation](code_smell_remediation.md)
+
+- Project
+  - [Changelog](changelog.md)
+  - [License](license.md)
+
+## Modules
+
+- [ExecutionPlane](ExecutionPlane.md): Lower-runtime substrate for shared execution contracts and runtime helpers.
+
+- [ExecutionPlane.ActivitySideEffectIdempotency](ExecutionPlane.ActivitySideEffectIdempotency.md): Activity-facing side-effect idempotency contract for Phase 4 durable workflows.
+- [ExecutionPlane.Admission.Decision](ExecutionPlane.Admission.Decision.md): Admission decision.
+- [ExecutionPlane.Admission.Rejection](ExecutionPlane.Admission.Rejection.md): Admission rejection.
+- [ExecutionPlane.Admission.Request](ExecutionPlane.Admission.Request.md): Runtime-client admission request.
+- [ExecutionPlane.AttachGrantContract](ExecutionPlane.AttachGrantContract.md): Lease-bound attach grant contract.
+- [ExecutionPlane.Authority.Ref](ExecutionPlane.Authority.Ref.md): Opaque authority reference. The root carries it and never interprets policy semantics.
+- [ExecutionPlane.Authority.Verifier](ExecutionPlane.Authority.Verifier.md): Authority verifier behaviour registered by node hosts.
+- [ExecutionPlane.CancellationMetadata](ExecutionPlane.CancellationMetadata.md): Cancellation metadata linked to authority, workflow, and lower run refs.
+- [ExecutionPlane.Codec](ExecutionPlane.Codec.md): Canonical JSON codec helpers for root boundary contracts.
+
+- [ExecutionPlane.Command](ExecutionPlane.Command.md): Generic transport-level command invocation.
+- [ExecutionPlane.ContractVersion](ExecutionPlane.ContractVersion.md): Root Execution Plane boundary contract version.
+
+- [ExecutionPlane.Contracts](ExecutionPlane.Contracts.md): Canonical helpers for the Execution Plane contract packet.
+- [ExecutionPlane.Contracts.AdapterSelectionPolicy.V1](ExecutionPlane.Contracts.AdapterSelectionPolicy.V1.md): Owner-repo adapter selection rule for Phase 6 lower simulation.
+- [ExecutionPlane.Contracts.AttachGrant.V1](ExecutionPlane.Contracts.AttachGrant.V1.md): Phase 4 lease-bound attach grant for hazmat stream/session access.
+
+- [ExecutionPlane.Contracts.AuthorityDecision.V1](ExecutionPlane.Contracts.AuthorityDecision.V1.md): Packet-local Brain contract baseline carried across the lower stack.
+
+- [ExecutionPlane.Contracts.BoundarySessionDescriptor.V1](ExecutionPlane.Contracts.BoundarySessionDescriptor.V1.md): Durable Spine-owned boundary/session descriptor.
+
+- [ExecutionPlane.Contracts.CredentialHandleRef.V1](ExecutionPlane.Contracts.CredentialHandleRef.V1.md): Reference to short-lived execution-time secret or workload identity material.
+
+- [ExecutionPlane.Contracts.ExecutionEvent.V1](ExecutionPlane.Contracts.ExecutionEvent.V1.md): Append-only raw execution fact emitted by the Execution Plane.
+
+- [ExecutionPlane.Contracts.ExecutionEvidenceBoundary.V1](ExecutionPlane.Contracts.ExecutionEvidenceBoundary.V1.md): Bounded report boundary for `ExecutionOutcome.v1`.
+- [ExecutionPlane.Contracts.ExecutionIntentEnvelope.V1](ExecutionPlane.Contracts.ExecutionIntentEnvelope.V1.md): Spine-to-Execution neutral intent envelope.
+
+- [ExecutionPlane.Contracts.ExecutionOutcome.V1](ExecutionPlane.Contracts.ExecutionOutcome.V1.md): Terminal or checkpointed raw execution outcome emitted by the Execution Plane.
+
+- [ExecutionPlane.Contracts.ExecutionRoute.V1](ExecutionPlane.Contracts.ExecutionRoute.V1.md): Spine-owned durable route choice carried to and from the Execution Plane.
+
+- [ExecutionPlane.Contracts.Failure](ExecutionPlane.Contracts.Failure.md): Structured failure payload used by `ExecutionOutcome.v1`.
+
+- [ExecutionPlane.Contracts.FailureClass](ExecutionPlane.Contracts.FailureClass.md): Typed failure-class enum for the shared contract packet.
+
+- [ExecutionPlane.Contracts.HttpExecutionIntent.V1](ExecutionPlane.Contracts.HttpExecutionIntent.V1.md): HTTP-family execution intent.
+- [ExecutionPlane.Contracts.JsonRpcExecutionIntent.V1](ExecutionPlane.Contracts.JsonRpcExecutionIntent.V1.md): JSON-RPC-family execution intent.
+- [ExecutionPlane.Contracts.LaneFact.V1](ExecutionPlane.Contracts.LaneFact.V1.md): Neutral bounded lower-lane fact.
+- [ExecutionPlane.Contracts.LowerSimulationEvidence.V1](ExecutionPlane.Contracts.LowerSimulationEvidence.V1.md): Bounded evidence that a lower-runtime simulation scenario produced an
+`ExecutionOutcome.v1` without external side effects.
+- [ExecutionPlane.Contracts.LowerSimulationScenario.V1](ExecutionPlane.Contracts.LowerSimulationScenario.V1.md): Phase 6 lower-runtime scenario contract owned by Execution Plane.
+- [ExecutionPlane.Contracts.NoBypassScan.V1](ExecutionPlane.Contracts.NoBypassScan.V1.md): Source-boundary proof that hazmat Execution Plane APIs are not imported by public code.
+
+- [ExecutionPlane.Contracts.NoEgressPolicy.V1](ExecutionPlane.Contracts.NoEgressPolicy.V1.md): Fail-closed no-egress policy for lower-runtime simulation boundaries.
+
+- [ExecutionPlane.Contracts.PersistencePosture](ExecutionPlane.Contracts.PersistencePosture.md): Ref-only persistence posture for lower target and attach surfaces.
+- [ExecutionPlane.Contracts.ProcessExecutionIntent.V1](ExecutionPlane.Contracts.ProcessExecutionIntent.V1.md): Process-family execution intent.
+- [ExecutionPlane.Contracts.StreamAttachRevocation.V1](ExecutionPlane.Contracts.StreamAttachRevocation.V1.md): Revocation evidence proving an attached stream stopped after grant or lease revocation.
+
+- [ExecutionPlane.Contracts.StreamBackpressure.V1](ExecutionPlane.Contracts.StreamBackpressure.V1.md): Deterministic stream pressure and termination evidence.
+
+- [ExecutionPlane.Contracts.TargetPosture.V1](ExecutionPlane.Contracts.TargetPosture.V1.md): Phase 5 target posture and attach authorization contract.
+
+- [ExecutionPlane.Contracts.WorkerBudget.V1](ExecutionPlane.Contracts.WorkerBudget.V1.md): Worker admission and pressure-shedding evidence for tenant-scoped budgets.
+
+- [ExecutionPlane.DiagnosticResult](ExecutionPlane.DiagnosticResult.md): Structured result emitted by the diagnostic execution lane.
+
+- [ExecutionPlane.Evidence](ExecutionPlane.Evidence.md): Serializable execution evidence envelope.
+- [ExecutionPlane.Evidence.Sink](ExecutionPlane.Evidence.Sink.md): Evidence sink behaviour registered by node hosts.
+- [ExecutionPlane.ExecutionActivityMetadata](ExecutionPlane.ExecutionActivityMetadata.md): Execution activity metadata consumed by Mezzanine activities.
+- [ExecutionPlane.ExecutionEvent](ExecutionPlane.ExecutionEvent.md): Serializable execution event envelope.
+- [ExecutionPlane.ExecutionRef](ExecutionPlane.ExecutionRef.md): Opaque execution reference.
+- [ExecutionPlane.ExecutionRequest](ExecutionPlane.ExecutionRequest.md): Lane/Target execution request produced after admission.
+- [ExecutionPlane.ExecutionResult](ExecutionPlane.ExecutionResult.md): Serializable execution result.
+- [ExecutionPlane.HeartbeatMetadata](ExecutionPlane.HeartbeatMetadata.md): Heartbeat metadata linked to workflow activity and lease evidence.
+- [ExecutionPlane.JsonRpc](ExecutionPlane.JsonRpc.md): Helper surface for JSON-RPC framing and direct owner composition.
+- [ExecutionPlane.Kernel](ExecutionPlane.Kernel.md): Minimal execution kernel for contract validation, dispatch, timeout
+coordination, and raw-fact emission.
+
+- [ExecutionPlane.Kernel.DispatchPlan](ExecutionPlane.Kernel.DispatchPlan.md): Minimal Wave 1 dispatch plan produced from a validated route and lower intent.
+
+- [ExecutionPlane.Kernel.ExecutionResult](ExecutionPlane.Kernel.ExecutionResult.md): Result bundle returned by the minimal execution-plane kernel.
+
+- [ExecutionPlane.Lane.Adapter](ExecutionPlane.Lane.Adapter.md): Transport lane adapter behaviour.
+- [ExecutionPlane.Lane.Capabilities](ExecutionPlane.Lane.Capabilities.md): Lane adapter capability descriptor.
+- [ExecutionPlane.Lanes.DiagnosticLane](ExecutionPlane.Lanes.DiagnosticLane.md): Bounded, non-coding diagnostic lane adapter.
+- [ExecutionPlane.LineFraming](ExecutionPlane.LineFraming.md): Incremental newline framing for stdout and stderr stream handling.
+
+- [ExecutionPlane.LowerSimulation](ExecutionPlane.LowerSimulation.md): Route-configured lower-runtime simulation support.
+- [ExecutionPlane.Placement.Surface](ExecutionPlane.Placement.Surface.md): Lane-neutral placement surface contract.
+- [ExecutionPlane.Placements.Capabilities](ExecutionPlane.Placements.Capabilities.md): Narrow placement-surface capabilities carried independently from command or
+provider semantics.
+
+- [ExecutionPlane.Placements.Guest](ExecutionPlane.Placements.Guest.md): Guest-backed placement semantics for the execution-plane substrate.
+
+- [ExecutionPlane.Placements.Local](ExecutionPlane.Placements.Local.md): Same-node placement semantics for the execution-plane substrate.
+
+- [ExecutionPlane.Placements.SSH](ExecutionPlane.Placements.SSH.md): SSH-backed placement semantics for the execution-plane substrate.
+
+- [ExecutionPlane.Placements.Surface](ExecutionPlane.Placements.Surface.md): Narrow execution-surface contract for process placement and runtime routing.
+
+- [ExecutionPlane.Process](ExecutionPlane.Process.md): Helper surface for one-shot subprocess execution.
+- [ExecutionPlane.Process.Application](ExecutionPlane.Process.Application.md): OTP application entry point for the standalone process runtime package.
+
+- [ExecutionPlane.Process.Transport](ExecutionPlane.Process.Transport.md): Behaviour for the raw subprocess transport layer.
+- [ExecutionPlane.Process.Transport.Delivery](ExecutionPlane.Process.Transport.Delivery.md): Stable mailbox-delivery metadata for transport subscribers.
+- [ExecutionPlane.Process.Transport.GuestBridge.State](ExecutionPlane.Process.Transport.GuestBridge.State.md): Internal state schema for the guest bridge transport coordinator.
+- [ExecutionPlane.Process.Transport.Info](ExecutionPlane.Process.Transport.Info.md): Snapshot of a long-lived transport's execution-surface metadata and IO contract.
+
+- [ExecutionPlane.Process.Transport.LowerSimulation](ExecutionPlane.Process.Transport.LowerSimulation.md): Execution Plane-owned process transport simulation surface.
+- [ExecutionPlane.Process.Transport.Options](ExecutionPlane.Process.Transport.Options.md): Normalized startup options for the raw transport layer.
+
+- [ExecutionPlane.Process.Transport.RunOptions](ExecutionPlane.Process.Transport.RunOptions.md): Validated options for synchronous non-PTY command execution.
+
+- [ExecutionPlane.Process.Transport.RunResult](ExecutionPlane.Process.Transport.RunResult.md): Captured output and normalized exit data for one-shot non-PTY execution.
+
+- [ExecutionPlane.Process.Transport.Subprocess.State](ExecutionPlane.Process.Transport.Subprocess.State.md): Internal state schema for the subprocess transport coordinator.
+- [ExecutionPlane.Process.Transport.Surface](ExecutionPlane.Process.Transport.Surface.md): Legacy compatibility shell for the public execution-surface contract.
+- [ExecutionPlane.Process.Transport.Surface.Adapter](ExecutionPlane.Process.Transport.Surface.Adapter.md): Internal behaviour for execution-surface adapters owned by the core.
+
+- [ExecutionPlane.Process.Transport.Surface.Capabilities](ExecutionPlane.Process.Transport.Surface.Capabilities.md): Typed transport-family and per-session execution-surface capabilities.
+
+- [ExecutionPlane.Process.Transport.Surface.Registry](ExecutionPlane.Process.Transport.Surface.Registry.md): Internal registry of built-in execution-surface adapters.
+
+- [ExecutionPlane.Process.TreRhai](ExecutionPlane.Process.TreRhai.md): Local TRE/Rhai process lane for invoking `rex-runner`.
+- [ExecutionPlane.ProcessExit](ExecutionPlane.ProcessExit.md): Normalized process exit information shared by the runtime and provider profiles.
+
+- [ExecutionPlane.Protocols.JsonRpc](ExecutionPlane.Protocols.JsonRpc.md): Minimal JSON-RPC framing support. Process-backed JSON-RPC is composed by a
+direct lower-lane owner that depends on both JSON-RPC and process lanes.
+
+- [ExecutionPlane.Protocols.JsonRpc.Adapter](ExecutionPlane.Protocols.JsonRpc.Adapter.md): Execution Plane-owned JSON-RPC framing adapter for persistent lanes.
+- [ExecutionPlane.Provenance](ExecutionPlane.Provenance.md): Execution provenance for governed node admission and direct lower-lane owners.
+
+- [ExecutionPlane.RemoteFacade.Lane](ExecutionPlane.RemoteFacade.Lane.md): Execution Plane-owned lower lane facade for distributed StackLab profiles.
+- [ExecutionPlane.Runtime.Client](ExecutionPlane.Runtime.Client.md): Consumer-to-node runtime client behaviour.
+- [ExecutionPlane.Runtime.Constraint](ExecutionPlane.Runtime.Constraint.md): Serializable runtime constraint.
+- [ExecutionPlane.Runtime.NodeDescriptor](ExecutionPlane.Runtime.NodeDescriptor.md): Runtime client descriptor returned by describe/1.
+- [ExecutionPlane.RuntimeEvidenceRef](ExecutionPlane.RuntimeEvidenceRef.md): Public-safe reference to raw runtime evidence.
+- [ExecutionPlane.Runtimes.Process](ExecutionPlane.Runtimes.Process.md): Minimal process runtime for one-shot local execution in the execution-plane
+substrate.
+
+- [ExecutionPlane.Runtimes.Process.Exit](ExecutionPlane.Runtimes.Process.Exit.md): Normalized process exit information for the lower runtime substrate.
+
+- [ExecutionPlane.Runtimes.Process.RunResult](ExecutionPlane.Runtimes.Process.RunResult.md): Captured output and normalized exit data for one-shot process execution.
+
+- [ExecutionPlane.Sandbox.AcceptableAttestation](ExecutionPlane.Sandbox.AcceptableAttestation.md): Closed set of acceptable Target attestation classes for one admission request.
+
+- [ExecutionPlane.Sandbox.Profile](ExecutionPlane.Sandbox.Profile.md): Opaque signed governance bundle authored upstream.
+
+- [ExecutionPlane.StreamLeaseContract](ExecutionPlane.StreamLeaseContract.md): Stream lease and revocation metadata contract.
+- [ExecutionPlane.Target.Attestation](ExecutionPlane.Target.Attestation.md): Raw Target attestation evidence presented before routing-table admission.
+- [ExecutionPlane.Target.Client](ExecutionPlane.Target.Client.md): Node-to-Target execution client behaviour.
+- [ExecutionPlane.Target.Descriptor](ExecutionPlane.Target.Descriptor.md): Verifier-validated Target routing descriptor.
+- [ExecutionPlane.Target.Verifier](ExecutionPlane.Target.Verifier.md): Target attestation verifier behaviour.
+- [ExecutionPlane.TaskSupport](ExecutionPlane.TaskSupport.md): Small task helpers shared by the runtime and transport layers.
+
+- [ExecutionPlane.Testkit.ContractFixtures](ExecutionPlane.Testkit.ContractFixtures.md): Wave 1 fixtures for the frozen contract packet.
+
+- Exceptions
+  - [ExecutionPlane.Process.Transport.Error](ExecutionPlane.Process.Transport.Error.md): Structured transport error with a normalized reason and debugging context.
+

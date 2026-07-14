@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.40.3">
+    <meta name="project" content="execution_plane v0.1.0">
+
+
+    <title>Overview — execution_plane v0.1.0</title>
+
+    <link rel="stylesheet" href="dist/html-elixir-NHQLCD6Y.css" />
+
+    <script defer src="dist/sidebar_items-7F2A35A2.js"></script>
+    <script defer src="docs_config.js"></script>
+    <script defer src="dist/html-Y2MUTVIN.js"></script>
+
+  </head>
+  <body>
+    <script>(()=>{var t="ex_doc:settings",e="dark";var o="dark",s="light";var E="sidebar_state",n="closed";var r="sidebar_width";var a="sidebar-open";var i=new URLSearchParams(window.location.search),S=i.get("theme")||JSON.parse(localStorage.getItem(t)||"{}").theme;(S===o||S!==s&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&document.body.classList.add(e);var d=sessionStorage.getItem(E),A=d!==n&&!window.matchMedia(`screen and (max-width: ${768}px)`).matches;document.body.classList.toggle(a,A);var c=sessionStorage.getItem(r);c&&document.body.style.setProperty("--sidebarWidth",`${c}px`);var p=/(Macintosh|iPhone|iPad|iPod)/.test(window.navigator.userAgent);document.documentElement.classList.toggle("apple-os",p);})();
+</script>
+
+<div class="body-wrapper">
+
+<button id="sidebar-menu" class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
+  <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+</button>
+
+<nav id="sidebar" class="sidebar">
+
+  <div class="sidebar-header">
+    <div class="sidebar-projectInfo">
+
+        <a href="https://github.com/nshkrdotcom/execution_plane" class="sidebar-projectImage">
+          <img src="assets/logo.svg" alt="execution_plane" />
+        </a>
+
+      <div>
+        <a href="https://github.com/nshkrdotcom/execution_plane" class="sidebar-projectName" translate="no">
+execution_plane
+        </a>
+        <div class="sidebar-projectVersion" translate="no">
+          v0.1.0
+        </div>
+      </div>
+    </div>
+    <ul id="sidebar-list-nav" class="sidebar-list-nav" role="tablist" data-extras="Pages"></ul>
+  </div>
+</nav>
+
+<output role="status" id="toast"></output>
+
+<main class="content page-extra" id="main" data-type="extras">
+  <div id="content" class="content-inner">
+    <div class="top-search">
+      <div class="search-settings">
+        <form class="search-bar" action="search.html">
+          <label class="search-label">
+            <span class="sr-only">Search documentation of execution_plane</span>
+            <div class="search-input-wrapper">
+              <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+              <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
+                <i class="ri-close-line ri-lg" title="Cancel search"></i>
+              </button>
+            </div>
+          </label>
+        </form>
+        <div class="autocomplete">
+        </div>
+        <div class="engine-selector" data-multiple="false">
+          <button type="button" class="engine-button" aria-label="Select search engine" aria-haspopup="true" aria-expanded="false">
+            <i class="ri-search-2-line" aria-hidden="true"></i>
+            <span class="engine-name">Default</span>
+            <i class="ri-arrow-down-s-line" aria-hidden="true"></i>
+          </button>
+          <div class="engine-dropdown" hidden role="menu">
+
+              <button type="button"
+                      class="engine-option"
+                      data-engine-url="search.html?q="
+                      role="menuitemradio"
+                      aria-checked="true">
+                <span class="name">Default</span>
+                <span class="help">In-browser search</span>
+              </button>
+
+          </div>
+        </div>
+        <button class="icon-settings display-settings">
+          <i class="ri-settings-3-line"></i>
+          <span class="sr-only">Settings</span>
+        </button>
+      </div>
+    </div>
+
+<div id="top-content">
+  <div class="heading-with-actions top-heading">
+    <h1>Overview</h1>
+
+<a href="readme.md" title="Copy Markdown (hold Ctrl/Cmd and click it to open as Markdown)" class="copy-markdown icon-action" rel="help">
+  <i class="ri-markdown-line" aria-hidden="true"></i>
+  <span class="sr-only">Copy Markdown</span>
+</a>
+
+
+      <a href="https://github.com/nshkrdotcom/execution_plane/blob/v0.1.0/README.md#L1" title="View Source" class="icon-action" rel="help nofollow">
+        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        <span class="sr-only">View Source</span>
+      </a>
+
+  </div>
+
+
+<p align="center">  <img src="assets/execution_plane.svg" width="200" height="200" alt="Execution Plane logo" /></p><p align="center">  <a href="https://github.com/nshkrdotcom/execution_plane">
+    <img alt="GitHub: execution_plane" src="https://img.shields.io/badge/GitHub-execution_plane-0b0f14?logo=github" />
+  </a>
+  <a href="https://github.com/nshkrdotcom/execution_plane/blob/main/LICENSE">
+    <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-0b0f14.svg" />
+  </a></p><h1>Execution Plane Workspace</h1><p>This repository is a non-umbrella Mix workspace. The repository root is a
+tooling project only; it is not the <code class="inline">execution_plane</code> Hex package.</p><p>The public <code class="inline">execution_plane</code> 0.1.0 Hex package is generated with released Weld
+0.8.4 from three independently testable source units:</p><ul><li><code class="inline">core/execution_plane</code></li><li><code class="inline">protocols/execution_plane_jsonrpc</code></li><li><code class="inline">runtimes/execution_plane_process</code></li></ul><p>Blitz, Weld, and workspace orchestration live only in the root tooling project
+and do not enter the generated runtime dependency graph. Canonical changes stay
+in the component source homes; <code class="inline">projection/execution_plane</code> is generated
+release evidence.</p><p>Execution Plane is the lowest runtime substrate in the ranked stack. It owns
+packets, lane protocols, placements, target attestations, runtime-client
+contracts, and raw lower evidence. It does not own product intent, governance
+policy, connector semantics, or durable workflow truth.</p><h2 id="stack-position" class="section-heading"><a href="#stack-position" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Stack Position</span></h2><pre><code class="text">products / AppKit / Mezzanine / Citadel / Jido Integration
+  -&gt; ExecutionPlane.Runtime.Client
+      -&gt; execution_plane_node
+          -&gt; process, HTTP, JSON-RPC, SSE, WebSocket, terminal lanes
+              -&gt; concrete runtimes and targets</code></pre><p>Higher layers decide why something should run and what authority applies.
+Execution Plane decides whether a lower execution request is structurally
+valid, whether the target and attestation are acceptable, which lane can carry
+the request, and what lower evidence packet describes the result.</p><p>The node is intentionally lane-neutral. It can route to registered lanes and
+verified targets, but it must not invent fallback ladders or infer business
+semantics. If a policy owner allows multiple target classes, that owner issues
+separate runtime-client calls and records each rejected or accepted rung.</p><h2 id="what-the-public-distribution-carries" class="section-heading"><a href="#what-the-public-distribution-carries" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">What The Public Distribution Carries</span></h2><p>The generated <code class="inline">execution_plane</code> package carries shared lower values and
+behaviours plus JSON-RPC framing and the process runtime:</p><ul><li>admission requests, decisions, and rejections</li><li>authority refs and host-registered authority verifiers</li><li>sandbox profiles and acceptable attestation classes as opaque policy data</li><li>target descriptors, target attestations, target clients, and target verifiers</li><li>execution requests, results, events, refs, evidence, and provenance</li><li>placement descriptors for local, SSH, and guest targets</li><li>lane adapter behaviours and capability descriptions</li><li>lower-boundary simulation and conformance helpers</li><li>JSON-RPC framing and correlation</li><li>process, PTY, stdio, guest-bridge, and lower-simulation transport surfaces</li></ul><p>The common package does not enforce an OS sandbox by itself. It carries policy
+and evidence. Real isolation claims must come from a verified target and a
+lane/host implementation that can substantiate the attestation.</p><h2 id="current-delivery-state" class="section-heading"><a href="#current-delivery-state" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Current Delivery State</span></h2><p>The current checkout has a usable common package, process lane, HTTP lane,
+JSON-RPC lane, SSE/WebSocket stream lanes, runtime node, and operator-terminal
+package. StackLab currently proves node composition through local process/HTTP
+execution, target-attestation rejection, authority rejection, and Jido
+Integration-owned fallback evidence.</p><p>Recent work fixed dependency-source fallback behavior, added the local TRE Rhai
+runner lane under the process package, added target posture attach contracts,
+required lower authority refs, governed process environment inheritance, and
+cleaned up atom/regex/env hazards.</p><p>The Synapse governed-effect lift adds the deterministic diagnostic lane used by
+StackLab staged-live proof. <a href="ExecutionPlane.Lanes.DiagnosticLane.html"><code class="inline">ExecutionPlane.Lanes.DiagnosticLane</code></a> validates a
+lower execution request, runs the selected diagnostic action, applies timeout
+and output-size limits, and returns an <a href="ExecutionPlane.DiagnosticResult.html"><code class="inline">ExecutionPlane.DiagnosticResult</code></a> through
+the common execution result shape. It is deliberately provider-neutral: higher
+layers decide authority, product meaning, and connector placement; Execution
+Plane only owns lower request validation, lane execution, and result evidence.</p><p>The cross-stack conformance command is:</p><pre><code class="makeup bash" translate="no"><span class="">cd /home/home/p/g/n/stack_lab
+</span><span class="">MIX_ENV=test mix stack_lab.synapse.staged_live.v1 --json
+</span></code></pre><p>Maintainers should read
+<a href="code_smell_remediation.html">Code Smell Remediation</a> before changing
+subprocess transport state, public starts, OS command ownership, file spooling,
+or guest bridge state.</p><h2 id="runtime-diagrams" class="section-heading"><a href="#runtime-diagrams" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Runtime Diagrams</span></h2><pre><code class="mermaid">flowchart TD
+  Client[&quot;Runtime&lt;br/&gt;client&quot;] --&gt; Request[&quot;Execution&lt;br/&gt;request&quot;]
+  Request --&gt; Authority[&quot;Authority&lt;br/&gt;verifier&quot;]
+  Request --&gt; Target[&quot;Target&lt;br/&gt;verifier&quot;]
+  Authority --&gt; Decision[&quot;Admission&lt;br/&gt;decision&quot;]
+  Target --&gt; Decision
+  Decision --&gt; Node[&quot;Runtime&lt;br/&gt;node&quot;]
+  Node --&gt; Process[&quot;Process&lt;br/&gt;lane&quot;]
+  Node --&gt; HTTP[&quot;HTTP&lt;br/&gt;lane&quot;]
+  Node --&gt; JSONRPC[&quot;JSON-RPC&lt;br/&gt;lane&quot;]
+  Node --&gt; Streams[&quot;Stream&lt;br/&gt;lanes&quot;]
+  Process --&gt; Evidence[&quot;Evidence&lt;br/&gt;packet&quot;]
+  HTTP --&gt; Evidence
+  JSONRPC --&gt; Evidence
+  Streams --&gt; Evidence</code></pre><pre><code class="mermaid">flowchart LR
+  Policy[&quot;Higher&lt;br/&gt;policy&quot;] --&gt; Calls[&quot;Runtime&lt;br/&gt;calls&quot;]
+  Calls --&gt; Strong[&quot;Strong&lt;br/&gt;rung&quot;]
+  Calls --&gt; Weak[&quot;Weak&lt;br/&gt;rung&quot;]
+  Strong --&gt; Rejected[&quot;Rejected&lt;br/&gt;evidence&quot;]
+  Weak --&gt; Accepted[&quot;Accepted&lt;br/&gt;evidence&quot;]
+  Rejected --&gt; Owner[&quot;Fallback&lt;br/&gt;owner&quot;]
+  Accepted --&gt; Owner</code></pre><h2 id="developer-flow-diagrams" class="section-heading"><a href="#developer-flow-diagrams" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Developer Flow Diagrams</span></h2><pre><code class="mermaid">flowchart TD
+  Client[&quot;Runtime&lt;br/&gt;client&quot;] --&gt; Node[&quot;Runtime&lt;br/&gt;node&quot;]
+  Node --&gt; Caps[&quot;Lane&lt;br/&gt;capabilities&quot;]
+  Caps --&gt; Adapter[&quot;Lane&lt;br/&gt;adapter&quot;]
+  Adapter --&gt; Events[&quot;Runtime&lt;br/&gt;events&quot;]
+  Adapter --&gt; Result[&quot;Lower&lt;br/&gt;result&quot;]
+  Events --&gt; Sink[&quot;Evidence&lt;br/&gt;sink&quot;]
+  Result --&gt; Sink</code></pre><pre><code class="mermaid">flowchart LR
+  Request[&quot;Execution&lt;br/&gt;request&quot;] --&gt; Auth[&quot;Authority&lt;br/&gt;verify&quot;]
+  Request --&gt; Target[&quot;Target&lt;br/&gt;verify&quot;]
+  Auth --&gt; Sandbox[&quot;Sandbox&lt;br/&gt;constraints&quot;]
+  Target --&gt; Attest[&quot;Attestation&lt;br/&gt;class&quot;]
+  Sandbox --&gt; Decision[&quot;Admit&lt;br/&gt;or reject&quot;]
+  Attest --&gt; Decision
+  Decision --&gt; Evidence[&quot;Evidence&lt;br/&gt;packet&quot;]</code></pre><h2 id="mix-projects" class="section-heading"><a href="#mix-projects" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Mix Projects</span></h2><p>The checkout contains exactly eight active component Mix projects:</p><ul><li><code class="inline">core/execution_plane</code>: common substrate selected into <code class="inline">execution_plane</code></li><li><code class="inline">protocols/execution_plane_http</code>: unary HTTP lane</li><li><code class="inline">protocols/execution_plane_jsonrpc</code>: JSON-RPC framing and correlation,
+selected into <code class="inline">execution_plane</code></li><li><code class="inline">streaming/execution_plane_sse</code>: SSE framing and stream lifecycle lane</li><li><code class="inline">streaming/execution_plane_websocket</code>: WebSocket handshake/frame lane</li><li><code class="inline">runtimes/execution_plane_process</code>: process/PTY/stdio lane selected into
+<code class="inline">execution_plane</code>, and the sole owner of <code class="inline">erlexec</code></li><li><code class="inline">runtimes/execution_plane_node</code>: lane-neutral runtime node and local
+<a href="ExecutionPlane.Runtime.Client.html"><code class="inline">ExecutionPlane.Runtime.Client</code></a></li><li><code class="inline">runtimes/execution_plane_operator_terminal</code>: operator-facing terminal
+runtime, kept separate so base consumers do not inherit <code class="inline">ex_ratatui</code></li></ul><p>The root <code class="inline">mix.exs</code> is <code class="inline">:execution_plane_workspace</code>; it exists to run Blitz
+workspace tasks, Weld projection/release tasks, root documentation, and
+repository-level checks.</p><h2 id="installing-packages" class="section-heading"><a href="#installing-packages" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Installing Packages</span></h2><p>Add the common substrate package when you need contracts, codecs, placement
+descriptors, runtime-client behaviours, evidence envelopes, and pure helpers:</p><pre><code class="makeup elixir" translate="no"><span class="kd">def</span><span class="w"> </span><span class="nf">deps</span><span class="w"> </span><span class="k" data-group-id="4100422293-1">do</span><span class="w">
+  </span><span class="p" data-group-id="4100422293-2">[</span><span class="w">
+    </span><span class="p" data-group-id="4100422293-3">{</span><span class="ss">:execution_plane</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;~&gt; 0.1.0&quot;</span><span class="p" data-group-id="4100422293-3">}</span><span class="w">
+  </span><span class="p" data-group-id="4100422293-2">]</span><span class="w">
+</span><span class="k" data-group-id="4100422293-1">end</span></code></pre><p>Version 0.1.0 already includes JSON-RPC and process execution. Separate lane
+or host packages are added only for capabilities outside that frozen public
+foundation, for example the node host:</p><pre><code class="makeup elixir" translate="no"><span class="kd">def</span><span class="w"> </span><span class="nf">deps</span><span class="w"> </span><span class="k" data-group-id="1996015818-1">do</span><span class="w">
+  </span><span class="p" data-group-id="1996015818-2">[</span><span class="w">
+    </span><span class="p" data-group-id="1996015818-3">{</span><span class="ss">:execution_plane</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;~&gt; 0.1.0&quot;</span><span class="p" data-group-id="1996015818-3">}</span><span class="p">,</span><span class="w">
+    </span><span class="p" data-group-id="1996015818-4">{</span><span class="ss">:execution_plane_node</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;~&gt; 0.1.0&quot;</span><span class="p" data-group-id="1996015818-4">}</span><span class="w">
+  </span><span class="p" data-group-id="1996015818-2">]</span><span class="w">
+</span><span class="k" data-group-id="1996015818-1">end</span></code></pre><p>Downstream SDK users normally should not add Execution Plane deps manually.
+For example, CLI provider SDKs get local subprocess execution transitively
+through <code class="inline">cli_subprocess_core</code>, and REST/GraphQL-only SDKs should stay above
+their HTTP or GraphQL family kit.</p><h2 id="development" class="section-heading"><a href="#development" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Development</span></h2><p>Run the workspace gate from the repository root:</p><pre><code class="makeup bash" translate="no"><span class="">mix deps.get
+</span><span class="">mix ci
+</span></code></pre><p>The root gate uses Blitz to run package-local <code class="inline">mix ci</code> aliases for every
+active package. Package gates can still be run directly:</p><pre><code class="makeup bash" translate="no"><span class="">cd core/execution_plane &amp;&amp; mix ci
+</span><span class="">cd protocols/execution_plane_http &amp;&amp; mix ci
+</span><span class="">cd protocols/execution_plane_jsonrpc &amp;&amp; mix ci
+</span><span class="">cd streaming/execution_plane_sse &amp;&amp; mix ci
+</span><span class="">cd streaming/execution_plane_websocket &amp;&amp; mix ci
+</span><span class="">cd runtimes/execution_plane_process &amp;&amp; mix ci
+</span><span class="">cd runtimes/execution_plane_node &amp;&amp; mix ci
+</span><span class="">cd runtimes/execution_plane_operator_terminal &amp;&amp; mix ci
+</span></code></pre><h2 id="publishing" class="section-heading"><a href="#publishing" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Publishing</span></h2><p>Prepare the public package from the repository root, then inspect the generated
+distribution:</p><pre><code class="makeup bash" translate="no"><span class="">mix weld.inspect --artifact execution_plane
+</span><span class="">mix weld.project --artifact execution_plane
+</span><span class="">mix weld.verify --artifact execution_plane
+</span><span class="">mix release.prepare --artifact execution_plane
+</span></code></pre><p>The package directory is <code class="inline">dist/monolith/execution_plane</code>, and the durable
+generated branch is <code class="inline">projection/execution_plane</code>. Real Hex publication and the
+post-publication tag are human-owned release actions. Publish the generated
+<code class="inline">execution_plane</code> package before any separate lane or host package that depends
+on it.</p><h2 id="sandbox-and-target-honesty" class="section-heading"><a href="#sandbox-and-target-honesty" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Sandbox And Target Honesty</span></h2><p>The common contracts carry <a href="ExecutionPlane.Sandbox.Profile.html"><code class="inline">ExecutionPlane.Sandbox.Profile</code></a> and
+<a href="ExecutionPlane.Sandbox.AcceptableAttestation.html"><code class="inline">ExecutionPlane.Sandbox.AcceptableAttestation</code></a> values as opaque policy and
+target-selection data. They do not enforce a sandbox by themselves.</p><p><code class="inline">local-erlexec-weak</code> means local process execution with weak local
+attestation. It is not a container, microVM, or cryptographic isolation claim.
+Stronger target classes must be backed by a host-owned verifier and target
+protocol evidence before they enter the node routing table.</p><h2 id="license" class="section-heading"><a href="#license" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">License</span></h2><p>MIT</p><h2 id="persistence-documentation" class="section-heading"><a href="#persistence-documentation" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Persistence Documentation</span></h2><p>See <code class="inline">docs/persistence.md</code> for tiers, defaults, adapters, unsupported selections, config examples, restart claims, durability claims, debug sidecar behavior, redaction guarantees, migration or preflight behavior, and no-bypass scope when applicable.</p><h2 id="trial-replay-scoring-lane-role" class="section-heading"><a href="#trial-replay-scoring-lane-role" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Trial Replay &amp; Scoring Lane Role</span></h2><p>Execution Plane executes replay and scoring lanes for Chassis Evolution
+candidates. <code class="inline">Chassis.Evolution.Scorer</code> can invoke Execution Plane lanes to
+replay a failure batch and baseline cases against an isolated trial worker,
+then return bounded lane evidence to Chassis and Mezzanine for scoring
+reduction. Lane jobs remain sandboxed replay jobs with explicit authority,
+target, timeout, output bounds, and evidence packet refs.</p><h2 id="executionplane-executes-chassis-provisions" class="section-heading"><a href="#executionplane-executes-chassis-provisions" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">ExecutionPlane Executes; Chassis Provisions</span></h2><p>Chassis provisions the isolated trial runtime, host placement, mount posture,
+release/image candidate, and rollback checkpoints. Execution Plane runs the
+lanes. Chassis does not own job execution semantics; Execution Plane does not
+own substrate placement, Chassis receipts, or candidate promotion authority.</p>
+
+</div>
+
+<div class="bottom-actions" id="bottom-actions">
+  <div class="bottom-actions-item">
+
+  </div>
+  <div class="bottom-actions-item">
+
+      <a href="index.html" class="bottom-actions-button" rel="next">
+        <span class="subheader">
+          Next Page →
+        </span>
+        <span class="title">
+Package Guide
+        </span>
+      </a>
+
+  </div>
+</div>
+    <footer class="footer">
+
+        <p>
+
+            <span class="line">
+              <a href="https://hex.pm/packages/execution_plane/0.1.0">Hex Package</a>
+
+              <a href="https://preview.hex.pm/preview/execution_plane/0.1.0">Hex Preview</a>
+
+                (<a href="https://preview.hex.pm/preview/execution_plane/0.1.0/show/README.md">current file</a>)
+
+            </span>
+
+          <span class="line">
+            <button class="a-main footer-button display-quick-switch" title="Go to package docs">
+              Go to package docs
+            </button>
+
+              <a href="llms.txt" target="_blank">
+                View llms.txt
+              </a>
+
+
+              <a href="execution_plane.epub">
+                Download ePub version
+              </a>
+
+          </span>
+        </p>
+
+        <p class="built-using">
+          Built using
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.40.3) for the
+
+            <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
+
+        </p>
+
+
+    </footer>
+  </div>
+</main>
+</div>
+
+  </body>
+</html>

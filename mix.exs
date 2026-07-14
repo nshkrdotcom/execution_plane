@@ -51,8 +51,10 @@ defmodule ExecutionPlane.MixProject do
       links: %{"GitHub" => "https://github.com/nshkrdotcom/execution_plane"},
       files: [
         ".formatter.exs",
+        "CHANGELOG.md",
         "LICENSE",
         "README.md",
+        "assets/execution_plane.svg",
         "config",
         "guides",
         "lib",
@@ -64,10 +66,23 @@ defmodule ExecutionPlane.MixProject do
 
   defp docs do
     [
+      groups_for_extras: [
+        {"Start Here", ["README.md", "guides/index.md"]},
+        {"Guides", ["guides/code_smell_remediation.md"]},
+        {"Project", ["CHANGELOG.md", "LICENSE"]}
+      ],
+      assets: %{"assets" => "assets"},
+      source_ref: "v0.1.0",
+      source_url: "https://github.com/nshkrdotcom/execution_plane",
+      homepage_url: "https://github.com/nshkrdotcom/execution_plane",
+      logo: "assets/execution_plane.svg",
       main: "readme",
       extras: [
-        "README.md",
-        "guides/index.md"
+        {"CHANGELOG.md", [title: "Changelog"]},
+        {"LICENSE", [title: "License"]},
+        {"README.md", [title: "Overview"]},
+        {"guides/code_smell_remediation.md", [title: "Code Smell Remediation"]},
+        {"guides/index.md", [title: "Package Guide"]}
       ]
     ]
   end

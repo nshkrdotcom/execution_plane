@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.40.3">
+    <meta name="project" content="execution_plane v0.1.0">
+
+
+    <title>ExecutionPlane.Process.Transport.Surface — execution_plane v0.1.0</title>
+
+    <link rel="stylesheet" href="dist/html-elixir-NHQLCD6Y.css" />
+
+    <script defer src="dist/sidebar_items-7F2A35A2.js"></script>
+    <script defer src="docs_config.js"></script>
+    <script defer src="dist/html-Y2MUTVIN.js"></script>
+
+  </head>
+  <body>
+    <script>(()=>{var t="ex_doc:settings",e="dark";var o="dark",s="light";var E="sidebar_state",n="closed";var r="sidebar_width";var a="sidebar-open";var i=new URLSearchParams(window.location.search),S=i.get("theme")||JSON.parse(localStorage.getItem(t)||"{}").theme;(S===o||S!==s&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&document.body.classList.add(e);var d=sessionStorage.getItem(E),A=d!==n&&!window.matchMedia(`screen and (max-width: ${768}px)`).matches;document.body.classList.toggle(a,A);var c=sessionStorage.getItem(r);c&&document.body.style.setProperty("--sidebarWidth",`${c}px`);var p=/(Macintosh|iPhone|iPad|iPod)/.test(window.navigator.userAgent);document.documentElement.classList.toggle("apple-os",p);})();
+</script>
+
+<div class="body-wrapper">
+
+<button id="sidebar-menu" class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
+  <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+</button>
+
+<nav id="sidebar" class="sidebar">
+
+  <div class="sidebar-header">
+    <div class="sidebar-projectInfo">
+
+        <a href="https://github.com/nshkrdotcom/execution_plane" class="sidebar-projectImage">
+          <img src="assets/logo.svg" alt="execution_plane" />
+        </a>
+
+      <div>
+        <a href="https://github.com/nshkrdotcom/execution_plane" class="sidebar-projectName" translate="no">
+execution_plane
+        </a>
+        <div class="sidebar-projectVersion" translate="no">
+          v0.1.0
+        </div>
+      </div>
+    </div>
+    <ul id="sidebar-list-nav" class="sidebar-list-nav" role="tablist" data-extras="Pages"></ul>
+  </div>
+</nav>
+
+<output role="status" id="toast"></output>
+
+<main class="content page-module" id="main" data-type="modules">
+  <div id="content" class="content-inner">
+    <div class="top-search">
+      <div class="search-settings">
+        <form class="search-bar" action="search.html">
+          <label class="search-label">
+            <span class="sr-only">Search documentation of execution_plane</span>
+            <div class="search-input-wrapper">
+              <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+              <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
+                <i class="ri-close-line ri-lg" title="Cancel search"></i>
+              </button>
+            </div>
+          </label>
+        </form>
+        <div class="autocomplete">
+        </div>
+        <div class="engine-selector" data-multiple="false">
+          <button type="button" class="engine-button" aria-label="Select search engine" aria-haspopup="true" aria-expanded="false">
+            <i class="ri-search-2-line" aria-hidden="true"></i>
+            <span class="engine-name">Default</span>
+            <i class="ri-arrow-down-s-line" aria-hidden="true"></i>
+          </button>
+          <div class="engine-dropdown" hidden role="menu">
+
+              <button type="button"
+                      class="engine-option"
+                      data-engine-url="search.html?q="
+                      role="menuitemradio"
+                      aria-checked="true">
+                <span class="name">Default</span>
+                <span class="help">In-browser search</span>
+              </button>
+
+          </div>
+        </div>
+        <button class="icon-settings display-settings">
+          <i class="ri-settings-3-line"></i>
+          <span class="sr-only">Settings</span>
+        </button>
+      </div>
+    </div>
+
+<div id="top-content">
+  <div class="heading-with-actions top-heading">
+    <h1>
+      <span translate="no">ExecutionPlane.<wbr />Process.<wbr />Transport.<wbr />Surface</span> 
+      <small class="app-vsn" translate="no">(execution_plane v0.1.0)</small>
+
+    </h1>
+
+<a href="ExecutionPlane.Process.Transport.Surface.md" title="Copy Markdown (hold Ctrl/Cmd and click it to open as Markdown)" class="copy-markdown icon-action" rel="help">
+  <i class="ri-markdown-line" aria-hidden="true"></i>
+  <span class="sr-only">Copy Markdown</span>
+</a>
+
+
+
+      <a href="https://github.com/nshkrdotcom/execution_plane/blob/v0.1.0/lib/execution_plane/process/transport/surface.ex#L1" title="View Source" class="icon-action" rel="help nofollow">
+        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        <span class="sr-only">View Source</span>
+      </a>
+
+  </div>
+
+
+    <section id="moduledoc">
+<p>Legacy compatibility shell for the public execution-surface contract.</p><p>Execution Plane now owns the <code class="inline">execution_surface</code> contract. This module keeps
+the historical public shape so existing callers can continue to reason about
+narrow placement without leaking command or provider semantics.</p><p>This contract is intentionally narrow:</p><ul><li><code class="inline">surface_kind</code> selects the runtime surface</li><li><code class="inline">transport_options</code> carries transport-only data</li><li><code class="inline">target_id</code>, <code class="inline">lease_ref</code>, <code class="inline">surface_ref</code>, and <code class="inline">boundary_class</code> stay typed</li><li><code class="inline">observability</code> remains an opaque metadata bag</li></ul><p>Provider family, command selection, and process launch arguments do not
+belong in <code class="inline">ExecutionSurface</code>.</p>
+    </section>
+
+</div>
+
+  <section id="summary" class="details-list">
+    <h2 class="section-heading">
+      <a class="hover-link" href="#summary">
+        <i class="ri-link-m" aria-hidden="true"></i>
+      </a>
+      <span class="text">Summary</span>
+    </h2>
+<div class="summary-types summary">
+  <h3>
+    <a href="#types">Types</a>
+  </h3>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:adapter_surface_kind/0" data-no-tooltip="" translate="no">adapter_surface_kind()</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:boundary_class/0" data-no-tooltip="" translate="no">boundary_class()</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:contract_version/0" data-no-tooltip="" translate="no">contract_version()</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:dispatch/0" data-no-tooltip="" translate="no">dispatch()</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:projected_t/0" data-no-tooltip="" translate="no">projected_t()</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:reserved_key/0" data-no-tooltip="" translate="no">reserved_key()</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:resolution_error/0" data-no-tooltip="" translate="no">resolution_error()</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:resolved/0" data-no-tooltip="" translate="no">resolved()</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:surface_kind/0" data-no-tooltip="" translate="no">surface_kind()</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:t/0" data-no-tooltip="" translate="no">t()</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:validation_error/0" data-no-tooltip="" translate="no">validation_error()</a>
+
+      </div>
+
+    </div>
+
+</div>
+<div class="summary-functions summary">
+  <h3>
+    <a href="#functions">Functions</a>
+  </h3>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#capabilities/1" data-no-tooltip="" translate="no">capabilities(surface_kind)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#contract_version/0" data-no-tooltip="" translate="no">contract_version()</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#default_surface_kind/0" data-no-tooltip="" translate="no">default_surface_kind()</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#new/1" data-no-tooltip="" translate="no">new(opts)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#nonlocal_path_surface?/1" data-no-tooltip="" translate="no">nonlocal_path_surface?(surface)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#normalize_surface_kind/1" data-no-tooltip="" translate="no">normalize_surface_kind(surface_kind)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#normalize_transport_options/1" data-no-tooltip="" translate="no">normalize_transport_options(options)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#path_semantics/1" data-no-tooltip="" translate="no">path_semantics(surface)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#remote_surface?/1" data-no-tooltip="" translate="no">remote_surface?(surface)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#remote_surface_kind?/1" data-no-tooltip="" translate="no">remote_surface_kind?(surface_kind)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#reserved_keys/0" data-no-tooltip="" translate="no">reserved_keys()</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#resolve/1" data-no-tooltip="" translate="no">resolve(opts)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#supported_surface_kinds/0" data-no-tooltip="" translate="no">supported_surface_kinds()</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#surface_metadata/1" data-no-tooltip="" translate="no">surface_metadata(surface)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#to_map/1" data-no-tooltip="" translate="no">to_map(surface)</a>
+
+      </div>
+
+    </div>
+
+</div>
+
+  </section>
+
+
+  <section id="types" class="details-list">
+    <h2 class="section-heading">
+      <a class="hover-link" href="#types">
+        <i class="ri-link-m" aria-hidden="true"></i>
+      </a>
+      <span class="text">Types</span>
+    </h2>
+
+    <div class="types-list">
+<section class="detail" id="t:adapter_surface_kind/0">
+
+  <div class="detail-header">
+    <a href="#t:adapter_surface_kind/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">adapter_surface_kind()</h1>
+
+
+        <a href="https://github.com/nshkrdotcom/execution_plane/blob/v0.1.0/lib/execution_plane/process/transport/surface.ex#L80" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@type</span> adapter_surface_kind() :: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>()</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:boundary_class/0">
+
+  <div class="detail-header">
+    <a href="#t:boundary_class/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">boundary_class()</h1>
+
+
+        <a href="https://github.com/nshkrdotcom/execution_plane/blob/v0.1.0/lib/execution_plane/process/transport/surface.ex#L81" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@type</span> boundary_class() :: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>() | <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>() | nil</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:contract_version/0">
+
+  <div class="detail-header">
+    <a href="#t:contract_version/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">contract_version()</h1>
+
+
+        <a href="https://github.com/nshkrdotcom/execution_plane/blob/v0.1.0/lib/execution_plane/process/transport/surface.ex#L78" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@type</span> contract_version() :: <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>()</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:dispatch/0">
+
+  <div class="detail-header">
+    <a href="#t:dispatch/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">dispatch()</h1>
+
+
+        <a href="https://github.com/nshkrdotcom/execution_plane/blob/v0.1.0/lib/execution_plane/process/transport/surface.ex#L128" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@type</span> dispatch() :: %{start: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">function</a>(), start_link: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">function</a>(), run: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">function</a>()}</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:projected_t/0">
+
+  <div class="detail-header">
+    <a href="#t:projected_t/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">projected_t()</h1>
+
+
+        <a href="https://github.com/nshkrdotcom/execution_plane/blob/v0.1.0/lib/execution_plane/process/transport/surface.ex#L103" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@type</span> projected_t() :: %{
+  contract_version: <a href="#t:contract_version/0">contract_version</a>(),
+  surface_kind: <a href="#t:surface_kind/0">surface_kind</a>(),
+  transport_options: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>(),
+  target_id: <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>() | nil,
+  lease_ref: <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>() | nil,
+  surface_ref: <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>() | nil,
+  boundary_class: <a href="#t:boundary_class/0">boundary_class</a>(),
+  observability: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()
+}</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:reserved_key/0">
+
+  <div class="detail-header">
+    <a href="#t:reserved_key/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">reserved_key()</h1>
+
+
+        <a href="https://github.com/nshkrdotcom/execution_plane/blob/v0.1.0/lib/execution_plane/process/transport/surface.ex#L82" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@type</span> reserved_key() ::
+  :contract_version
+  | :surface_kind
+  | :transport_options
+  | :target_id
+  | :lease_ref
+  | :surface_ref
+  | :boundary_class
+  | :observability</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:resolution_error/0">
+
+  <div class="detail-header">
+    <a href="#t:resolution_error/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">resolution_error()</h1>
+
+
+        <a href="https://github.com/nshkrdotcom/execution_plane/blob/v0.1.0/lib/execution_plane/process/transport/surface.ex#L126" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@type</span> resolution_error() :: {:unsupported_surface_kind, <a href="#t:surface_kind/0">surface_kind</a>()}</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:resolved/0">
+
+  <div class="detail-header">
+    <a href="#t:resolved/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">resolved()</h1>
+
+
+        <a href="https://github.com/nshkrdotcom/execution_plane/blob/v0.1.0/lib/execution_plane/process/transport/surface.ex#L134" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@type</span> resolved() :: %{
+  adapter_capabilities:
+    <a href="ExecutionPlane.Process.Transport.Surface.Capabilities.html#t:t/0">ExecutionPlane.Process.Transport.Surface.Capabilities.t</a>(),
+  dispatch: <a href="#t:dispatch/0">dispatch</a>(),
+  adapter_options: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>(),
+  surface: <a href="#t:t/0">t</a>()
+}</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:surface_kind/0">
+
+  <div class="detail-header">
+    <a href="#t:surface_kind/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">surface_kind()</h1>
+
+
+        <a href="https://github.com/nshkrdotcom/execution_plane/blob/v0.1.0/lib/execution_plane/process/transport/surface.ex#L79" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@type</span> surface_kind() :: :local_subprocess | :ssh_exec | :guest_bridge</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:t/0">
+
+  <div class="detail-header">
+    <a href="#t:t/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">t()</h1>
+
+
+        <a href="https://github.com/nshkrdotcom/execution_plane/blob/v0.1.0/lib/execution_plane/process/transport/surface.ex#L92" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@type</span> t() :: %ExecutionPlane.Process.Transport.Surface{
+  boundary_class: <a href="#t:boundary_class/0">boundary_class</a>(),
+  contract_version: <a href="#t:contract_version/0">contract_version</a>(),
+  lease_ref: <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>() | nil,
+  observability: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>(),
+  surface_kind: <a href="#t:surface_kind/0">surface_kind</a>(),
+  surface_ref: <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>() | nil,
+  target_id: <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>() | nil,
+  transport_options: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>()
+}</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:validation_error/0">
+
+  <div class="detail-header">
+    <a href="#t:validation_error/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">validation_error()</h1>
+
+
+        <a href="https://github.com/nshkrdotcom/execution_plane/blob/v0.1.0/lib/execution_plane/process/transport/surface.ex#L114" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@type</span> validation_error() ::
+  {:invalid_contract_version, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">term</a>()}
+  | {:invalid_surface_kind, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">term</a>()}
+  | {:invalid_transport_options, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">term</a>()}
+  | {:invalid_execution_surface, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">term</a>()}
+  | {:invalid_target_id, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">term</a>()}
+  | {:invalid_lease_ref, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">term</a>()}
+  | {:invalid_surface_ref, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">term</a>()}
+  | {:invalid_boundary_class, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">term</a>()}
+  | {:invalid_observability, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">term</a>()}
+  | {:adapter_not_loaded, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">module</a>()}</pre>
+
+      </div>
+
+
+  </section>
+</section>
+
+    </div>
+  </section>
+
+  <section id="functions" class="details-list">
+    <h2 class="section-heading">
+      <a class="hover-link" href="#functions">
+        <i class="ri-link-m" aria-hidden="true"></i>
+      </a>
+      <span class="text">Functions</span>
+    </h2>
+
+    <div class="functions-list">
+<section class="detail" id="capabilities/1">
+
+  <div class="detail-header">
+    <a href="#capabilities/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">capabilities(surface_kind)</h1>
+
+
+        <a href="https://github.com/nshkrdotcom/execution_plane/blob/v0.1.0/lib/execution_plane/process/transport/surface.ex#L163" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> capabilities(<a href="#t:t/0">t</a>() | <a href="#t:surface_kind/0">surface_kind</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>() | nil) ::
+  {:ok, <a href="ExecutionPlane.Process.Transport.Surface.Capabilities.html#t:t/0">ExecutionPlane.Process.Transport.Surface.Capabilities.t</a>()}
+  | {:error, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">term</a>()}</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="contract_version/0">
+
+  <div class="detail-header">
+    <a href="#contract_version/0" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">contract_version()</h1>
+
+
+        <a href="https://github.com/nshkrdotcom/execution_plane/blob/v0.1.0/lib/execution_plane/process/transport/surface.ex#L145" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> contract_version() :: <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>()</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="default_surface_kind/0">
+
+  <div class="detail-header">
+    <a href="#default_surface_kind/0" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">default_surface_kind()</h1>
+
+
+        <a href="https://github.com/nshkrdotcom/execution_plane/blob/v0.1.0/lib/execution_plane/process/transport/surface.ex#L142" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> default_surface_kind() :: :local_subprocess</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="new/1">
+
+  <div class="detail-header">
+    <a href="#new/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">new(opts)</h1>
+
+
+        <a href="https://github.com/nshkrdotcom/execution_plane/blob/v0.1.0/lib/execution_plane/process/transport/surface.ex#L217" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> new(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>()) :: {:ok, <a href="#t:t/0">t</a>()} | {:error, <a href="#t:validation_error/0">validation_error</a>()}</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="nonlocal_path_surface?/1">
+
+  <div class="detail-header">
+    <a href="#nonlocal_path_surface?/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">nonlocal_path_surface?(surface)</h1>
+
+
+        <a href="https://github.com/nshkrdotcom/execution_plane/blob/v0.1.0/lib/execution_plane/process/transport/surface.ex#L201" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> nonlocal_path_surface?(<a href="#t:t/0">t</a>() | <a href="#t:surface_kind/0">surface_kind</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>() | nil) ::
+  <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">boolean</a>()</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="normalize_surface_kind/1">
+
+  <div class="detail-header">
+    <a href="#normalize_surface_kind/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">normalize_surface_kind(surface_kind)</h1>
+
+
+        <a href="https://github.com/nshkrdotcom/execution_plane/blob/v0.1.0/lib/execution_plane/process/transport/surface.ex#L267" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> normalize_surface_kind(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">term</a>()) ::
+  {:ok, <a href="#t:surface_kind/0">surface_kind</a>()} | {:error, {:invalid_surface_kind, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">term</a>()}}</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="normalize_transport_options/1">
+
+  <div class="detail-header">
+    <a href="#normalize_transport_options/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">normalize_transport_options(options)</h1>
+
+
+        <a href="https://github.com/nshkrdotcom/execution_plane/blob/v0.1.0/lib/execution_plane/process/transport/surface.ex#L281" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> normalize_transport_options(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">term</a>()) ::
+  {:ok, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>()} | {:error, {:invalid_transport_options, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">term</a>()}}</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="path_semantics/1">
+
+  <div class="detail-header">
+    <a href="#path_semantics/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">path_semantics(surface)</h1>
+
+
+        <a href="https://github.com/nshkrdotcom/execution_plane/blob/v0.1.0/lib/execution_plane/process/transport/surface.ex#L193" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> path_semantics(<a href="#t:t/0">t</a>() | <a href="#t:surface_kind/0">surface_kind</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>() | nil) ::
+  <a href="ExecutionPlane.Process.Transport.Surface.Capabilities.html#t:path_semantics/0">ExecutionPlane.Process.Transport.Surface.Capabilities.path_semantics</a>() | nil</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="remote_surface?/1">
+
+  <div class="detail-header">
+    <a href="#remote_surface?/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">remote_surface?(surface)</h1>
+
+
+        <a href="https://github.com/nshkrdotcom/execution_plane/blob/v0.1.0/lib/execution_plane/process/transport/surface.ex#L206" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> remote_surface?(<a href="#t:t/0">t</a>() | <a href="#t:surface_kind/0">surface_kind</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>() | nil) :: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">boolean</a>()</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="remote_surface_kind?/1">
+
+  <div class="detail-header">
+    <a href="#remote_surface_kind?/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">remote_surface_kind?(surface_kind)</h1>
+
+
+        <a href="https://github.com/nshkrdotcom/execution_plane/blob/v0.1.0/lib/execution_plane/process/transport/surface.ex#L154" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> remote_surface_kind?(<a href="#t:surface_kind/0">surface_kind</a>()) :: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">boolean</a>()</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="reserved_keys/0">
+
+  <div class="detail-header">
+    <a href="#reserved_keys/0" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">reserved_keys()</h1>
+
+
+        <a href="https://github.com/nshkrdotcom/execution_plane/blob/v0.1.0/lib/execution_plane/process/transport/surface.ex#L148" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> reserved_keys() :: [<a href="#t:reserved_key/0">reserved_key</a>(), ...]</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="resolve/1">
+
+  <div class="detail-header">
+    <a href="#resolve/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">resolve(opts)</h1>
+
+
+        <a href="https://github.com/nshkrdotcom/execution_plane/blob/v0.1.0/lib/execution_plane/process/transport/surface.ex#L244" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> resolve(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>()) ::
+  {:ok, <a href="#t:resolved/0">resolved</a>()} | {:error, <a href="#t:validation_error/0">validation_error</a>() | <a href="#t:resolution_error/0">resolution_error</a>()}</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="supported_surface_kinds/0">
+
+  <div class="detail-header">
+    <a href="#supported_surface_kinds/0" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">supported_surface_kinds()</h1>
+
+
+        <a href="https://github.com/nshkrdotcom/execution_plane/blob/v0.1.0/lib/execution_plane/process/transport/surface.ex#L151" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> supported_surface_kinds() :: [<a href="#t:adapter_surface_kind/0">adapter_surface_kind</a>(), ...]</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="surface_metadata/1">
+
+  <div class="detail-header">
+    <a href="#surface_metadata/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">surface_metadata(surface)</h1>
+
+
+        <a href="https://github.com/nshkrdotcom/execution_plane/blob/v0.1.0/lib/execution_plane/process/transport/surface.ex#L304" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> surface_metadata(<a href="#t:t/0">t</a>()) :: <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>()</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="to_map/1">
+
+  <div class="detail-header">
+    <a href="#to_map/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">to_map(surface)</h1>
+
+
+        <a href="https://github.com/nshkrdotcom/execution_plane/blob/v0.1.0/lib/execution_plane/process/transport/surface.ex#L316" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> to_map(<a href="#t:t/0">t</a>()) :: <a href="#t:projected_t/0">projected_t</a>()</pre>
+
+      </div>
+
+
+  </section>
+</section>
+
+    </div>
+  </section>
+
+    <footer class="footer">
+
+        <p>
+
+            <span class="line">
+              <a href="https://hex.pm/packages/execution_plane/0.1.0">Hex Package</a>
+
+              <a href="https://preview.hex.pm/preview/execution_plane/0.1.0">Hex Preview</a>
+
+            </span>
+
+          <span class="line">
+            <button class="a-main footer-button display-quick-switch" title="Go to package docs">
+              Go to package docs
+            </button>
+
+              <a href="llms.txt" target="_blank">
+                View llms.txt
+              </a>
+
+
+              <a href="execution_plane.epub">
+                Download ePub version
+              </a>
+
+          </span>
+        </p>
+
+        <p class="built-using">
+          Built using
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.40.3) for the
+
+            <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
+
+        </p>
+
+
+    </footer>
+  </div>
+</main>
+</div>
+
+  </body>
+</html>

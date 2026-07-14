@@ -1,29 +1,17 @@
 {
   "projection": {
-    "mode": "monolith",
     "build_path": "/home/home/p/g/n/execution_plane/dist/monolith/execution_plane",
-    "test_support_projects": [],
-    "package_files": [
-      ".formatter.exs",
-      "LICENSE",
-      "README.md",
-      "config",
-      "guides",
-      "lib",
-      "mix.exs",
-      "projection.lock.json"
-    ],
-    "git_revision": "62d699d1db0d3ad02581b3dcf896db63e8daea5a",
-    "tree_digest": "153fed8101bdfb6f856e1159a284057d5232c792edd2aa9fbf6bd01bf5601e45",
     "copied_files": [
       ".formatter.exs",
       "CHANGELOG.md",
       "LICENSE",
       "README.md",
+      "assets/execution_plane.svg",
       "config/config.exs",
       "config/dev.exs",
       "config/prod.exs",
       "config/test.exs",
+      "guides/code_smell_remediation.md",
       "guides/index.md",
       "lib/execution_plane.ex",
       "lib/execution_plane/application.ex",
@@ -114,8 +102,6 @@
       "lib/execution_plane/task_support.ex",
       "lib/execution_plane/testkit/contract_fixtures.ex",
       "mix.exs",
-      "test/core_execution_plane/conformance/execution_plane_testkit/lineage_continuity_test.exs",
-      "test/core_execution_plane/conformance/execution_plane_testkit/minimal_substrate_conformance_test.exs",
       "test/core_execution_plane/core/dependency_boundary_test.exs",
       "test/core_execution_plane/core/execution_plane_contracts/boundary_codec_test.exs",
       "test/core_execution_plane/core/execution_plane_contracts/contract_packet_test.exs",
@@ -134,19 +120,6 @@
       "test/core_execution_plane/core/execution_plane_diagnostic_lane_test.exs",
       "test/core_execution_plane/core/execution_plane_kernel/kernel_dispatch_test.exs",
       "test/core_execution_plane/core/execution_plane_kernel/lane_support_persistence_test.exs",
-      "test/core_execution_plane/execution_plane/application_test.exs",
-      "test/core_execution_plane/execution_plane/http_test.exs",
-      "test/core_execution_plane/execution_plane/json_rpc_test.exs",
-      "test/core_execution_plane/execution_plane/lower_simulation_test.exs",
-      "test/core_execution_plane/execution_plane/process_test.exs",
-      "test/core_execution_plane/execution_plane/process_transport/capability_contract_test.exs",
-      "test/core_execution_plane/execution_plane/process_transport/guest_bridge_test.exs",
-      "test/core_execution_plane/execution_plane/process_transport/lower_simulation_test.exs",
-      "test/core_execution_plane/execution_plane/process_transport/ssh_exec_test.exs",
-      "test/core_execution_plane/execution_plane/process_transport/subprocess_test.exs",
-      "test/core_execution_plane/execution_plane/process_transport/surface_test.exs",
-      "test/core_execution_plane/execution_plane/remote_facade/lane_test.exs",
-      "test/core_execution_plane/execution_plane_test.exs",
       "test/core_execution_plane/placements/execution_plane_breadth/placement_family_test.exs",
       "test/core_execution_plane/placements/execution_plane_local/surface_contract_test.exs",
       "test/runtimes_execution_plane_process/execution_plane/process/transport/guest_bridge_state_machine_test.exs",
@@ -155,44 +128,82 @@
       "test/runtimes_execution_plane_process/execution_plane/process/tre_rhai_test.exs",
       "test/runtimes_execution_plane_process/execution_plane/runtime_supervision_test.exs",
       "test/runtimes_execution_plane_process/execution_plane_process_package_test.exs",
-      "test/support/core_execution_plane/fake_guest_bridge.ex",
-      "test/support/core_execution_plane/fake_ssh.ex",
-      "test/support/core_execution_plane/guest_local_adapter.ex",
-      "test/support/core_execution_plane/restricted_spawn_adapter.ex",
-      "test/support/core_execution_plane/simple_http_server.ex",
       "test/support/weld_helpers/core_execution_plane_test_helper.exs",
       "test/support/weld_helpers/runtimes_execution_plane_process_test_helper.exs",
       "test/test_helper.exs"
     ],
-    "config_warnings": [],
-    "file_remaps": [],
-    "helper_transformations": [
-      {
-        "fragment": "test/support/weld_helpers/core_execution_plane_test_helper.exs",
-        "project_id": "core/execution_plane",
-        "exunit_options": [],
-        "helper_path": "/home/home/p/g/n/execution_plane/core/execution_plane/test/test_helper.exs"
-      },
-      {
-        "fragment": "test/support/weld_helpers/runtimes_execution_plane_process_test_helper.exs",
-        "project_id": "runtimes/execution_plane_process",
-        "exunit_options": [],
-        "helper_path": "/home/home/p/g/n/execution_plane/runtimes/execution_plane_process/test/test_helper.exs"
-      }
+    "package_files": [
+      ".formatter.exs",
+      "CHANGELOG.md",
+      "LICENSE",
+      "README.md",
+      "assets/execution_plane.svg",
+      "config",
+      "guides",
+      "lib",
+      "mix.exs",
+      "projection.lock.json"
     ],
-    "migration_layout": {
-      "case": "none",
-      "repo_paths": {},
-      "repo_count": 0
-    },
-    "migration_remaps": [],
-    "repo_infos": []
+    "git_revision": "931fa50076163f6a87c7fe9d247d25582044e0f5",
+    "tree_digest": "7543d7e629fb3585b3dbc5a10cbacc1e1375c318d3c896c5b2f989eafc5910de"
   },
   "manifest": {
     "path": "/home/home/p/g/n/execution_plane/build_support/weld.exs",
-    "digest": "ae35a0c63f2f216ba8540f6281c360c0851b42a3b51b28babcc80f5392086ea4"
+    "digest": "aa4999f622a1e9a4af744e91ffa1518d9cf136341b8bf90258783859f0c57cc2"
   },
-  "verification": [],
+  "verification": [
+    {
+      "env": "test",
+      "status": "ok",
+      "task": "selected_tests_baseline",
+      "test_count": 106,
+      "project_test_counts": [
+        {
+          "app": "execution_plane_process",
+          "test_count": 36,
+          "project_id": "runtimes/execution_plane_process"
+        },
+        {
+          "app": "execution_plane_jsonrpc",
+          "test_count": 0,
+          "project_id": "protocols/execution_plane_jsonrpc"
+        },
+        {
+          "app": "execution_plane",
+          "test_count": 70,
+          "project_id": "core/execution_plane"
+        }
+      ]
+    },
+    {
+      "env": "dev",
+      "status": "ok",
+      "task": "deps.get"
+    },
+    {
+      "env": "dev",
+      "status": "ok",
+      "task": "compile --warnings-as-errors"
+    },
+    {
+      "env": "test",
+      "status": "ok",
+      "task": "test",
+      "failure_count": 0,
+      "test_count": 106
+    },
+    {
+      "env": "dev",
+      "status": "ok",
+      "task": "docs --warnings-as-errors"
+    },
+    {
+      "env": "dev",
+      "reason": "artifact_opted_out",
+      "status": "skipped",
+      "task": "hex.build"
+    }
+  ],
   "artifact": {
     "id": "execution_plane",
     "package": {

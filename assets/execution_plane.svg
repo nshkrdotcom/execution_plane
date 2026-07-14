@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" role="img" aria-labelledby="execution-title execution-desc">
+  <title id="execution-title">Execution Plane</title>
+  <desc id="execution-desc">A hexagonal runtime node dispatching attested execution requests across process, HTTP, JSON-RPC, and stream lanes.</desc>
+  <defs>
+    <clipPath id="execution-hex">
+      <path d="M100 4 L183 52 L183 148 L100 196 L17 148 L17 52 Z"/>
+    </clipPath>
+    <linearGradient id="execution-bg" x1="25" y1="20" x2="176" y2="181" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1f2b3a"/>
+      <stop offset="0.55" stop-color="#101925"/>
+      <stop offset="1" stop-color="#070b10"/>
+    </linearGradient>
+    <linearGradient id="execution-lane" x1="38" y1="90" x2="164" y2="140" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffdd6e"/>
+      <stop offset="0.5" stop-color="#70f0ff"/>
+      <stop offset="1" stop-color="#96ff91"/>
+    </linearGradient>
+    <filter id="execution-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="5" flood-color="#000000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <g clip-path="url(#execution-hex)">
+    <path d="M100 4 L183 52 L183 148 L100 196 L17 148 L17 52 Z" fill="url(#execution-bg)"/>
+    <g stroke="#70f0ff" stroke-width="1.8" opacity="0.25" fill="none">
+      <path d="M30 70 H170"/>
+      <path d="M30 100 H170"/>
+      <path d="M30 130 H170"/>
+      <path d="M58 50 V150"/>
+      <path d="M100 31 V169"/>
+      <path d="M142 50 V150"/>
+    </g>
+    <g filter="url(#execution-shadow)">
+      <rect x="62" y="70" width="76" height="58" rx="10" fill="#0b131d" stroke="#e8fbff" stroke-width="2.5"/>
+      <path d="M75 98 C88 83 112 83 125 98 C112 114 88 114 75 98 Z" fill="url(#execution-lane)" opacity="0.88"/>
+      <circle cx="100" cy="98" r="10" fill="#0b131d"/>
+      <path d="M94 98 H106 M100 92 V104" stroke="#e8fbff" stroke-width="2.2" stroke-linecap="round"/>
+    </g>
+    <g fill="none" stroke="url(#execution-lane)" stroke-width="5" stroke-linecap="round">
+      <path d="M62 84 H33"/>
+      <path d="M62 101 H30"/>
+      <path d="M62 118 H37"/>
+      <path d="M138 84 H167"/>
+      <path d="M138 101 H170"/>
+      <path d="M138 118 H163"/>
+      <path d="M100 128 V160"/>
+    </g>
+    <g fill="#0b131d" stroke="#e8fbff" stroke-width="2">
+      <path d="M25 74 H47 V94 H25 Z"/>
+      <path d="M23 109 H49 V129 H23 Z"/>
+      <path d="M153 74 H175 V94 H153 Z"/>
+      <path d="M151 109 H177 V129 H151 Z"/>
+      <path d="M86 156 L100 146 L114 156 V172 H86 Z"/>
+    </g>
+    <g stroke="#e8fbff" stroke-width="2" stroke-linecap="round" fill="none">
+      <path d="M31 84 H41"/>
+      <path d="M30 119 H42"/>
+      <path d="M159 84 H169"/>
+      <path d="M158 119 H170"/>
+      <path d="M94 162 H106"/>
+    </g>
+    <path d="M79 51 L100 39 L121 51 L121 63 L100 75 L79 63 Z" fill="#0b131d" stroke="#ffdd6e" stroke-width="3"/>
+    <path d="M91 58 L98 64 L110 51" fill="none" stroke="#ffdd6e" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M100 4 L183 52 L183 148 L100 196 L17 148 L17 52 Z" fill="none" stroke="#d8f7ff" stroke-width="4"/>
+  </g>
+</svg>

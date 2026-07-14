@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.40.3">
+    <meta name="project" content="execution_plane v0.1.0">
+
+
+    <title>API Reference — execution_plane v0.1.0</title>
+
+    <link rel="stylesheet" href="dist/html-elixir-NHQLCD6Y.css" />
+
+    <script defer src="dist/sidebar_items-7F2A35A2.js"></script>
+    <script defer src="docs_config.js"></script>
+    <script defer src="dist/html-Y2MUTVIN.js"></script>
+
+  </head>
+  <body>
+    <script>(()=>{var t="ex_doc:settings",e="dark";var o="dark",s="light";var E="sidebar_state",n="closed";var r="sidebar_width";var a="sidebar-open";var i=new URLSearchParams(window.location.search),S=i.get("theme")||JSON.parse(localStorage.getItem(t)||"{}").theme;(S===o||S!==s&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&document.body.classList.add(e);var d=sessionStorage.getItem(E),A=d!==n&&!window.matchMedia(`screen and (max-width: ${768}px)`).matches;document.body.classList.toggle(a,A);var c=sessionStorage.getItem(r);c&&document.body.style.setProperty("--sidebarWidth",`${c}px`);var p=/(Macintosh|iPhone|iPad|iPod)/.test(window.navigator.userAgent);document.documentElement.classList.toggle("apple-os",p);})();
+</script>
+
+<div class="body-wrapper">
+
+<button id="sidebar-menu" class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
+  <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+</button>
+
+<nav id="sidebar" class="sidebar">
+
+  <div class="sidebar-header">
+    <div class="sidebar-projectInfo">
+
+        <a href="https://github.com/nshkrdotcom/execution_plane" class="sidebar-projectImage">
+          <img src="assets/logo.svg" alt="execution_plane" />
+        </a>
+
+      <div>
+        <a href="https://github.com/nshkrdotcom/execution_plane" class="sidebar-projectName" translate="no">
+execution_plane
+        </a>
+        <div class="sidebar-projectVersion" translate="no">
+          v0.1.0
+        </div>
+      </div>
+    </div>
+    <ul id="sidebar-list-nav" class="sidebar-list-nav" role="tablist" data-extras="Pages"></ul>
+  </div>
+</nav>
+
+<output role="status" id="toast"></output>
+
+<main class="content page-extra" id="main" data-type="extras">
+  <div id="content" class="content-inner">
+    <div class="top-search">
+      <div class="search-settings">
+        <form class="search-bar" action="search.html">
+          <label class="search-label">
+            <span class="sr-only">Search documentation of execution_plane</span>
+            <div class="search-input-wrapper">
+              <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+              <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
+                <i class="ri-close-line ri-lg" title="Cancel search"></i>
+              </button>
+            </div>
+          </label>
+        </form>
+        <div class="autocomplete">
+        </div>
+        <div class="engine-selector" data-multiple="false">
+          <button type="button" class="engine-button" aria-label="Select search engine" aria-haspopup="true" aria-expanded="false">
+            <i class="ri-search-2-line" aria-hidden="true"></i>
+            <span class="engine-name">Default</span>
+            <i class="ri-arrow-down-s-line" aria-hidden="true"></i>
+          </button>
+          <div class="engine-dropdown" hidden role="menu">
+
+              <button type="button"
+                      class="engine-option"
+                      data-engine-url="search.html?q="
+                      role="menuitemradio"
+                      aria-checked="true">
+                <span class="name">Default</span>
+                <span class="help">In-browser search</span>
+              </button>
+
+          </div>
+        </div>
+        <button class="icon-settings display-settings">
+          <i class="ri-settings-3-line"></i>
+          <span class="sr-only">Settings</span>
+        </button>
+      </div>
+    </div>
+
+<div id="top-content">
+  <div class="heading-with-actions top-heading">
+    <h1>API Reference <small class="app-vsn">execution_plane v#0.1.0</small></h1>
+<a href="api-reference.md" title="Copy Markdown (hold Ctrl/Cmd and click it to open as Markdown)" class="copy-markdown icon-action" rel="help">
+  <i class="ri-markdown-line" aria-hidden="true"></i>
+  <span class="sr-only">Copy Markdown</span>
+</a>
+
+
+      <a href="https://github.com/nshkrdotcom/execution_plane" title="View Source" class="icon-action" rel="help nofollow">
+        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        <span class="sr-only">View Source</span>
+      </a>
+
+  </div>
+
+    <section class="details-list">
+      <h2 id="modules" class="section-heading">Modules</h2>
+      <div class="summary">
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.html" translate="no">ExecutionPlane</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Lower-runtime substrate for shared execution contracts and runtime helpers.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.ActivitySideEffectIdempotency.html" translate="no">ExecutionPlane.<wbr />ActivitySideEffectIdempotency</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Activity-facing side-effect idempotency contract for Phase 4 durable workflows.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Admission.Decision.html" translate="no">ExecutionPlane.<wbr />Admission.<wbr />Decision</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Admission decision.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Admission.Rejection.html" translate="no">ExecutionPlane.<wbr />Admission.<wbr />Rejection</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Admission rejection.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Admission.Request.html" translate="no">ExecutionPlane.<wbr />Admission.<wbr />Request</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Runtime-client admission request.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.AttachGrantContract.html" translate="no">ExecutionPlane.<wbr />AttachGrantContract</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Lease-bound attach grant contract.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Authority.Ref.html" translate="no">ExecutionPlane.<wbr />Authority.<wbr />Ref</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Opaque authority reference. The root carries it and never interprets policy semantics.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Authority.Verifier.html" translate="no">ExecutionPlane.<wbr />Authority.<wbr />Verifier</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Authority verifier behaviour registered by node hosts.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.CancellationMetadata.html" translate="no">ExecutionPlane.<wbr />CancellationMetadata</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Cancellation metadata linked to authority, workflow, and lower run refs.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Codec.html" translate="no">ExecutionPlane.<wbr />Codec</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Canonical JSON codec helpers for root boundary contracts.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Command.html" translate="no">ExecutionPlane.<wbr />Command</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Generic transport-level command invocation.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.ContractVersion.html" translate="no">ExecutionPlane.<wbr />ContractVersion</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Root Execution Plane boundary contract version.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Contracts.html" translate="no">ExecutionPlane.<wbr />Contracts</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Canonical helpers for the Execution Plane contract packet.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Contracts.AdapterSelectionPolicy.V1.html" translate="no">ExecutionPlane.<wbr />Contracts.<wbr />AdapterSelectionPolicy.<wbr />V1</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Owner-repo adapter selection rule for Phase 6 lower simulation.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Contracts.AttachGrant.V1.html" translate="no">ExecutionPlane.<wbr />Contracts.<wbr />AttachGrant.<wbr />V1</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Phase 4 lease-bound attach grant for hazmat stream/session access.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Contracts.AuthorityDecision.V1.html" translate="no">ExecutionPlane.<wbr />Contracts.<wbr />AuthorityDecision.<wbr />V1</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Packet-local Brain contract baseline carried across the lower stack.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Contracts.BoundarySessionDescriptor.V1.html" translate="no">ExecutionPlane.<wbr />Contracts.<wbr />BoundarySessionDescriptor.<wbr />V1</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Durable Spine-owned boundary/session descriptor.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Contracts.CredentialHandleRef.V1.html" translate="no">ExecutionPlane.<wbr />Contracts.<wbr />CredentialHandleRef.<wbr />V1</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Reference to short-lived execution-time secret or workload identity material.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Contracts.ExecutionEvent.V1.html" translate="no">ExecutionPlane.<wbr />Contracts.<wbr />ExecutionEvent.<wbr />V1</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Append-only raw execution fact emitted by the Execution Plane.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Contracts.ExecutionEvidenceBoundary.V1.html" translate="no">ExecutionPlane.<wbr />Contracts.<wbr />ExecutionEvidenceBoundary.<wbr />V1</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Bounded report boundary for <code class="inline">ExecutionOutcome.v1</code>.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Contracts.ExecutionIntentEnvelope.V1.html" translate="no">ExecutionPlane.<wbr />Contracts.<wbr />ExecutionIntentEnvelope.<wbr />V1</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Spine-to-Execution neutral intent envelope.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Contracts.ExecutionOutcome.V1.html" translate="no">ExecutionPlane.<wbr />Contracts.<wbr />ExecutionOutcome.<wbr />V1</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Terminal or checkpointed raw execution outcome emitted by the Execution Plane.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Contracts.ExecutionRoute.V1.html" translate="no">ExecutionPlane.<wbr />Contracts.<wbr />ExecutionRoute.<wbr />V1</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Spine-owned durable route choice carried to and from the Execution Plane.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Contracts.Failure.html" translate="no">ExecutionPlane.<wbr />Contracts.<wbr />Failure</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Structured failure payload used by <code class="inline">ExecutionOutcome.v1</code>.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Contracts.FailureClass.html" translate="no">ExecutionPlane.<wbr />Contracts.<wbr />FailureClass</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Typed failure-class enum for the shared contract packet.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Contracts.HttpExecutionIntent.V1.html" translate="no">ExecutionPlane.<wbr />Contracts.<wbr />HttpExecutionIntent.<wbr />V1</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>HTTP-family execution intent.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Contracts.JsonRpcExecutionIntent.V1.html" translate="no">ExecutionPlane.<wbr />Contracts.<wbr />JsonRpcExecutionIntent.<wbr />V1</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>JSON-RPC-family execution intent.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Contracts.LaneFact.V1.html" translate="no">ExecutionPlane.<wbr />Contracts.<wbr />LaneFact.<wbr />V1</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Neutral bounded lower-lane fact.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Contracts.LowerSimulationEvidence.V1.html" translate="no">ExecutionPlane.<wbr />Contracts.<wbr />LowerSimulationEvidence.<wbr />V1</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Bounded evidence that a lower-runtime simulation scenario produced an
+<code class="inline">ExecutionOutcome.v1</code> without external side effects.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Contracts.LowerSimulationScenario.V1.html" translate="no">ExecutionPlane.<wbr />Contracts.<wbr />LowerSimulationScenario.<wbr />V1</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Phase 6 lower-runtime scenario contract owned by Execution Plane.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Contracts.NoBypassScan.V1.html" translate="no">ExecutionPlane.<wbr />Contracts.<wbr />NoBypassScan.<wbr />V1</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Source-boundary proof that hazmat Execution Plane APIs are not imported by public code.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Contracts.NoEgressPolicy.V1.html" translate="no">ExecutionPlane.<wbr />Contracts.<wbr />NoEgressPolicy.<wbr />V1</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Fail-closed no-egress policy for lower-runtime simulation boundaries.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Contracts.PersistencePosture.html" translate="no">ExecutionPlane.<wbr />Contracts.<wbr />PersistencePosture</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Ref-only persistence posture for lower target and attach surfaces.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Contracts.ProcessExecutionIntent.V1.html" translate="no">ExecutionPlane.<wbr />Contracts.<wbr />ProcessExecutionIntent.<wbr />V1</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Process-family execution intent.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Contracts.StreamAttachRevocation.V1.html" translate="no">ExecutionPlane.<wbr />Contracts.<wbr />StreamAttachRevocation.<wbr />V1</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Revocation evidence proving an attached stream stopped after grant or lease revocation.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Contracts.StreamBackpressure.V1.html" translate="no">ExecutionPlane.<wbr />Contracts.<wbr />StreamBackpressure.<wbr />V1</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Deterministic stream pressure and termination evidence.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Contracts.TargetPosture.V1.html" translate="no">ExecutionPlane.<wbr />Contracts.<wbr />TargetPosture.<wbr />V1</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Phase 5 target posture and attach authorization contract.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Contracts.WorkerBudget.V1.html" translate="no">ExecutionPlane.<wbr />Contracts.<wbr />WorkerBudget.<wbr />V1</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Worker admission and pressure-shedding evidence for tenant-scoped budgets.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.DiagnosticResult.html" translate="no">ExecutionPlane.<wbr />DiagnosticResult</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Structured result emitted by the diagnostic execution lane.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Evidence.html" translate="no">ExecutionPlane.<wbr />Evidence</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Serializable execution evidence envelope.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Evidence.Sink.html" translate="no">ExecutionPlane.<wbr />Evidence.<wbr />Sink</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Evidence sink behaviour registered by node hosts.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.ExecutionActivityMetadata.html" translate="no">ExecutionPlane.<wbr />ExecutionActivityMetadata</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Execution activity metadata consumed by Mezzanine activities.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.ExecutionEvent.html" translate="no">ExecutionPlane.<wbr />ExecutionEvent</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Serializable execution event envelope.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.ExecutionRef.html" translate="no">ExecutionPlane.<wbr />ExecutionRef</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Opaque execution reference.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.ExecutionRequest.html" translate="no">ExecutionPlane.<wbr />ExecutionRequest</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Lane/Target execution request produced after admission.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.ExecutionResult.html" translate="no">ExecutionPlane.<wbr />ExecutionResult</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Serializable execution result.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.HeartbeatMetadata.html" translate="no">ExecutionPlane.<wbr />HeartbeatMetadata</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Heartbeat metadata linked to workflow activity and lease evidence.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.JsonRpc.html" translate="no">ExecutionPlane.<wbr />JsonRpc</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Helper surface for JSON-RPC framing and direct owner composition.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Kernel.html" translate="no">ExecutionPlane.<wbr />Kernel</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Minimal execution kernel for contract validation, dispatch, timeout
+coordination, and raw-fact emission.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Kernel.DispatchPlan.html" translate="no">ExecutionPlane.<wbr />Kernel.<wbr />DispatchPlan</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Minimal Wave 1 dispatch plan produced from a validated route and lower intent.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Kernel.ExecutionResult.html" translate="no">ExecutionPlane.<wbr />Kernel.<wbr />ExecutionResult</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Result bundle returned by the minimal execution-plane kernel.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Lane.Adapter.html" translate="no">ExecutionPlane.<wbr />Lane.<wbr />Adapter</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Transport lane adapter behaviour.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Lane.Capabilities.html" translate="no">ExecutionPlane.<wbr />Lane.<wbr />Capabilities</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Lane adapter capability descriptor.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Lanes.DiagnosticLane.html" translate="no">ExecutionPlane.<wbr />Lanes.<wbr />DiagnosticLane</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Bounded, non-coding diagnostic lane adapter.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.LineFraming.html" translate="no">ExecutionPlane.<wbr />LineFraming</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Incremental newline framing for stdout and stderr stream handling.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.LowerSimulation.html" translate="no">ExecutionPlane.<wbr />LowerSimulation</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Route-configured lower-runtime simulation support.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Placement.Surface.html" translate="no">ExecutionPlane.<wbr />Placement.<wbr />Surface</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Lane-neutral placement surface contract.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Placements.Capabilities.html" translate="no">ExecutionPlane.<wbr />Placements.<wbr />Capabilities</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Narrow placement-surface capabilities carried independently from command or
+provider semantics.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Placements.Guest.html" translate="no">ExecutionPlane.<wbr />Placements.<wbr />Guest</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Guest-backed placement semantics for the execution-plane substrate.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Placements.Local.html" translate="no">ExecutionPlane.<wbr />Placements.<wbr />Local</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Same-node placement semantics for the execution-plane substrate.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Placements.SSH.html" translate="no">ExecutionPlane.<wbr />Placements.<wbr />SSH</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>SSH-backed placement semantics for the execution-plane substrate.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Placements.Surface.html" translate="no">ExecutionPlane.<wbr />Placements.<wbr />Surface</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Narrow execution-surface contract for process placement and runtime routing.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Process.html" translate="no">ExecutionPlane.<wbr />Process</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Helper surface for one-shot subprocess execution.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Process.Application.html" translate="no">ExecutionPlane.<wbr />Process.<wbr />Application</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>OTP application entry point for the standalone process runtime package.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Process.Transport.html" translate="no">ExecutionPlane.<wbr />Process.<wbr />Transport</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Behaviour for the raw subprocess transport layer.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Process.Transport.Delivery.html" translate="no">ExecutionPlane.<wbr />Process.<wbr />Transport.<wbr />Delivery</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Stable mailbox-delivery metadata for transport subscribers.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Process.Transport.Error.html" translate="no">ExecutionPlane.<wbr />Process.<wbr />Transport.<wbr />Error</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Structured transport error with a normalized reason and debugging context.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Process.Transport.GuestBridge.State.html" translate="no">ExecutionPlane.<wbr />Process.<wbr />Transport.<wbr />GuestBridge.<wbr />State</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Internal state schema for the guest bridge transport coordinator.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Process.Transport.Info.html" translate="no">ExecutionPlane.<wbr />Process.<wbr />Transport.<wbr />Info</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Snapshot of a long-lived transport's execution-surface metadata and IO contract.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Process.Transport.LowerSimulation.html" translate="no">ExecutionPlane.<wbr />Process.<wbr />Transport.<wbr />LowerSimulation</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Execution Plane-owned process transport simulation surface.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Process.Transport.Options.html" translate="no">ExecutionPlane.<wbr />Process.<wbr />Transport.<wbr />Options</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Normalized startup options for the raw transport layer.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Process.Transport.RunOptions.html" translate="no">ExecutionPlane.<wbr />Process.<wbr />Transport.<wbr />RunOptions</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Validated options for synchronous non-PTY command execution.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Process.Transport.RunResult.html" translate="no">ExecutionPlane.<wbr />Process.<wbr />Transport.<wbr />RunResult</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Captured output and normalized exit data for one-shot non-PTY execution.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Process.Transport.Subprocess.State.html" translate="no">ExecutionPlane.<wbr />Process.<wbr />Transport.<wbr />Subprocess.<wbr />State</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Internal state schema for the subprocess transport coordinator.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Process.Transport.Surface.html" translate="no">ExecutionPlane.<wbr />Process.<wbr />Transport.<wbr />Surface</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Legacy compatibility shell for the public execution-surface contract.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Process.Transport.Surface.Adapter.html" translate="no">ExecutionPlane.<wbr />Process.<wbr />Transport.<wbr />Surface.<wbr />Adapter</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Internal behaviour for execution-surface adapters owned by the core.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Process.Transport.Surface.Capabilities.html" translate="no">ExecutionPlane.<wbr />Process.<wbr />Transport.<wbr />Surface.<wbr />Capabilities</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Typed transport-family and per-session execution-surface capabilities.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Process.Transport.Surface.Registry.html" translate="no">ExecutionPlane.<wbr />Process.<wbr />Transport.<wbr />Surface.<wbr />Registry</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Internal registry of built-in execution-surface adapters.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Process.TreRhai.html" translate="no">ExecutionPlane.<wbr />Process.<wbr />TreRhai</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Local TRE/Rhai process lane for invoking <code class="inline">rex-runner</code>.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.ProcessExit.html" translate="no">ExecutionPlane.<wbr />ProcessExit</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Normalized process exit information shared by the runtime and provider profiles.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Protocols.JsonRpc.html" translate="no">ExecutionPlane.<wbr />Protocols.<wbr />JsonRpc</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Minimal JSON-RPC framing support. Process-backed JSON-RPC is composed by a
+direct lower-lane owner that depends on both JSON-RPC and process lanes.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Protocols.JsonRpc.Adapter.html" translate="no">ExecutionPlane.<wbr />Protocols.<wbr />JsonRpc.<wbr />Adapter</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Execution Plane-owned JSON-RPC framing adapter for persistent lanes.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Provenance.html" translate="no">ExecutionPlane.<wbr />Provenance</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Execution provenance for governed node admission and direct lower-lane owners.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.RemoteFacade.Lane.html" translate="no">ExecutionPlane.<wbr />RemoteFacade.<wbr />Lane</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Execution Plane-owned lower lane facade for distributed StackLab profiles.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Runtime.Client.html" translate="no">ExecutionPlane.<wbr />Runtime.<wbr />Client</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Consumer-to-node runtime client behaviour.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Runtime.Constraint.html" translate="no">ExecutionPlane.<wbr />Runtime.<wbr />Constraint</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Serializable runtime constraint.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Runtime.NodeDescriptor.html" translate="no">ExecutionPlane.<wbr />Runtime.<wbr />NodeDescriptor</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Runtime client descriptor returned by describe/1.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.RuntimeEvidenceRef.html" translate="no">ExecutionPlane.<wbr />RuntimeEvidenceRef</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Public-safe reference to raw runtime evidence.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Runtimes.Process.html" translate="no">ExecutionPlane.<wbr />Runtimes.<wbr />Process</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Minimal process runtime for one-shot local execution in the execution-plane
+substrate.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Runtimes.Process.Exit.html" translate="no">ExecutionPlane.<wbr />Runtimes.<wbr />Process.<wbr />Exit</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Normalized process exit information for the lower runtime substrate.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Runtimes.Process.RunResult.html" translate="no">ExecutionPlane.<wbr />Runtimes.<wbr />Process.<wbr />RunResult</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Captured output and normalized exit data for one-shot process execution.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Sandbox.AcceptableAttestation.html" translate="no">ExecutionPlane.<wbr />Sandbox.<wbr />AcceptableAttestation</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Closed set of acceptable Target attestation classes for one admission request.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Sandbox.Profile.html" translate="no">ExecutionPlane.<wbr />Sandbox.<wbr />Profile</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Opaque signed governance bundle authored upstream.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.StreamLeaseContract.html" translate="no">ExecutionPlane.<wbr />StreamLeaseContract</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Stream lease and revocation metadata contract.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Target.Attestation.html" translate="no">ExecutionPlane.<wbr />Target.<wbr />Attestation</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Raw Target attestation evidence presented before routing-table admission.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Target.Client.html" translate="no">ExecutionPlane.<wbr />Target.<wbr />Client</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Node-to-Target execution client behaviour.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Target.Descriptor.html" translate="no">ExecutionPlane.<wbr />Target.<wbr />Descriptor</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Verifier-validated Target routing descriptor.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Target.Verifier.html" translate="no">ExecutionPlane.<wbr />Target.<wbr />Verifier</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Target attestation verifier behaviour.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.TaskSupport.html" translate="no">ExecutionPlane.<wbr />TaskSupport</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Small task helpers shared by the runtime and transport layers.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="ExecutionPlane.Testkit.ContractFixtures.html" translate="no">ExecutionPlane.<wbr />Testkit.<wbr />ContractFixtures</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Wave 1 fixtures for the frozen contract packet.</p></div>
+
+</div>
+
+      </div>
+    </section>
+
+
+</div>
+    <footer class="footer">
+
+        <p>
+
+            <span class="line">
+              <a href="https://hex.pm/packages/execution_plane/0.1.0">Hex Package</a>
+
+              <a href="https://preview.hex.pm/preview/execution_plane/0.1.0">Hex Preview</a>
+
+            </span>
+
+          <span class="line">
+            <button class="a-main footer-button display-quick-switch" title="Go to package docs">
+              Go to package docs
+            </button>
+
+              <a href="llms.txt" target="_blank">
+                View llms.txt
+              </a>
+
+
+              <a href="execution_plane.epub">
+                Download ePub version
+              </a>
+
+          </span>
+        </p>
+
+        <p class="built-using">
+          Built using
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.40.3) for the
+
+            <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
+
+        </p>
+
+
+    </footer>
+  </div>
+</main>
+</div>
+
+  </body>
+</html>
