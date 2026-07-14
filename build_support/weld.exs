@@ -49,17 +49,25 @@
           extra_titles: %{
             "README.md" => "Overview",
             "guides/index.md" => "Package Guide",
+            "guides/code_smell_remediation.md" => "Code Smell Remediation",
             "CHANGELOG.md" => "Changelog",
             "LICENSE" => "License"
           },
           groups_for_extras: [
             {"Start Here", ["README.md", "guides/index.md"]},
+            {"Guides", ["guides/code_smell_remediation.md"]},
             {"Project", ["CHANGELOG.md", "LICENSE"]}
           ]
         ]
       ],
       output: [
-        docs: ["README.md", "guides/index.md", "CHANGELOG.md", "LICENSE"],
+        docs: [
+          "README.md",
+          "guides/index.md",
+          "guides/code_smell_remediation.md",
+          "CHANGELOG.md",
+          "LICENSE"
+        ],
         assets: ["assets/execution_plane.svg"]
       ],
       verify: [hex_build: false, hex_publish: false]
