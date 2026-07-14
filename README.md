@@ -17,7 +17,7 @@ This repository is a non-umbrella Mix workspace. The repository root is a
 tooling project only; it is not the `execution_plane` Hex package.
 
 The public `execution_plane` 0.1.0 Hex package is generated with released Weld
-0.8.3 from three independently testable source units:
+0.8.4 from three independently testable source units:
 
 - `core/execution_plane`
 - `protocols/execution_plane_jsonrpc`

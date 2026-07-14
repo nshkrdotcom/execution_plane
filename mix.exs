@@ -43,7 +43,7 @@ defmodule ExecutionPlane.Workspace.MixProject do
   defp deps do
     [
       DependencySources.dep(:blitz, __DIR__, runtime: false),
-      {:weld, "~> 0.8.3", only: [:dev, :test], runtime: false},
+      {:weld, "~> 0.8.4", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.40", only: :dev, runtime: false}
     ]
   end
