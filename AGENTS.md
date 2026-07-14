@@ -20,7 +20,7 @@ independently testable component source projects. The first public
   add-on package for local, SSH, and distributed TUIs.
 
 The repository root `./mix.exs` is a Mix project, but it is not a publishable
-package project. It owns Blitz orchestration and Weld 0.8.2 release tooling;
+package project. It owns Blitz orchestration and Weld 0.8.3 release tooling;
 neither dependency belongs in generated runtime manifests.
 
 ## Onboarding
@@ -240,7 +240,7 @@ Root workspace Blitz uses published Hex `~> 0.3.0` by default; `.blitz/` is comm
 - Dependency source selection must not use environment variables.
 - Runtime application code under `lib/**` must not call direct OS env APIs.
   Runtime env reads belong in `config/runtime.exs` or a `Config.Provider`.
-- Released Weld `~> 0.8.2` is the approved root-only projection and release
+- Released Weld `~> 0.8.3` is the approved root-only projection and release
   tool. `build_support/weld.exs` is the canonical artifact manifest. The
   durable generated branch is `projection/execution_plane`; never make
   canonical source edits there.

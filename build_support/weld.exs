@@ -39,11 +39,28 @@
         licenses: ["MIT"],
         maintainers: ["nshkrdotcom"],
         links: %{"GitHub" => "https://github.com/nshkrdotcom/execution_plane"},
-        docs_main: "readme"
+        docs: [
+          main: "readme",
+          logo: "assets/execution_plane.svg",
+          homepage_url: "https://github.com/nshkrdotcom/execution_plane",
+          source_url: "https://github.com/nshkrdotcom/execution_plane",
+          source_ref: "v0.1.0",
+          assets: %{"assets" => "assets"},
+          extra_titles: %{
+            "README.md" => "Overview",
+            "guides/index.md" => "Package Guide",
+            "CHANGELOG.md" => "Changelog",
+            "LICENSE" => "License"
+          },
+          groups_for_extras: [
+            {"Start Here", ["README.md", "guides/index.md"]},
+            {"Project", ["CHANGELOG.md", "LICENSE"]}
+          ]
+        ]
       ],
       output: [
-        docs: ["README.md", "guides/index.md"],
-        assets: ["CHANGELOG.md", "LICENSE"]
+        docs: ["README.md", "guides/index.md", "CHANGELOG.md", "LICENSE"],
+        assets: ["assets/execution_plane.svg"]
       ],
       verify: [hex_build: false, hex_publish: false]
     ]
