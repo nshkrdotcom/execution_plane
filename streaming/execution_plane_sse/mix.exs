@@ -36,11 +36,11 @@ defmodule ExecutionPlaneSse.MixProject do
   defp deps do
     [
       execution_plane_dep(),
-      {:finch, "~> 0.21"},
-      {:server_sent_events, "~> 0.2"},
-      {:ex_doc, "~> 0.40", only: :dev, runtime: false},
-      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false}
+      {:finch, "~> 0.23.0"},
+      {:server_sent_events, "~> 1.1.0"},
+      {:ex_doc, "~> 0.40.3", only: :dev, runtime: false},
+      {:credo, "~> 1.7.19", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4.7", only: [:dev, :test], runtime: false}
     ]
   end
 

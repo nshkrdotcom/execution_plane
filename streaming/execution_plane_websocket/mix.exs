@@ -35,11 +35,11 @@ defmodule ExecutionPlaneWebSocket.MixProject do
   defp deps do
     [
       execution_plane_dep(),
-      {:mint, "~> 1.7"},
-      {:mint_web_socket, "~> 1.0"},
-      {:ex_doc, "~> 0.40", only: :dev, runtime: false},
-      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false}
+      {:mint, "~> 1.9.2"},
+      {:mint_web_socket, "~> 1.0.5"},
+      {:ex_doc, "~> 0.40.3", only: :dev, runtime: false},
+      {:credo, "~> 1.7.19", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4.7", only: [:dev, :test], runtime: false}
     ]
   end
 

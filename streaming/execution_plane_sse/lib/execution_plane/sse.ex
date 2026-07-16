@@ -3,7 +3,7 @@ defmodule ExecutionPlane.SSE do
   Execution Plane-owned SSE framing and stream lifecycle helper.
 
   Semantic families consume parsed SSE events plus the original raw chunk, while
-  the lower HTTP stream worker and parser buffer stay below them.
+  the lower HTTP stream worker and parser state stay below them.
   """
 
   @default_receive_timeout 30_000
@@ -15,9 +15,9 @@ defmodule ExecutionPlane.SSE do
           | {:transport_error, term()}
           | :transport_timeout
 
-  @spec parse(binary()) :: {[map()], binary()}
-  def parse(buffer) when is_binary(buffer) do
-    ServerSentEvents.parse(buffer)
+  @spec parse(binary()) :: {[map()], ServerSentEvents.Parser.t()}
+  def parse(chunk) when is_binary(chunk) do
+    ServerSentEvents.Parser.parse(chunk)
   end
 
   @spec stream(Finch.Request.t(), atom()) :: Enumerable.t()
@@ -42,7 +42,7 @@ defmodule ExecutionPlane.SSE do
     case start_stream_task(fn -> run_stream(parent, ref, request, finch_name) end) do
       {:ok, worker_pid} ->
         %{
-          buffer: "",
+          parser: ServerSentEvents.Parser.new(),
           done?: false,
           finch_name: finch_name,
           receive_timeout: receive_timeout,
@@ -54,7 +54,7 @@ defmodule ExecutionPlane.SSE do
 
       {:error, reason} ->
         %{
-          buffer: "",
+          parser: ServerSentEvents.Parser.new(),
           done?: false,
           finch_name: finch_name,
           receive_timeout: receive_timeout,
@@ -136,8 +136,8 @@ defmodule ExecutionPlane.SSE do
         {[{:headers, headers}], state}
 
       {ref, :data, data} when ref == state.ref ->
-        {events, remaining} = parse(state.buffer <> data)
-        {[{:sse, data, events}], %{state | buffer: remaining}}
+        {events, parser} = ServerSentEvents.Parser.parse(state.parser, data)
+        {[{:sse, data, events}], %{state | parser: parser}}
 
       {ref, :transport_error, reason} when ref == state.ref ->
         {[{:transport_error, reason}], %{state | done?: true}}
