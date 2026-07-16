@@ -130,6 +130,16 @@ defmodule ExecutionPlane.Codec do
 
   alias GroundPlane.Boundary.Codec, as: GroundCodec
 
+  @spec encode(struct() | map()) :: {:ok, String.t()} | {:error, term()}
+  def encode(%_{} = value) do
+    value
+    |> value.__struct__.dump()
+    |> GroundCodec.encode()
+  end
+
+  def encode(value) when is_map(value),
+    do: value |> ExecutionPlane.Boundary.dump_value() |> GroundCodec.encode()
+
   @spec encode!(struct() | map()) :: String.t()
   def encode!(%_{} = value) do
     value
@@ -761,17 +771,21 @@ defmodule ExecutionPlane.Runtime.NodeDescriptor do
 end
 
 defmodule ExecutionPlane.Runtime.Client do
-  @moduledoc "Consumer-to-node runtime client behaviour."
+  @moduledoc """
+  Consumer-to-node admitted interactive lifecycle.
 
-  @callback describe(keyword()) ::
-              {:ok, ExecutionPlane.Runtime.NodeDescriptor.t()} | {:error, term()}
-  @callback admit(ExecutionPlane.Admission.Request.t(), keyword()) ::
-              {:ok, ExecutionPlane.Admission.Decision.t()}
-              | {:error, ExecutionPlane.Admission.Rejection.t()}
-  @callback execute(ExecutionPlane.Admission.Request.t(), keyword()) ::
-              {:ok, ExecutionPlane.ExecutionResult.t()}
-              | {:error, ExecutionPlane.ExecutionResult.t()}
-  @callback stream(ExecutionPlane.Admission.Request.t(), keyword()) ::
-              {:ok, Enumerable.t()} | {:error, ExecutionPlane.Admission.Rejection.t()}
+  `start/2` owns admission and returns only opaque execution/session identity.
+  Implementations must not expose provider or transport process identifiers.
+  """
+
+  @callback start(ExecutionPlane.Admission.Request.t(), keyword()) ::
+              {:ok, ExecutionPlane.ActiveExecution.t()} | {:error, term()}
+  @callback subscribe(ExecutionPlane.ExecutionRef.t(), pid(), keyword()) ::
+              :ok | {:error, term()}
+  @callback send_input(ExecutionPlane.ExecutionRef.t(), iodata() | map(), keyword()) ::
+              :ok | {:error, term()}
+  @callback end_input(ExecutionPlane.ExecutionRef.t(), keyword()) :: :ok | {:error, term()}
+  @callback status(ExecutionPlane.ExecutionRef.t(), keyword()) ::
+              {:ok, ExecutionPlane.Runtime.Status.t()} | {:error, term()}
   @callback cancel(ExecutionPlane.ExecutionRef.t(), keyword()) :: :ok | {:error, term()}
 end
