@@ -1,9 +1,13 @@
 defmodule ExecutionPlane.Node.LocalClient do
   @moduledoc """
-  Same-node implementation of `ExecutionPlane.Runtime.Client`.
+  Same-node implementation of `ExecutionPlane.Node.Client`.
+
+  This module owns the node package's current admission and one-shot dispatch
+  API. It does not implement the interactive `ExecutionPlane.Runtime.Client`
+  lifecycle.
   """
 
-  @behaviour ExecutionPlane.Runtime.Client
+  @behaviour ExecutionPlane.Node.Client
 
   @impl true
   def describe(opts \\ []), do: ExecutionPlane.Node.describe(opts)

@@ -3,7 +3,7 @@ defmodule ExecutionPlaneNode.MixProject do
 
   @version "0.1.0"
   @source_url "https://github.com/nshkrdotcom/execution_plane"
-  @execution_plane_version "~> 0.1.0"
+  @execution_plane_version "~> 0.2.0"
   @execution_plane_source [
     github: "nshkrdotcom/execution_plane",
     branch: "main",
@@ -18,7 +18,7 @@ defmodule ExecutionPlaneNode.MixProject do
       elixir: "~> 1.18",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
-      description: "Lane-neutral Execution Plane runtime node and local Runtime.Client.",
+      description: "Lane-neutral Execution Plane runtime node and local node-control client.",
       package: package(),
       docs: docs(),
       dialyzer: dialyzer(),

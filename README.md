@@ -16,17 +16,17 @@
 This repository is a non-umbrella Mix workspace. The repository root is a
 tooling project only; it is not the `execution_plane` Hex package.
 
-The public `execution_plane` 0.1.0 Hex package is generated with released Weld
-0.8.4 from three independently testable source units:
+The historical public `execution_plane 0.1.0` Hex package was generated with
+released Weld 0.8.4 as a monolith. The canonical `execution_plane 0.2.0`
+package publishes directly from the common substrate:
 
 - `core/execution_plane`
-- `protocols/execution_plane_jsonrpc`
-- `runtimes/execution_plane_process`
 
 Blitz, Weld, and workspace orchestration live only in the root tooling project
-and do not enter the generated runtime dependency graph. Canonical changes stay
-in the component source homes; `projection/execution_plane` is generated
-release evidence.
+and do not enter runtime dependency graphs. Canonical changes stay in the
+component source homes; `projection/execution_plane` is historical 0.1.0
+release evidence. JSON-RPC and process execution now publish independently as
+`execution_plane_jsonrpc` and `execution_plane_process`.
 
 Execution Plane is the lowest runtime substrate in the ranked stack. It owns
 packets, lane protocols, placements, target attestations, runtime-client
@@ -37,7 +37,7 @@ policy, connector semantics, or durable workflow truth.
 
 ```text
 products / AppKit / Mezzanine / Citadel / Jido Integration
-  -> ExecutionPlane.Runtime.Client
+  -> ExecutionPlane.Runtime.Client (frozen interactive contract)
       -> execution_plane_node
           -> process, HTTP, JSON-RPC, SSE, WebSocket, terminal lanes
               -> concrete runtimes and targets
@@ -56,7 +56,7 @@ separate runtime-client calls and records each rejected or accepted rung.
 ## What The Public Distribution Carries
 
 The generated `execution_plane` package carries shared lower values and
-behaviours plus JSON-RPC framing and the process runtime:
+behaviours:
 
 - admission requests, decisions, and rejections
 - authority refs and host-registered authority verifiers
@@ -66,8 +66,10 @@ behaviours plus JSON-RPC framing and the process runtime:
 - placement descriptors for local, SSH, and guest targets
 - lane adapter behaviours and capability descriptions
 - lower-boundary simulation and conformance helpers
-- JSON-RPC framing and correlation
-- process, PTY, stdio, guest-bridge, and lower-simulation transport surfaces
+
+JSON-RPC framing and process/PTY/stdio transport are owned only by their
+separate packages. This avoids the duplicate-module graph created by combining
+those components with the historical 0.1.0 monolith.
 
 The common package does not enforce an OS sandbox by itself. It carries policy
 and evidence. Real isolation claims must come from a verified target and a
@@ -167,14 +169,14 @@ The checkout contains exactly eight active component Mix projects:
 
 - `core/execution_plane`: common substrate selected into `execution_plane`
 - `protocols/execution_plane_http`: unary HTTP lane
-- `protocols/execution_plane_jsonrpc`: JSON-RPC framing and correlation,
-  selected into `execution_plane`
+- `protocols/execution_plane_jsonrpc`: separately published JSON-RPC framing
+  and correlation
 - `streaming/execution_plane_sse`: SSE framing and stream lifecycle lane
 - `streaming/execution_plane_websocket`: WebSocket handshake/frame lane
-- `runtimes/execution_plane_process`: process/PTY/stdio lane selected into
-  `execution_plane`, and the sole owner of `erlexec`
+- `runtimes/execution_plane_process`: separately published process/PTY/stdio
+  lane and the sole owner of `erlexec`
 - `runtimes/execution_plane_node`: lane-neutral runtime node and local
-  `ExecutionPlane.Runtime.Client`
+  `ExecutionPlane.Node.Client` for current admission and one-shot dispatch
 - `runtimes/execution_plane_operator_terminal`: operator-facing terminal
   runtime, kept separate so base consumers do not inherit `ex_ratatui`
 
@@ -190,20 +192,19 @@ descriptors, runtime-client behaviours, evidence envelopes, and pure helpers:
 ```elixir
 def deps do
   [
-    {:execution_plane, "~> 0.1.0"}
+    {:execution_plane, "~> 0.2.0"}
   ]
 end
 ```
 
-Version 0.1.0 already includes JSON-RPC and process execution. Separate lane
-or host packages are added only for capabilities outside that frozen public
-foundation, for example the node host:
+Add only the lane and host packages the runtime uses:
 
 ```elixir
 def deps do
   [
-    {:execution_plane, "~> 0.1.0"},
-    {:execution_plane_node, "~> 0.1.0"}
+    {:execution_plane, "~> 0.2.0"},
+    {:execution_plane_process, "~> 0.1.0"},
+    {:execution_plane_jsonrpc, "~> 0.1.0"}
   ]
 end
 ```
@@ -222,8 +223,11 @@ mix deps.get
 mix ci
 ```
 
-The root gate uses Blitz to run package-local `mix ci` aliases for every
-active package. Package gates can still be run directly:
+The root gate unconditionally resolves dependencies for all eight child
+projects, then uses Blitz to run the impact-selected package-local `mix ci`
+aliases. Dependency fetch is deliberately not impact-skippable: fetched trees
+are disposable checkout state and may be absent even when a prior dependency
+task passed. Package gates can still be run directly:
 
 ```bash
 cd core/execution_plane && mix ci
@@ -238,8 +242,8 @@ cd runtimes/execution_plane_operator_terminal && mix ci
 
 ## Publishing
 
-Prepare the public package from the repository root, then inspect the generated
-distribution:
+The Weld commands below reproduce the historical 0.1.0 monolith for audit
+only; do not use that artifact for a new publication:
 
 ```bash
 mix weld.inspect --artifact execution_plane
@@ -248,11 +252,23 @@ mix weld.verify --artifact execution_plane
 mix release.prepare --artifact execution_plane
 ```
 
-The package directory is `dist/monolith/execution_plane`, and the durable
-generated branch is `projection/execution_plane`. Real Hex publication and the
-post-publication tag are human-owned release actions. Publish the generated
-`execution_plane` package before any separate lane or host package that depends
-on it.
+The historical package directory is `dist/monolith/execution_plane`, and its
+durable generated branch is `projection/execution_plane`. Publish
+`execution_plane 0.2.0` from `core/execution_plane` first:
+
+```bash
+cd core/execution_plane
+mix ci
+mix hex.build
+mix hex.publish --yes
+```
+
+Then prove each component from
+a clean standalone checkout/package extraction resolving the actual Hex
+`execution_plane 0.2.0`, publish `execution_plane_process 0.1.0` and
+`execution_plane_jsonrpc 0.1.0`, and only then publish their consumers. A
+workspace-path compile is necessary local evidence but is not publication
+evidence.
 
 ## Sandbox And Target Honesty
 

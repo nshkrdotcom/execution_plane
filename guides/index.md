@@ -44,6 +44,10 @@ This checkout contains exactly eight Mix projects:
 The repository root is a non-published `execution_plane_workspace` tooling
 project. It owns Blitz workspace orchestration only.
 
+The historical `execution_plane 0.1.0` artifact bundled the common, process,
+and JSON-RPC sources. Starting with `execution_plane 0.2.0`, the common package
+is core-only and the process and JSON-RPC projects are separate Hex packages.
+
 The `core/execution_plane` package compiles these common source homes:
 
 - `core/execution_plane_contracts`
@@ -88,9 +92,11 @@ Use a higher-level package when you need provider or product semantics:
   package.
 
 Standalone direct lane calls must carry direct lower-lane-owner provenance.
-Governed calls must go through `ExecutionPlane.Runtime.Client` and a node host
-that validates authority, acceptable attestation, target descriptors, and lane
-availability.
+The current node host exposes governed one-shot calls through
+`ExecutionPlane.Node.Client` and validates authority, acceptable attestation,
+target descriptors, and lane availability. `ExecutionPlane.Runtime.Client` is
+the frozen interactive lifecycle contract; do not claim it is implemented
+until a host owns its six callbacks end to end.
 
 The node never performs an internal fallback ladder. If a Brain or Spine policy
 allows multiple attestation classes, that owner issues separate runtime-client

@@ -3,7 +3,7 @@ defmodule ExecutionPlane.RuntimeContractsTest do
 
   alias ExecutionPlane.{ActiveExecution, ExecutionRef}
   alias ExecutionPlane.Family.{HTTPRequest, ProcessRequest, WebSocketRequest}
-  alias ExecutionPlane.Runtime.{Event, Lifecycle, Status}
+  alias ExecutionPlane.Runtime.{Client, Event, Lifecycle, Status}
 
   defp active do
     ActiveExecution.new!(
@@ -19,7 +19,7 @@ defmodule ExecutionPlane.RuntimeContractsTest do
   end
 
   test "Runtime Client freezes the six interactive lifecycle callbacks" do
-    callbacks = ExecutionPlane.Runtime.Client.behaviour_info(:callbacks) |> MapSet.new()
+    callbacks = Client.behaviour_info(:callbacks) |> MapSet.new()
 
     assert callbacks ==
              MapSet.new([

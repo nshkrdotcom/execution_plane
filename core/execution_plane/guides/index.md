@@ -88,9 +88,11 @@ Use a higher-level package when you need provider or product semantics:
   package.
 
 Standalone direct lane calls must carry direct lower-lane-owner provenance.
-Governed calls must go through `ExecutionPlane.Runtime.Client` and a node host
-that validates authority, acceptable attestation, target descriptors, and lane
-availability.
+The current node host exposes governed one-shot calls through
+`ExecutionPlane.Node.Client` and validates authority, acceptable attestation,
+target descriptors, and lane availability. `ExecutionPlane.Runtime.Client` is
+the frozen interactive lifecycle contract; do not claim it is implemented
+until a host owns its six callbacks end to end.
 
 The node never performs an internal fallback ladder. If a Brain or Spine policy
 allows multiple attestation classes, that owner issues separate runtime-client

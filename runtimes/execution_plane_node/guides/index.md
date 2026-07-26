@@ -7,5 +7,7 @@ package root.
 - [Usage](usage.md)
 - [Publishing](publishing.md)
 
-This package hosts governed admission and runtime-client dispatch only. Lane
-selection remains in the host that registers the adapters and verifiers.
+This package hosts governed admission and one-shot node dispatch through
+`ExecutionPlane.Node.Client`. Lane selection remains in the host that
+registers the adapters and verifiers. The separate interactive
+`ExecutionPlane.Runtime.Client` contract is not implemented here.

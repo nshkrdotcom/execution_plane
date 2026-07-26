@@ -5,7 +5,7 @@ defmodule ExecutionPlaneJsonRpc.MixProject do
   @source_url "https://github.com/nshkrdotcom/execution_plane"
   @homepage_url "https://hex.pm/packages/execution_plane_jsonrpc"
   @docs_url "https://hexdocs.pm/execution_plane_jsonrpc"
-  @execution_plane_version "~> 0.1.0"
+  @execution_plane_version "~> 0.2.0"
   @execution_plane_source [
     github: "nshkrdotcom/execution_plane",
     branch: "main",

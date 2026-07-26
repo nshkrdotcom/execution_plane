@@ -11,7 +11,7 @@ defmodule ExecutionPlane.NodeTest do
   alias ExecutionPlane.ExecutionRequest
   alias ExecutionPlane.ExecutionResult
   alias ExecutionPlane.Node.LocalClient
-  alias ExecutionPlane.NodeTest.{JsonRpcWebSocketTargetClient, RemoteRuntimeClient}
+  alias ExecutionPlane.NodeTest.{JsonRpcWebSocketTargetClient, RemoteNodeClient}
   alias ExecutionPlane.Runtime.NodeDescriptor
   alias ExecutionPlane.Sandbox.AcceptableAttestation
   alias ExecutionPlane.Sandbox.Profile
@@ -183,11 +183,11 @@ defmodule ExecutionPlane.NodeTest do
     assert descriptor.verified_targets == []
   end
 
-  test "remote runtime client can replace the local runtime client", %{server: server} do
+  test "remote node client can replace the local node client", %{server: server} do
     register_remote_runtime(server)
 
     assert {:ok, result} =
-             RemoteRuntimeClient.execute(
+             RemoteNodeClient.execute(
                governed_request(),
                server: server
              )

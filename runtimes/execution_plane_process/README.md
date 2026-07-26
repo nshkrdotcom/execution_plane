@@ -24,8 +24,8 @@ authority materializers must pass any required process env as explicit
 ## Runtime Supervision
 
 The standalone `:execution_plane_process` application starts the named task
-and process-transport supervisors. The welded `:execution_plane` distribution
-starts the same named supervisors from its generated application.
+and process-transport supervisors. The core-only `:execution_plane`
+application does not own or start process-lane supervisors.
 Runtime library calls check those supervisors directly and return
 `{:error, {:runtime_not_started, :execution_plane_process}}` when they are
 absent; they never try to start a component application.

@@ -1,6 +1,6 @@
 defmodule ExecutionPlane.Node do
   @moduledoc """
-  Public registration and local runtime-client surface for an Execution Plane node.
+  Public registration and one-shot node-control surface for an Execution Plane node.
   """
 
   alias ExecutionPlane.Node.Server

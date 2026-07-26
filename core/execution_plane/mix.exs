@@ -1,8 +1,10 @@
 defmodule ExecutionPlane.MixProject do
   use Mix.Project
 
-  @version "0.1.0"
+  @version "0.2.0"
   @source_url "https://github.com/nshkrdotcom/execution_plane"
+  @homepage_url "https://hex.pm/packages/execution_plane"
+  @docs_url "https://hexdocs.pm/execution_plane"
   @ground_plane_contracts_version "~> 0.1.0"
   @ground_plane_contracts_source [
     github: "nshkrdotcom/ground_plane",
@@ -31,6 +33,8 @@ defmodule ExecutionPlane.MixProject do
       test_helper: "test/test_helper.exs",
       start_permanent: Mix.env() == :prod,
       description: @description,
+      source_url: @source_url,
+      homepage_url: @homepage_url,
       aliases: aliases(),
       package: package(),
       docs: docs(),
@@ -152,8 +156,11 @@ defmodule ExecutionPlane.MixProject do
       ],
       assets: %{"assets" => "assets"},
       logo: "assets/execution_plane.svg",
-      source_ref: "main",
-      source_url: @source_url
+      source_ref: "v#{@version}",
+      source_url: @source_url,
+      source_url_pattern:
+        "#{@source_url}/blob/v#{@version}/core/execution_plane/%{path}#L%{line}",
+      homepage_url: @docs_url
     ]
   end
 
@@ -162,7 +169,11 @@ defmodule ExecutionPlane.MixProject do
       maintainers: ["nshkrdotcom"],
       licenses: ["MIT"],
       links: %{
-        "GitHub" => @source_url
+        "GitHub" => @source_url,
+        "Hex" => @homepage_url,
+        "HexDocs" => @docs_url,
+        "Changelog" => "#{@source_url}/blob/main/core/execution_plane/CHANGELOG.md",
+        "License" => "#{@source_url}/blob/main/core/execution_plane/LICENSE"
       },
       files: ~w(
           .formatter.exs

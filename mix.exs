@@ -50,7 +50,7 @@ defmodule ExecutionPlane.Workspace.MixProject do
 
   defp aliases do
     monorepo_aliases = [
-      "monorepo.deps.get": ["blitz.workspace.impact deps_get --"],
+      "monorepo.deps.get": ["blitz.workspace deps_get --"],
       "monorepo.ci": ["blitz.workspace.impact ci --"]
     ]
 

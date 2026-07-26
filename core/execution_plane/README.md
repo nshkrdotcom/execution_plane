@@ -26,7 +26,7 @@ Add this package when you need the common substrate only:
 ```elixir
 def deps do
   [
-    {:execution_plane, "~> 0.1.0"}
+    {:execution_plane, "~> 0.2.0"}
   ]
 end
 ```
@@ -36,7 +36,7 @@ Lane hosts and family kits opt into the exact lane packages they run:
 ```elixir
 def deps do
   [
-    {:execution_plane, "~> 0.1.0"},
+    {:execution_plane, "~> 0.2.0"},
     {:execution_plane_node, "~> 0.1.0"},
     {:execution_plane_process, "~> 0.1.0"}
   ]
@@ -71,6 +71,10 @@ their HTTP or GraphQL family kit.
 The package is intentionally lane-light. It does not depend on `erlexec`,
 `finch`, `mint_web_socket`, `server_sent_events`, or `ex_ratatui`.
 
+Version 0.2.0 is the first core-only release. The historical 0.1.0 package was
+a generated monolith containing JSON-RPC and process modules; use
+`execution_plane_jsonrpc` and `execution_plane_process` for those lanes.
+
 Persistence posture defaults to the memory-only `mickey_mouse` profile. Durable
 profiles are opt-in storage evidence that add store/tier/receipt refs while
 leaving target authority unchanged and forbidding raw process-state persistence.
@@ -93,11 +97,15 @@ Standalone lane owners may call their lane package directly and must mark the
 request provenance as `direct_lower_lane_owner`. This is honest local
 execution, not Citadel or node admission.
 
-Governed callers should go through `ExecutionPlane.Runtime.Client`. A node host
-starts `execution_plane_node`, declares the lane packages it is willing to
-run, registers lane adapters, target verifiers, evidence sinks, and an
-authority verifier, then calls `complete_registration/2` before admitting
-traffic.
+The current node host exposes governed one-shot calls through
+`ExecutionPlane.Node.Client`. It starts `execution_plane_node`, declares the
+lane packages it is willing to run, registers lane adapters, target verifiers,
+evidence sinks, and an authority verifier, then calls
+`complete_registration/2` before admitting traffic.
+
+`ExecutionPlane.Runtime.Client` separately freezes the interactive lifecycle
+contract. No current node package should claim that behavior until all six
+callbacks have real end-to-end semantics.
 
 The node validates:
 

@@ -1,13 +1,20 @@
 # Publishing
 
+Publish `execution_plane 0.2.0` first. The historical `execution_plane 0.1.0`
+package is a monolith containing these same JSON-RPC modules and will fail a
+warnings-as-errors consumer compile with module redefinitions.
+
 Before publishing the package:
 
-1. Run `mix format`
-2. Run `mix test`
-3. Run `mix docs --warnings-as-errors`
-4. Run `mix hex.build`
-5. In the authorized release phase, run `mix hex.publish --yes`
-6. Create the lightweight tag `execution_plane_jsonrpc-v0.1.0`, push it, and
+1. Verify Hex resolves `execution_plane 0.2.0`, never `0.1.0`.
+2. From a clean standalone checkout/package extraction with no sibling core
+   path, run `mix deps.get` and `mix compile --warnings-as-errors`.
+3. Run `mix ci`.
+4. Run `mix hex.build`.
+5. Inspect the package manifest and confirm the `execution_plane` requirement
+   is `~> 0.2.0`.
+6. In the authorized release phase, run `mix hex.publish --yes`.
+7. Create the lightweight tag `execution_plane_jsonrpc-v0.1.0`, push it, and
    verify the remote tag
 
 This monorepo already uses the plain `v0.1.0` tag for the generated

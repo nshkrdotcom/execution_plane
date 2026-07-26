@@ -11,7 +11,7 @@ defmodule ExecutionPlaneProcess.MixProject do
     branch: "main",
     subdir: "core/ground_plane_contracts"
   ]
-  @execution_plane_version "~> 0.1.0"
+  @execution_plane_version "~> 0.2.0"
   @execution_plane_source [
     github: "nshkrdotcom/execution_plane",
     branch: "main",

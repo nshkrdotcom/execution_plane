@@ -147,17 +147,26 @@ defmodule ExecutionPlane.ActiveExecution do
   def terminal?(%__MODULE__{state: state}), do: state in @terminal_states
 
   defp validate(%__MODULE__{} = active) do
-    strings = [active.session_ref, active.admission_decision_ref, active.node_id, active.lane_id]
-    terminal_receipt? = not terminal?(active) or present_string?(active.receipt_ref)
-
-    if ExecutionPlane.ContractVersion.compatible?(active.contract_version) and
-         Enum.all?(strings, &present_string?/1) and active.state in @states and
-         is_struct(active.started_at, DateTime) and is_integer(active.fence) and active.fence >= 0 and
-         optional_string?(active.receipt_ref) and terminal_receipt? do
+    if valid_identity?(active) and valid_lifecycle?(active) do
       {:ok, active}
     else
       {:error, :invalid_active_execution}
     end
+  end
+
+  defp valid_identity?(active) do
+    strings = [active.session_ref, active.admission_decision_ref, active.node_id, active.lane_id]
+
+    ExecutionPlane.ContractVersion.compatible?(active.contract_version) and
+      Enum.all?(strings, &present_string?/1)
+  end
+
+  defp valid_lifecycle?(active) do
+    terminal_receipt? = not terminal?(active) or present_string?(active.receipt_ref)
+
+    active.state in @states and is_struct(active.started_at, DateTime) and
+      is_integer(active.fence) and active.fence >= 0 and
+      optional_string?(active.receipt_ref) and terminal_receipt?
   end
 
   defp execution_ref(%ExecutionRef{} = ref), do: ExecutionRef.new(ref)
@@ -222,16 +231,24 @@ defmodule ExecutionPlane.Runtime.Status do
   def terminal?(%__MODULE__{state: state}), do: state in ActiveExecution.terminal_states()
 
   defp validate(%__MODULE__{} = status) do
-    terminal_closed? = not terminal?(status) or (not status.input_open and not status.output_open)
-    terminal_receipt? = not terminal?(status) or present_string?(status.receipt_ref)
-
-    if status.state in ActiveExecution.states() and is_integer(status.sequence) and
-         status.sequence >= 0 and is_boolean(status.input_open) and is_boolean(status.output_open) and
-         optional_string?(status.receipt_ref) and terminal_closed? and terminal_receipt? do
+    if valid_sequence?(status) and valid_lifecycle?(status) do
       {:ok, status}
     else
       {:error, :invalid_runtime_status}
     end
+  end
+
+  defp valid_sequence?(status) do
+    status.state in ActiveExecution.states() and
+      is_integer(status.sequence) and status.sequence >= 0
+  end
+
+  defp valid_lifecycle?(status) do
+    terminal_closed? = not terminal?(status) or (not status.input_open and not status.output_open)
+    terminal_receipt? = not terminal?(status) or present_string?(status.receipt_ref)
+
+    is_boolean(status.input_open) and is_boolean(status.output_open) and
+      optional_string?(status.receipt_ref) and terminal_closed? and terminal_receipt?
   end
 
   defp execution_ref(%ExecutionRef{} = ref), do: ExecutionRef.new(ref)
@@ -461,11 +478,7 @@ defmodule ExecutionPlane.Family.HTTPRequest do
       request.idempotency_key
     ]
 
-    if S.known_fields?(attrs, @fields) and Enum.all?(strings, &S.string?/1) and
-         String.starts_with?(request.path, "/") and
-         request.method in @methods and request.response_mode in @response_modes and
-         (is_nil(request.body_artifact_ref) or S.string?(request.body_artifact_ref)) and
-         S.datetime?(request.deadline_at) do
+    if valid_request?(attrs, request, strings) do
       {:ok, request}
     else
       {:error, :invalid_http_request}
@@ -473,6 +486,19 @@ defmodule ExecutionPlane.Family.HTTPRequest do
   end
 
   def new(_attrs), do: {:error, :invalid_http_request}
+
+  defp valid_request?(attrs, request, strings) do
+    S.known_fields?(attrs, @fields) and Enum.all?(strings, &S.string?/1) and
+      valid_route?(request) and valid_body?(request) and S.datetime?(request.deadline_at)
+  end
+
+  defp valid_route?(request) do
+    String.starts_with?(request.path, "/") and
+      request.method in @methods and request.response_mode in @response_modes
+  end
+
+  defp valid_body?(request),
+    do: is_nil(request.body_artifact_ref) or S.string?(request.body_artifact_ref)
 
   defp normalize_method(value) when is_atom(value),
     do: value |> Atom.to_string() |> String.upcase()
@@ -517,11 +543,7 @@ defmodule ExecutionPlane.Family.WebSocketRequest do
 
     strings = [request.connection_ref, request.endpoint_ref, request.materialization_ref]
 
-    if S.known_fields?(attrs, @fields) and Enum.all?(strings, &S.string?/1) and
-         S.string_list?(request.subprotocols) and
-         is_integer(request.backpressure_limit) and request.backpressure_limit > 0 and
-         (is_nil(request.resume_ref) or S.string?(request.resume_ref)) and
-         S.datetime?(request.deadline_at) do
+    if valid_request?(attrs, request, strings) do
       {:ok, request}
     else
       {:error, :invalid_websocket_request}
@@ -529,6 +551,17 @@ defmodule ExecutionPlane.Family.WebSocketRequest do
   end
 
   def new(_attrs), do: {:error, :invalid_websocket_request}
+
+  defp valid_request?(attrs, request, strings) do
+    S.known_fields?(attrs, @fields) and Enum.all?(strings, &S.string?/1) and
+      S.string_list?(request.subprotocols) and valid_backpressure?(request) and
+      valid_resume?(request) and S.datetime?(request.deadline_at)
+  end
+
+  defp valid_backpressure?(request),
+    do: is_integer(request.backpressure_limit) and request.backpressure_limit > 0
+
+  defp valid_resume?(request), do: is_nil(request.resume_ref) or S.string?(request.resume_ref)
 end
 
 defmodule ExecutionPlane.Family.ProcessGateway do

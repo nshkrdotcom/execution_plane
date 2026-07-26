@@ -3,7 +3,7 @@ defmodule ExecutionPlaneHttp.MixProject do
 
   @version "0.1.0"
   @source_url "https://github.com/nshkrdotcom/execution_plane"
-  @execution_plane_version "~> 0.1.0"
+  @execution_plane_version "~> 0.2.0"
   @execution_plane_source [
     github: "nshkrdotcom/execution_plane",
     branch: "main",

@@ -159,10 +159,10 @@ defmodule ExecutionPlane.NodeTest.Sink do
   def flush(_opts), do: :ok
 end
 
-defmodule ExecutionPlane.NodeTest.RemoteRuntimeClient do
+defmodule ExecutionPlane.NodeTest.RemoteNodeClient do
   @moduledoc false
 
-  @behaviour ExecutionPlane.Runtime.Client
+  @behaviour ExecutionPlane.Node.Client
 
   alias ExecutionPlane.Node.LocalClient
 

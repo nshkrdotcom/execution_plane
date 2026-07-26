@@ -1,20 +1,22 @@
 # Monorepo Project Map
 
 This checkout contains one non-published Mix workspace root plus eight
-independently testable component source projects. The first public
-`execution_plane` Hex package is a Weld-generated distribution:
+independently testable component source projects. The historical public
+`execution_plane 0.1.0` Hex package was a Weld-generated monolith; the
+canonical release shape from `0.2.0` onward is a core-only `execution_plane`
+package plus separately published lane packages:
 
 - `./mix.exs`: non-published `execution_plane_workspace` tooling root. It owns
   Blitz orchestration and must not be treated as the Hex package.
-- `./core/execution_plane/mix.exs`: common-substrate source unit selected into
-  the generated `execution_plane` distribution.
+- `./core/execution_plane/mix.exs`: independently published core-only
+  `execution_plane` package from version 0.2.0 onward.
 - `./protocols/execution_plane_http/mix.exs`: unary HTTP lane.
-- `./protocols/execution_plane_jsonrpc/mix.exs`: JSON-RPC framing source unit
-  selected into the generated distribution.
+- `./protocols/execution_plane_jsonrpc/mix.exs`: independently published
+  JSON-RPC framing package.
 - `./streaming/execution_plane_sse/mix.exs`: SSE framing and stream lane.
 - `./streaming/execution_plane_websocket/mix.exs`: WebSocket lifecycle lane.
-- `./runtimes/execution_plane_process/mix.exs`: process/PTY/stdio source unit
-  selected into the generated distribution.
+- `./runtimes/execution_plane_process/mix.exs`: independently published
+  process/PTY/stdio package.
 - `./runtimes/execution_plane_node/mix.exs`: lane-neutral runtime node.
 - `./runtimes/execution_plane_operator_terminal/mix.exs`: operator-terminal
   add-on package for local, SSH, and distributed TUIs.
@@ -35,9 +37,12 @@ and proof path.
 - The root `mix.exs` is workspace tooling only. Blitz belongs there and must
   not be added to generated package manifests. Weld is likewise root-only
   release tooling.
-- The public `execution_plane` 0.1.0 distribution is generated from exactly
-  `core/execution_plane`, `protocols/execution_plane_jsonrpc`, and
-  `runtimes/execution_plane_process` through `build_support/weld.exs`.
+- The public `execution_plane 0.2.0` package publishes directly from
+  `core/execution_plane`. It must publish before
+  `execution_plane_process` or `execution_plane_jsonrpc`.
+- Never publish either component against `execution_plane 0.1.0`: that
+  historical monolith already contains their modules and produces module
+  redefinition warnings in a real Hex-resolved consumer graph.
 - The selected component projects remain independently testable source units;
   canonical edits stay in those source homes, never on the projection branch.
 - Lane packages and node/operator packages are separate Mix projects with
@@ -48,9 +53,12 @@ and proof path.
   `cli_subprocess_core`, `pristine`, `prismatic`,
   `self_hosted_inference_core`, and the self-hosted runtime kits own those
   semantic layers above this substrate.
-- The root repo gate is `mix ci`; it uses Blitz to run package-local `mix ci`
-  aliases. Lane packages must also pass their package-local gate before claims
-  are made.
+- The root repo gate is `mix ci`; it first runs unconditional
+  `blitz.workspace deps_get` across the eight child projects, then uses
+  impact-aware Blitz selection for their package-local `mix ci` aliases.
+  Fetched dependency trees are disposable checkout state, so dependency
+  bootstrap must not be skipped from prior task-state evidence. Lane packages
+  must also pass their package-local gate before claims are made.
 
 ## Design Intent — Effect Isolation (North Star)
 
@@ -76,10 +84,12 @@ a runtime node rather than direct calls:
   it is the destination.
 - Verified remote/target attestations are the *strong* rung — a distinct
   node/host/sandbox whose isolation is an attested claim, not an assumption.
-- `ExecutionPlane.Runtime.Client` is the governed entry point precisely so
-  callers never bind to a transport or a node; the same call resolves to
-  co-located erlexec today and an isolated effect node later, with no caller
-  change.
+- `ExecutionPlane.Runtime.Client` is the frozen interactive governed-entry
+  contract intended to keep callers independent of a transport or node. The
+  current `execution_plane_node` package implements the older admission and
+  one-shot dispatch surface as `ExecutionPlane.Node.Client`; it must not claim
+  the interactive behaviour until subscription, input, status, receipt, and
+  termination semantics exist end to end.
 
 Current state vs. intent: the execution path is live and co-located
 (SDK → `cli_subprocess_core` → `ExecutionPlane.Process.Transport` → erlexec).
@@ -115,8 +125,10 @@ the whole plane exists to enable.
   Execution Plane packages. Hosts select lanes by declaring lane deps and
   registering adapters, target verifiers, evidence sinks, and authority
   verifier modules before admission opens.
-- Standalone lane calls must use direct lower-lane-owner provenance. Governed
-  execution callers must use `ExecutionPlane.Runtime.Client`.
+- Standalone lane calls must use direct lower-lane-owner provenance. The
+  current node host exposes governed one-shot calls through
+  `ExecutionPlane.Node.Client`; future interactive governed callers use
+  `ExecutionPlane.Runtime.Client` only once a real implementation exists.
 - The node may route to verified targets but must not own fallback ladders.
   Fallback owners issue separate runtime-client calls per attestation rung.
 - There is no sandbox backend behaviour. Sandbox profiles are carried as
@@ -130,9 +142,11 @@ the whole plane exists to enable.
 - The workspace should keep Hex fallback behavior in downstream repos;
   local path deps are for workspace development, not a silent production
   assumption.
-- Publish the generated `execution_plane` distribution first. The HTTP,
-  SSE/WebSocket, node, and operator-terminal projects remain separate
-  publication units and are outside the first distribution release.
+- Publish the core-only `execution_plane` package first.
+  Process, JSON-RPC, HTTP, SSE/WebSocket, node, and operator-terminal projects
+  are separate publication units. A component publication proof must compile
+  from a clean standalone package/checkout against the actual Hex-resolved
+  core, never only against the sibling workspace path.
 
 ## Known Direct Consumers Of `execution_plane`
 
@@ -240,7 +254,8 @@ Root workspace Blitz uses published Hex `~> 0.3.0` by default; `.blitz/` is comm
 - Dependency source selection must not use environment variables.
 - Runtime application code under `lib/**` must not call direct OS env APIs.
   Runtime env reads belong in `config/runtime.exs` or a `Config.Provider`.
-- Released Weld `~> 0.8.4` is the approved root-only projection and release
-  tool. `build_support/weld.exs` is the canonical artifact manifest. The
-  durable generated branch is `projection/execution_plane`; never make
-  canonical source edits there.
+- Released Weld `~> 0.8.4` remains root-only tooling for reproducing the
+  historical 0.1.0 monolith. `build_support/weld.exs` is historical release
+  evidence, not the 0.2.0+ publication source. Publish the core and lane
+  packages from their package directories; never make canonical source edits
+  on `projection/execution_plane`.

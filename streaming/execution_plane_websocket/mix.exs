@@ -3,7 +3,7 @@ defmodule ExecutionPlaneWebSocket.MixProject do
 
   @version "0.1.0"
   @source_url "https://github.com/nshkrdotcom/execution_plane"
-  @execution_plane_version "~> 0.1.0"
+  @execution_plane_version "~> 0.2.0"
   @execution_plane_source [
     github: "nshkrdotcom/execution_plane",
     branch: "main",
@@ -35,8 +35,9 @@ defmodule ExecutionPlaneWebSocket.MixProject do
   defp deps do
     [
       execution_plane_dep(),
-      {:mint, "~> 1.9.2"},
+      {:mint, "~> 1.9.3"},
       {:mint_web_socket, "~> 1.0.5"},
+      {:jason, "~> 1.4.5"},
       {:ex_doc, "~> 0.40.3", only: :dev, runtime: false},
       {:credo, "~> 1.7.19", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4.7", only: [:dev, :test], runtime: false}

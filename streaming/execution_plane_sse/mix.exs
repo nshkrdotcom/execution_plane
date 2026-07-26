@@ -3,7 +3,7 @@ defmodule ExecutionPlaneSse.MixProject do
 
   @version "0.1.0"
   @source_url "https://github.com/nshkrdotcom/execution_plane"
-  @execution_plane_version "~> 0.1.0"
+  @execution_plane_version "~> 0.2.0"
   @execution_plane_source [
     github: "nshkrdotcom/execution_plane",
     branch: "main",
@@ -38,6 +38,8 @@ defmodule ExecutionPlaneSse.MixProject do
       execution_plane_dep(),
       {:finch, "~> 0.23.0"},
       {:server_sent_events, "~> 1.1.0"},
+      {:jason, "~> 1.4.5"},
+      {:telemetry, "~> 1.4.2", override: true},
       {:ex_doc, "~> 0.40.3", only: :dev, runtime: false},
       {:credo, "~> 1.7.19", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4.7", only: [:dev, :test], runtime: false}
