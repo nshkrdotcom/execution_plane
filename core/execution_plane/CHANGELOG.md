@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0 - 2026-07-25
+## 0.2.0 - 2026-07-27
 
 - Publish `execution_plane` as the common core-only substrate; JSON-RPC and
   process runtime ownership now lives exclusively in their component packages.

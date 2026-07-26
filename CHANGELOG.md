@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0 - 2026-07-25
+## 0.2.0 - 2026-07-27
 
 - Correct the public package topology: `execution_plane` is now the core-only
   common substrate, while process and JSON-RPC are independently published
