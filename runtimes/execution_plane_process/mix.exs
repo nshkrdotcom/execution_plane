@@ -3,6 +3,8 @@ defmodule ExecutionPlaneProcess.MixProject do
 
   @version "0.1.0"
   @source_url "https://github.com/nshkrdotcom/execution_plane"
+  @homepage_url "https://hex.pm/packages/execution_plane_process"
+  @docs_url "https://hexdocs.pm/execution_plane_process"
   @ground_plane_contracts_version "~> 0.1.0"
   @ground_plane_contracts_source [
     github: "nshkrdotcom/ground_plane",
@@ -25,6 +27,8 @@ defmodule ExecutionPlaneProcess.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       description: "Execution Plane process launch, stdio, PTY, and process-session runtime.",
+      source_url: @source_url,
+      homepage_url: @homepage_url,
       package: package(),
       docs: docs(),
       dialyzer: dialyzer(),
@@ -106,7 +110,13 @@ defmodule ExecutionPlaneProcess.MixProject do
       maintainers: ["nshkrdotcom"],
       name: "execution_plane_process",
       licenses: ["MIT"],
-      links: %{"GitHub" => @source_url},
+      links: %{
+        "GitHub" => @source_url,
+        "Hex" => @homepage_url,
+        "HexDocs" => @docs_url,
+        "Changelog" => "#{@source_url}/blob/main/runtimes/execution_plane_process/CHANGELOG.md",
+        "License" => "#{@source_url}/blob/main/runtimes/execution_plane_process/LICENSE"
+      },
       files: ~w(.formatter.exs CHANGELOG.md LICENSE README.md assets guides lib mix.exs)
     ]
   end
@@ -114,8 +124,11 @@ defmodule ExecutionPlaneProcess.MixProject do
   defp docs do
     [
       main: "readme",
-      source_ref: "main",
+      source_ref: "execution_plane_process-v#{@version}",
       source_url: @source_url,
+      source_url_pattern:
+        "#{@source_url}/blob/execution_plane_process-v#{@version}/runtimes/execution_plane_process/%{path}#L%{line}",
+      homepage_url: @docs_url,
       logo: "assets/execution_plane_process.svg",
       assets: %{"assets" => "assets"},
       extras: [
