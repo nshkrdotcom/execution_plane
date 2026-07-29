@@ -30,5 +30,23 @@ defmodule ExecutionPlane.Node do
   def stream(request, opts \\ []), do: Server.stream(server(opts), request, opts)
   def cancel(execution_ref, opts \\ []), do: Server.cancel(server(opts), execution_ref, opts)
 
+  def start_execution(request, opts \\ []),
+    do: Server.start_execution(server(opts), request, opts)
+
+  def subscribe_execution(execution_ref, subscriber, opts \\ []),
+    do: Server.subscribe_execution(server(opts), execution_ref, subscriber, opts)
+
+  def send_execution_input(execution_ref, input, opts \\ []),
+    do: Server.send_execution_input(server(opts), execution_ref, input, opts)
+
+  def end_execution_input(execution_ref, opts \\ []),
+    do: Server.end_execution_input(server(opts), execution_ref, opts)
+
+  def execution_status(execution_ref, opts \\ []),
+    do: Server.execution_status(server(opts), execution_ref, opts)
+
+  def cancel_execution(execution_ref, opts \\ []),
+    do: Server.cancel_execution(server(opts), execution_ref, opts)
+
   defp server(opts), do: Keyword.get(opts, :server, @default_server)
 end

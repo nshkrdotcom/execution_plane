@@ -11,7 +11,9 @@ defmodule ExecutionPlane.NodeTest do
   alias ExecutionPlane.ExecutionRequest
   alias ExecutionPlane.ExecutionResult
   alias ExecutionPlane.Node.LocalClient
-  alias ExecutionPlane.NodeTest.{JsonRpcWebSocketTargetClient, RemoteNodeClient}
+  alias ExecutionPlane.Node.LocalHTTPWeakVerifier
+  alias ExecutionPlane.NodeTest.JsonRpcWebSocketTargetClient
+  alias ExecutionPlane.Placement.Surface
   alias ExecutionPlane.Runtime.NodeDescriptor
   alias ExecutionPlane.Sandbox.AcceptableAttestation
   alias ExecutionPlane.Sandbox.Profile
@@ -89,6 +91,27 @@ defmodule ExecutionPlane.NodeTest do
              "persistence-profile://mickey_mouse"
 
     assert descriptor.persistence_posture.raw_process_state_persistence? == false
+  end
+
+  test "local HTTP weak verifier mints only lane-pinned HTTP descriptors" do
+    attestation =
+      LocalHTTPWeakVerifier.mint_attestation(target_id: "http-effect-target")
+
+    assert {:ok, descriptor} =
+             LocalHTTPWeakVerifier.verify(attestation, target_id: "http-effect-target")
+
+    assert descriptor.target_id == "http-effect-target"
+    assert descriptor.lane_id == "http"
+    assert descriptor.attested_capability_classes == ["local-http-weak"]
+
+    tampered =
+      Attestation.new!(
+        attestation_type: "local-http-weak",
+        evidence: %{"signature" => "signed", "lane_id" => "process"}
+      )
+
+    assert {:error, rejection} = LocalHTTPWeakVerifier.verify(tampered, [])
+    assert rejection.reason == "target_attestation_unverifiable"
   end
 
   test "rejects target claims with no matching verifier and never routes them", %{server: server} do
@@ -183,18 +206,6 @@ defmodule ExecutionPlane.NodeTest do
     assert descriptor.verified_targets == []
   end
 
-  test "remote node client can replace the local node client", %{server: server} do
-    register_remote_runtime(server)
-
-    assert {:ok, result} =
-             RemoteNodeClient.execute(
-               governed_request(),
-               server: server
-             )
-
-    assert result.status == "succeeded"
-  end
-
   test "stub remote target uses JSON-RPC over WebSocket target protocol", %{server: server} do
     register_remote_runtime(server)
 
@@ -232,6 +243,30 @@ defmodule ExecutionPlane.NodeTest do
 
     assert target_id in ["remote-target-1", "remote-target-2"]
     refute_receive {:target_protocol_frame, _frame}, 50
+  end
+
+  test "placement metadata pins the exact verifier-backed target", %{server: server} do
+    register_remote_runtime(server, ["remote-target-1", "remote-target-2"])
+
+    request =
+      governed_request(
+        placement:
+          Surface.new!(
+            surface_kind: "runtime_node",
+            family: "process",
+            metadata: %{"target_id" => "remote-target-2"}
+          )
+      )
+
+    assert {:ok, result} = LocalClient.execute(request, server: server)
+    assert result.status == "succeeded"
+
+    assert_receive {:target_protocol_frame,
+                    %{
+                      "params" => %{
+                        "target_descriptor" => %{"target_id" => "remote-target-2"}
+                      }
+                    }}
   end
 
   test "rejects local process when acceptable set excludes local-erlexec-weak", %{server: server} do

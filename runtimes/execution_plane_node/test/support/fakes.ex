@@ -42,6 +42,8 @@ defmodule ExecutionPlane.NodeTest.FakeLane do
        )
      ]}
   end
+
+  def cancel(_execution_ref, _opts), do: :ok
 end
 
 defmodule ExecutionPlane.NodeTest.FakeHttpLane do
@@ -157,20 +159,6 @@ defmodule ExecutionPlane.NodeTest.Sink do
   end
 
   def flush(_opts), do: :ok
-end
-
-defmodule ExecutionPlane.NodeTest.RemoteNodeClient do
-  @moduledoc false
-
-  @behaviour ExecutionPlane.Node.Client
-
-  alias ExecutionPlane.Node.LocalClient
-
-  def describe(opts), do: LocalClient.describe(opts)
-  def admit(request, opts), do: LocalClient.admit(request, opts)
-  def execute(request, opts), do: LocalClient.execute(request, opts)
-  def stream(request, opts), do: LocalClient.stream(request, opts)
-  def cancel(execution_ref, opts), do: LocalClient.cancel(execution_ref, opts)
 end
 
 defmodule ExecutionPlane.NodeTest.JsonRpcWebSocketTargetClient do

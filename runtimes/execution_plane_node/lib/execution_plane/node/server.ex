@@ -3,6 +3,7 @@ defmodule ExecutionPlane.Node.Server do
 
   use GenServer
 
+  alias ExecutionPlane.ActiveExecution
   alias ExecutionPlane.Admission.{Decision, Rejection, Request}
   alias ExecutionPlane.Contracts.PersistencePosture
   alias ExecutionPlane.Evidence
@@ -10,6 +11,7 @@ defmodule ExecutionPlane.Node.Server do
   alias ExecutionPlane.ExecutionRequest
   alias ExecutionPlane.ExecutionResult
   alias ExecutionPlane.Lane.Capabilities
+  alias ExecutionPlane.Node.{ExecutionRegistry, ExecutionSupervisor, ExecutionWorker}
   alias ExecutionPlane.Provenance
   alias ExecutionPlane.Runtime.NodeDescriptor
   alias ExecutionPlane.Sandbox.AcceptableAttestation
@@ -24,7 +26,12 @@ defmodule ExecutionPlane.Node.Server do
             persistence_posture: %{},
             targets: %{},
             target_clients: %{},
-            executions: %{}
+            executions: %{},
+            lane_opts: %{},
+            execution_registry: ExecutionRegistry,
+            execution_supervisor: ExecutionSupervisor,
+            execution_event_limit: 256,
+            execution_cleanup_after_ms: 60_000
 
   def start_link(opts \\ []) do
     name = Keyword.get(opts, :name, __MODULE__)
@@ -60,19 +67,62 @@ defmodule ExecutionPlane.Node.Server do
   def cancel(server, execution_ref, opts),
     do: GenServer.call(server, {:cancel, execution_ref, opts})
 
+  def start_execution(server, request, opts),
+    do: GenServer.call(server, {:start_execution, request, opts}, call_timeout(opts))
+
+  def subscribe_execution(server, execution_ref, subscriber, opts),
+    do:
+      GenServer.call(
+        server,
+        {:active, :subscribe, execution_ref, subscriber, opts},
+        call_timeout(opts)
+      )
+
+  def send_execution_input(server, execution_ref, input, opts),
+    do:
+      GenServer.call(
+        server,
+        {:active, :send_input, execution_ref, input, opts},
+        call_timeout(opts)
+      )
+
+  def end_execution_input(server, execution_ref, opts),
+    do: GenServer.call(server, {:active, :end_input, execution_ref, opts}, call_timeout(opts))
+
+  def execution_status(server, execution_ref, opts),
+    do: GenServer.call(server, {:active, :status, execution_ref, opts}, call_timeout(opts))
+
+  def cancel_execution(server, execution_ref, opts),
+    do: GenServer.call(server, {:active, :cancel, execution_ref, opts}, call_timeout(opts))
+
   @impl true
   def init(opts) do
     {:ok,
      %__MODULE__{
        node_id: Keyword.get(opts, :node_id, "node-#{System.system_time(:millisecond)}"),
-       persistence_posture: PersistencePosture.resolve(:node_state, opts)
+       persistence_posture: PersistencePosture.resolve(:node_state, opts),
+       execution_registry: Keyword.get(opts, :execution_registry, ExecutionRegistry),
+       execution_supervisor: Keyword.get(opts, :execution_supervisor, ExecutionSupervisor),
+       execution_event_limit: Keyword.get(opts, :execution_event_limit, 256),
+       execution_cleanup_after_ms: Keyword.get(opts, :execution_cleanup_after_ms, 60_000)
      }}
   end
 
   @impl true
-  def handle_call({:register_lane, adapter, _opts}, _from, state) when is_atom(adapter) do
+  def handle_call({:register_lane, adapter, opts}, _from, state) when is_atom(adapter) do
     lane_id = adapter.lane_id() |> to_string()
-    {:reply, :ok, %{state | lanes: Map.put(state.lanes, lane_id, adapter)}}
+
+    lane_opts =
+      opts
+      |> Keyword.drop([:server, :timeout])
+      |> Keyword.get(:active_options, [])
+
+    {:reply, :ok,
+     %{
+       state
+       | lanes: Map.put(state.lanes, lane_id, adapter),
+         lane_opts: Map.put(state.lane_opts, lane_id, lane_opts)
+     }}
   end
 
   def handle_call({:register_target_verifier, verifier, _opts}, _from, state)
@@ -145,12 +195,30 @@ defmodule ExecutionPlane.Node.Server do
     {:reply, reply, next_state}
   end
 
-  def handle_call({:execute, request, opts}, _from, state) do
+  def handle_call({:execute, request, opts}, from, state) do
     request = Request.new!(request)
 
     case admit_request(state, request, opts) do
       {{:ok, %Decision{} = decision}, admitted_state} ->
-        dispatch_execution(admitted_state, request, decision, opts)
+        case start_active_worker(admitted_state, request, decision, opts) do
+          {:ok, active} ->
+            start_one_shot_waiter(admitted_state, active, opts, from)
+
+            next_state = %{
+              admitted_state
+              | executions:
+                  Map.put(admitted_state.executions, decision.execution_ref, %{
+                    active?: true,
+                    request: request,
+                    decision: decision
+                  })
+            }
+
+            {:noreply, next_state}
+
+          {:error, reason} ->
+            {:reply, {:error, failed_execution_result(request, reason)}, admitted_state}
+        end
 
       {{:error, %Rejection{} = rejection}, rejected_state} ->
         result =
@@ -165,25 +233,17 @@ defmodule ExecutionPlane.Node.Server do
     end
   end
 
-  def handle_call({:stream, request, opts}, _from, state) do
+  def handle_call({:stream, request, _opts}, _from, state) do
     request = Request.new!(request)
 
-    case admit_request(state, request, opts) do
-      {{:ok, %Decision{} = decision}, admitted_state} ->
-        execution_request = execution_request(request, decision, admitted_state)
-        {target_client, client_opts, lane_adapter} = dispatch_binding(admitted_state, decision)
+    rejection =
+      Rejection.new!(
+        request_id: request.request_id,
+        reason: "active_runtime_client_required",
+        message: "legacy stream dispatch is retired; use ExecutionPlane.Runtime.Client"
+      )
 
-        reply =
-          target_client.stream(
-            execution_request,
-            Keyword.merge(client_opts, Keyword.put(opts, :lane_adapter, lane_adapter))
-          )
-
-        {:reply, reply, admitted_state}
-
-      {{:error, %Rejection{} = rejection}, rejected_state} ->
-        {:reply, {:error, rejection}, rejected_state}
-    end
+    {:reply, {:error, rejection}, state}
   end
 
   def handle_call({:cancel, execution_ref, opts}, _from, state) do
@@ -194,6 +254,26 @@ defmodule ExecutionPlane.Node.Server do
     |> case do
       nil ->
         {:reply, {:error, :unknown_execution_ref}, state}
+
+      %{active?: true} = execution ->
+        reply =
+          with {:ok, entry} <- active_entry(state, ref) do
+            ExecutionWorker.cancel(
+              entry.worker,
+              Keyword.get(opts, :reason, "cancelled"),
+              Keyword.get(opts, :fence)
+            )
+          end
+
+        evidence(
+          state,
+          execution.request,
+          "execution.cancelled",
+          %{execution_ref: ref, cancel_result: inspect(reply)},
+          execution.decision
+        )
+
+        {:reply, reply, state}
 
       execution ->
         reply =
@@ -212,6 +292,89 @@ defmodule ExecutionPlane.Node.Server do
 
         {:reply, reply, state}
     end
+  end
+
+  def handle_call({:start_execution, request, opts}, _from, state) do
+    request = Request.new!(request)
+
+    case admit_request(state, request, opts) do
+      {{:ok, %Decision{} = decision}, admitted_state} ->
+        {:reply, start_active_worker(admitted_state, request, decision, opts), admitted_state}
+
+      {{:error, %Rejection{} = rejection}, rejected_state} ->
+        {:reply, {:error, rejection}, rejected_state}
+    end
+  end
+
+  def handle_call({:active, :subscribe, ref, subscriber, opts}, _from, state) do
+    reply =
+      with {:ok, entry} <- active_entry(state, ref),
+           :ok <- validate_active_fence(entry, opts) do
+        ExecutionWorker.subscribe(
+          entry.worker,
+          subscriber,
+          Keyword.get(opts, :fence)
+        )
+      end
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:active, :send_input, ref, input, opts}, _from, state) do
+    reply =
+      with {:ok, entry} <- active_entry(state, ref),
+           :ok <- validate_active_fence(entry, opts) do
+        ExecutionWorker.send_input(
+          entry.worker,
+          input,
+          Keyword.get(opts, :fence)
+        )
+      end
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:active, :end_input, ref, opts}, _from, state) do
+    reply =
+      with {:ok, entry} <- active_entry(state, ref),
+           :ok <- validate_active_fence(entry, opts) do
+        ExecutionWorker.end_input(entry.worker, Keyword.get(opts, :fence))
+      end
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:active, :status, ref, opts}, _from, state) do
+    reply =
+      with {:ok, entry} <- active_entry(state, ref),
+           :ok <- validate_active_fence(entry, opts) do
+        ExecutionWorker.status(entry.worker, Keyword.get(opts, :fence))
+      end
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:active, :cancel, ref, opts}, _from, state) do
+    reply =
+      with {:ok, entry} <- active_entry(state, ref),
+           :ok <- validate_active_fence(entry, opts) do
+        ExecutionWorker.cancel(
+          entry.worker,
+          Keyword.get(opts, :reason, "cancelled"),
+          Keyword.get(opts, :fence)
+        )
+      end
+
+    {:reply, reply, state}
+  end
+
+  @impl true
+  def handle_info(
+        {:execution_plane_active_terminal, request, decision, result},
+        state
+      ) do
+    evidence(state, request, "execution.completed", %{result: result}, decision)
+    {:noreply, state}
   end
 
   defp admit_request(state, %Request{} = request, opts) do
@@ -298,6 +461,7 @@ defmodule ExecutionPlane.Node.Server do
 
   defp select_target(state, request) do
     state.targets
+    |> targets_for_placement(request.placement)
     |> Enum.find_value(fn {_id, target} ->
       matching_attestation_class(target, request.acceptable_attestation, request.lane_id)
     end)
@@ -314,6 +478,21 @@ defmodule ExecutionPlane.Node.Server do
     end
   end
 
+  defp targets_for_placement(targets, %{metadata: metadata}) when is_map(metadata) do
+    case Map.get(metadata, "target_id", Map.get(metadata, :target_id)) do
+      target_id when is_binary(target_id) and target_id != "" ->
+        case Map.fetch(targets, target_id) do
+          {:ok, target} -> [{target_id, target}]
+          :error -> []
+        end
+
+      _other ->
+        targets
+    end
+  end
+
+  defp targets_for_placement(targets, _placement), do: targets
+
   defp matching_attestation_class(target, acceptable, lane_id) do
     if target.lane_id == lane_id do
       acceptable
@@ -323,30 +502,6 @@ defmodule ExecutionPlane.Node.Server do
         [] -> nil
       end
     end
-  end
-
-  defp dispatch_execution(state, request, decision, opts) do
-    execution_request = execution_request(request, decision, state)
-    {target_client, client_opts, lane_adapter} = dispatch_binding(state, decision)
-    final_opts = Keyword.merge(client_opts, Keyword.put(opts, :lane_adapter, lane_adapter))
-
-    evidence(state, request, "execution.started", execution_request, decision)
-    reply = target_client.execute(execution_request, final_opts)
-    evidence(state, request, "execution.completed", execution_reply_payload(reply), decision)
-
-    next_state = %{
-      state
-      | executions:
-          Map.put(state.executions, decision.execution_ref, %{
-            target_id: decision.target_id,
-            target_client: target_client,
-            client_opts: client_opts,
-            request: request,
-            decision: decision
-          })
-    }
-
-    {:reply, reply, next_state}
   end
 
   defp execution_request(request, decision, state) do
@@ -366,12 +521,146 @@ defmodule ExecutionPlane.Node.Server do
   end
 
   defp dispatch_binding(state, %Decision{target_id: nil, lane_id: lane_id}) do
-    {ExecutionPlane.Node.TargetClient.Adapter, [], Map.fetch!(state.lanes, lane_id)}
+    {ExecutionPlane.Node.TargetClient.Adapter, Map.get(state.lane_opts, lane_id, []),
+     Map.fetch!(state.lanes, lane_id)}
   end
 
   defp dispatch_binding(state, %Decision{target_id: target_id, lane_id: lane_id}) do
     {target_client, client_opts} = Map.fetch!(state.target_clients, target_id)
-    {target_client, client_opts, Map.fetch!(state.lanes, lane_id)}
+
+    {target_client, Keyword.merge(Map.get(state.lane_opts, lane_id, []), client_opts),
+     Map.fetch!(state.lanes, lane_id)}
+  end
+
+  defp start_active_worker(state, request, decision, _opts) do
+    execution_request = execution_request(request, decision, state)
+    {target_client, client_opts, lane_adapter} = dispatch_binding(state, decision)
+    generation = :erlang.unique_integer([:positive, :monotonic])
+
+    args = [
+      execution_ref: decision.execution_ref,
+      owner: self(),
+      request: execution_request,
+      decision: decision,
+      node_id: state.node_id,
+      generation: generation,
+      target_client: target_client,
+      client_opts: client_opts,
+      lane_adapter: lane_adapter,
+      event_limit: state.execution_event_limit,
+      cleanup_after_ms: state.execution_cleanup_after_ms
+    ]
+
+    with {:ok, worker} <-
+           ExecutionSupervisor.start_worker(state.execution_supervisor, args),
+         :ok <-
+           register_active_worker(
+             state,
+             state.execution_registry,
+             decision.execution_ref,
+             worker,
+             decision.target_id,
+             generation
+           ) do
+      evidence(state, request, "execution.started", execution_request, decision)
+
+      {:ok,
+       ActiveExecution.new!(%{
+         execution_ref: decision.execution_ref,
+         session_ref: "session://execution-plane/#{decision.execution_ref}",
+         admission_decision_ref:
+           "admission://execution-plane/#{request.request_id}/#{decision.execution_ref}",
+         node_id: state.node_id,
+         lane_id: request.lane_id,
+         state: "accepted",
+         started_at: DateTime.utc_now(),
+         fence: generation
+       })}
+    else
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp register_active_worker(state, registry, ref, worker, target_id, generation) do
+    case ExecutionRegistry.register(registry, ref, worker, target_id, generation) do
+      :ok ->
+        :ok
+
+      {:error, _reason} = error ->
+        _ = ExecutionSupervisor.terminate_worker(state.execution_supervisor, worker)
+        error
+    end
+  end
+
+  defp active_entry(state, execution_ref) do
+    ref = normalize_execution_ref(execution_ref)
+    ExecutionRegistry.lookup(state.execution_registry, ref)
+  end
+
+  defp validate_active_fence(entry, opts) do
+    case Keyword.get(opts, :fence) do
+      nil -> :ok
+      fence when fence == entry.generation -> :ok
+      _other -> {:error, :stale_execution_fence}
+    end
+  end
+
+  defp start_one_shot_waiter(state, active, opts, from) do
+    registry = state.execution_registry
+    timeout = Keyword.get(opts, :timeout, 30_000)
+    deadline = System.monotonic_time(:millisecond) + timeout
+
+    Task.start(fn ->
+      reply =
+        with {:ok, entry} <- ExecutionRegistry.lookup(registry, active.execution_ref.ref),
+             :ok <- ExecutionWorker.subscribe(entry.worker, self(), active.fence) do
+          await_one_shot_result(active.execution_ref.ref, deadline)
+        end
+
+      GenServer.reply(from, reply)
+    end)
+  end
+
+  defp await_one_shot_result(ref, deadline) do
+    timeout = max(deadline - System.monotonic_time(:millisecond), 0)
+
+    receive do
+      {:execution_plane_runtime, ^ref,
+       %ExecutionPlane.Runtime.Event{kind: "receipt", payload: payload}} ->
+        result = one_shot_result(payload)
+
+        if result.status == "succeeded" do
+          {:ok, result}
+        else
+          {:error, result}
+        end
+
+      {:execution_plane_runtime, ^ref, %ExecutionPlane.Runtime.Event{}} ->
+        await_one_shot_result(ref, deadline)
+    after
+      timeout ->
+        {:error,
+         ExecutionResult.new!(
+           execution_ref: ref,
+           status: "failed",
+           error: %{"reason" => "active execution timed out"}
+         )}
+    end
+  end
+
+  defp one_shot_result(payload) do
+    payload
+    |> Map.get("execution_result", Map.get(payload, :execution_result))
+    |> ExecutionResult.new!()
+  end
+
+  defp failed_execution_result(request, reason) do
+    ExecutionResult.new!(
+      execution_ref: ExecutionRef.new!().ref,
+      status: "failed",
+      error: %{"reason" => inspect(reason)},
+      provenance: request.provenance
+    )
   end
 
   defp reject(state, request, reason, message) do
@@ -418,16 +707,6 @@ defmodule ExecutionPlane.Node.Server do
   defp authority_verifier_id(%{authority_verifier: nil}), do: nil
   defp authority_verifier_id(%{authority_verifier: verifier}), do: verifier.verifier_id()
 
-  defp execution_reply_payload({:ok, %ExecutionResult{} = result}) do
-    %{reply: "ok", status: result.status, result: result}
-  end
-
-  defp execution_reply_payload({:error, %ExecutionResult{} = result}) do
-    %{reply: "error", status: result.status, result: result}
-  end
-
-  defp execution_reply_payload(reply), do: %{reply: inspect(reply)}
-
   defp evidence(state, request, event_type, payload, decision \\ nil) do
     target = decision && decision.target_id && Map.get(state.targets, decision.target_id)
 
@@ -457,4 +736,11 @@ defmodule ExecutionPlane.Node.Server do
   defp normalize_execution_ref(ref) when is_binary(ref), do: ref
   defp normalize_execution_ref(%{"ref" => ref}), do: ref
   defp normalize_execution_ref(%{ref: ref}), do: ref
+
+  defp call_timeout(opts) do
+    case Keyword.get(opts, :timeout, 5_000) do
+      timeout when is_integer(timeout) and timeout > 0 -> timeout
+      _other -> 5_000
+    end
+  end
 end

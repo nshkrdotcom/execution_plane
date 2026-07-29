@@ -40,6 +40,8 @@ defmodule ExecutionPlaneNode.MixProject do
   defp deps do
     [
       execution_plane_dep(),
+      {:execution_plane_process, path: "../execution_plane_process", only: :test},
+      {:execution_plane_http, path: "../../protocols/execution_plane_http", only: :test},
       {:jason, "~> 1.4.5"},
       {:telemetry, "~> 1.4.2"},
       {:ex_doc, "~> 0.40.3", only: :dev, runtime: false},

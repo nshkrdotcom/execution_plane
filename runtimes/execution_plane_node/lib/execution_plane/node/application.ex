@@ -6,6 +6,8 @@ defmodule ExecutionPlane.Node.Application do
   @impl true
   def start(_type, _args) do
     children = [
+      {ExecutionPlane.Node.ExecutionRegistry, []},
+      {ExecutionPlane.Node.ExecutionSupervisor, []},
       {ExecutionPlane.Node.Server, []}
     ]
 
