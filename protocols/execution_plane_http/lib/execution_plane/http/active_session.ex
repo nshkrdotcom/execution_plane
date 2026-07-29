@@ -81,10 +81,8 @@ defmodule ExecutionPlane.HTTP.ActiveSession do
   def handle_call(:end_input, _from, state), do: {:reply, :ok, state}
 
   def handle_call({:cancel, _reason}, _from, state) do
-    case cancel_http_request(state.request_id) do
-      :ok -> {:stop, :normal, :ok, state}
-      {:error, _reason} = error -> {:reply, error, state}
-    end
+    cancel_http_request(state.request_id)
+    {:stop, :normal, :ok, state}
   end
 
   @impl true
@@ -315,10 +313,6 @@ defmodule ExecutionPlane.HTTP.ActiveSession do
   defp cancel_http_request(nil), do: :ok
 
   defp cancel_http_request(request_id) do
-    case :httpc.cancel_request(request_id) do
-      :ok -> :ok
-      {:error, :not_found} -> :ok
-      {:error, _reason} = error -> error
-    end
+    :ok = :httpc.cancel_request(request_id)
   end
 end
