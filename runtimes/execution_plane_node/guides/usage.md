@@ -1,19 +1,29 @@
 # Usage
 
-The main helper is `ExecutionPlane.Node`; `ExecutionPlane.Node.LocalClient`
-implements the package's current `ExecutionPlane.Node.Client` admission and
-one-shot dispatch behavior.
+`ExecutionPlane.Node.LocalClient` retains the package's one-shot compatibility
+surface. New interactive consumers use
+`ExecutionPlane.Node.DistributedClient`.
 
 ```elixir
-{:ok, node} = ExecutionPlane.Node.start_link(node_id: "local-dev-node")
-:ok = ExecutionPlane.Node.register_lane(ExecutionPlane.Process, server: node)
-:ok = ExecutionPlane.Node.complete_registration(server: node)
+server = {ExecutionPlane.Node.Server, :"effect@trusted-host"}
+
+{:ok, active} =
+  ExecutionPlane.Node.DistributedClient.start(admission_request,
+    server: server
+  )
+
+:ok =
+  ExecutionPlane.Node.DistributedClient.subscribe(
+    active.execution_ref,
+    self(),
+    server: server,
+    fence: active.fence
+  )
 ```
 
 Register the lane adapters, target verifiers, evidence sinks, and authority
 verifier before admitting governed traffic.
 
-`ExecutionPlane.Runtime.Client` is a separate interactive lifecycle contract.
-Do not present this package's synchronous `execute/stream` surface as an
-implementation until a node host owns subscription, input, status, receipt,
-and termination semantics end to end.
+The server tuple is trusted deployment configuration. Never convert incoming
+node-name or registered-name strings into atoms. Opaque execution refs cross
+the client boundary; worker and lower-transport PIDs do not.

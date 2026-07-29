@@ -1,6 +1,6 @@
 defmodule ExecutionPlane.HTTP.RuntimeClientGateway do
   @moduledoc """
-  Dormant HTTP-family adapter for an injected `ExecutionPlane.Runtime.Client`.
+  HTTP-family adapter for an injected `ExecutionPlane.Runtime.Client`.
 
   Incremental responses use explicit demand encoded as Runtime Client input.
   Unary responses subscribe and request exactly one result. Runtime Client
@@ -9,8 +9,8 @@ defmodule ExecutionPlane.HTTP.RuntimeClientGateway do
   `ExecutionPlane.ExecutionResult` under `execution_result`, but unary return
   waits for the terminal receipt event and its non-empty `receipt_ref`.
 
-  This adapter never selects a local implementation and never activates a
-  capability descriptor.
+  This adapter never selects a local implementation or silently falls back
+  around governed admission.
   """
 
   @behaviour ExecutionPlane.Family.HTTPGateway

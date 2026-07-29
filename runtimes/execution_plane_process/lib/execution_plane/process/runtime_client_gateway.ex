@@ -1,6 +1,6 @@
 defmodule ExecutionPlane.Process.RuntimeClientGateway do
   @moduledoc """
-  Dormant process-family adapter for an injected `ExecutionPlane.Runtime.Client`.
+  Process-family adapter for an injected `ExecutionPlane.Runtime.Client`.
 
   This module performs no client selection and starts no local fallback. A
   managed composition must inject the exact Runtime Client and its admission

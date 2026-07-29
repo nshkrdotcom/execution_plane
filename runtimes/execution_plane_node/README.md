@@ -10,9 +10,11 @@
 </p>
 
 `execution_plane_node` is the lane-neutral control-plane runtime for governed
-admission and one-shot node dispatch through `ExecutionPlane.Node.Client`.
-It does not yet implement the interactive `ExecutionPlane.Runtime.Client`
-lifecycle.
+admission and active effect dispatch. `ExecutionPlane.Node.DistributedClient`
+implements the interactive `ExecutionPlane.Runtime.Client` lifecycle against
+a trusted local or `{registered_name, node}` server target. Supervised
+temporary workers keep execution, input, output, cancellation, receipts, and
+cleanup outside the Node Server callback.
 
 ## Installation
 

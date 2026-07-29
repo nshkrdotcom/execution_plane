@@ -7,7 +7,7 @@ package root.
 - [Usage](usage.md)
 - [Publishing](publishing.md)
 
-This package hosts governed admission and one-shot node dispatch through
-`ExecutionPlane.Node.Client`. Lane selection remains in the host that
-registers the adapters and verifiers. The separate interactive
-`ExecutionPlane.Runtime.Client` contract is not implemented here.
+This package hosts governed admission, the legacy one-shot compatibility
+surface, and active dispatch through `ExecutionPlane.Node.DistributedClient`.
+Lane selection remains in the host that registers adapters, target verifiers,
+evidence sinks, and its authority verifier.
