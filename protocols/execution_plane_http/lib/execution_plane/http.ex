@@ -30,7 +30,8 @@ defmodule ExecutionPlane.HTTP do
       protocols: ["http"],
       surfaces: ["http", "https"],
       supports_execute: true,
-      supports_stream: false
+      supports_stream: true,
+      metadata: %{"active_runtime_client" => true}
     )
   end
 

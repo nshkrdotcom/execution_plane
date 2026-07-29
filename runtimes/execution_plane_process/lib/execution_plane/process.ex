@@ -41,7 +41,8 @@ defmodule ExecutionPlane.Process do
       protocols: ["process"],
       surfaces: ["local_subprocess", "ssh_exec", "guest_bridge"],
       supports_execute: true,
-      supports_stream: false
+      supports_stream: true,
+      metadata: %{"active_runtime_client" => true}
     )
   end
 
