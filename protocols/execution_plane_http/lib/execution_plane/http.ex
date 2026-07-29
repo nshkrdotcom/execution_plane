@@ -12,6 +12,7 @@ defmodule ExecutionPlane.HTTP do
   alias ExecutionPlane.Contracts.HttpExecutionIntent.V1, as: HttpExecutionIntent
   alias ExecutionPlane.ExecutionRequest
   alias ExecutionPlane.ExecutionResult
+  alias ExecutionPlane.HTTP.ActiveAdapter
   alias ExecutionPlane.Kernel
   alias ExecutionPlane.Kernel.ExecutionResult, as: KernelExecutionResult
   alias ExecutionPlane.Lane.Capabilities
@@ -66,6 +67,26 @@ defmodule ExecutionPlane.HTTP do
        %{lane_id: request.lane_id}
      )}
   end
+
+  @doc false
+  def active_start(%ExecutionRequest{} = request, owner, opts) when is_pid(owner),
+    do: ActiveAdapter.start(request, owner, opts)
+
+  @doc false
+  def active_send_input(session, input, _opts),
+    do: ActiveAdapter.send_input(session, input)
+
+  @doc false
+  def active_end_input(session, _opts),
+    do: ActiveAdapter.end_input(session)
+
+  @doc false
+  def active_cancel(session, reason, _opts),
+    do: ActiveAdapter.cancel(session, reason)
+
+  @doc false
+  def active_event(session, message, _opts),
+    do: ActiveAdapter.event(session, message)
 
   @spec unary(map() | keyword(), keyword()) ::
           {:ok, KernelExecutionResult.t()} | {:error, KernelExecutionResult.t()}

@@ -16,6 +16,7 @@ defmodule ExecutionPlane.Process do
   alias ExecutionPlane.Kernel.ExecutionResult, as: KernelExecutionResult
   alias ExecutionPlane.Lane.Capabilities
   alias ExecutionPlane.LaneSupport
+  alias ExecutionPlane.Process.ActiveAdapter
 
   @behaviour ExecutionPlane.Lane.Adapter
   @governed_context_keys [
@@ -77,6 +78,26 @@ defmodule ExecutionPlane.Process do
        %{lane_id: request.lane_id}
      )}
   end
+
+  @doc false
+  def active_start(%ExecutionRequest{} = request, owner, opts) when is_pid(owner),
+    do: ActiveAdapter.start(request, owner, opts)
+
+  @doc false
+  def active_send_input(handle, input, _opts),
+    do: ActiveAdapter.send_input(handle, input)
+
+  @doc false
+  def active_end_input(handle, _opts),
+    do: ActiveAdapter.end_input(handle)
+
+  @doc false
+  def active_cancel(handle, reason, _opts),
+    do: ActiveAdapter.cancel(handle, reason)
+
+  @doc false
+  def active_event(handle, message, _opts),
+    do: ActiveAdapter.event(handle, message)
 
   @spec run(map() | keyword(), keyword()) ::
           {:ok, KernelExecutionResult.t()} | {:error, KernelExecutionResult.t()}
