@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.2.2 - 2026-08-10
+
+- Make the published package self-describing. `mix.exs` resolved its
+  dependencies through the workspace dependency-source registry, reading a
+  config file two directories above itself — a path that exists in this
+  checkout and not inside a published tarball, which does not ship
+  `build_support/`. Any consumer resolving `execution_plane` from Hex failed
+  while Mix loaded the dependency's project. 0.2.1 shipped with this defect.
+- Dependency source resolution now treats an absent registry as the ordinary
+  state of a published package rather than a missing file, and falls back to
+  the `hex:` requirement stated at the call site. Local development still
+  resolves siblings by path, unchanged.
+
 ## 0.2.1 - 2026-08-10
 
 - Remove two unreachable `normalize_atomish/1` heads in

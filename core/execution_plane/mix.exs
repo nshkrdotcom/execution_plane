@@ -5,11 +5,10 @@ end
 defmodule ExecutionPlane.MixProject do
   use Mix.Project
 
-  @version "0.2.1"
+  @version "0.2.2"
   @source_url "https://github.com/nshkrdotcom/execution_plane"
   @homepage_url "https://hex.pm/packages/execution_plane"
   @docs_url "https://hexdocs.pm/execution_plane"
-  @repo_root Path.expand("../..", __DIR__)
   @description """
   Execution Plane provides shared lower-runtime contracts, behaviours,
   codecs, placement descriptors, and pure helpers for Execution Plane lane
@@ -59,8 +58,8 @@ defmodule ExecutionPlane.MixProject do
 
   defp deps do
     [
-      DependencySources.dep(:ground_plane_contracts, @repo_root),
-      DependencySources.dep(:ground_plane_persistence_policy, @repo_root),
+      DependencySources.dep(:ground_plane_contracts, hex: "~> 0.1.0"),
+      DependencySources.dep(:ground_plane_persistence_policy, hex: "~> 0.1.0"),
       {:jason, "~> 1.4.5"},
       {:telemetry, "~> 1.4.2"},
       {:credo, "~> 1.7.19", only: [:dev, :test], runtime: false},
