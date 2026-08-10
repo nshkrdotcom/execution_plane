@@ -1,8 +1,11 @@
+unless Code.ensure_loaded?(DependencySources) do
+  Code.require_file("../../../../build_support/dependency_sources.exs", __DIR__)
+end
+
 defmodule ExecutionPlaneReleaseConsumer.MixProject do
   use Mix.Project
 
   @repo_root Path.expand("../../../..", __DIR__)
-  @ground_plane_root Path.expand("../ground_plane", @repo_root)
 
   def project do
     [
@@ -21,10 +24,8 @@ defmodule ExecutionPlaneReleaseConsumer.MixProject do
   defp deps do
     [
       {:execution_plane, path: Path.join(@repo_root, "dist/monolith/execution_plane")},
-      {:ground_plane_contracts,
-       path: Path.join(@ground_plane_root, "core/ground_plane_contracts"), override: true},
-      {:ground_plane_persistence_policy,
-       path: Path.join(@ground_plane_root, "core/persistence_policy"), override: true}
+      DependencySources.dep(:ground_plane_contracts, @repo_root, override: true),
+      DependencySources.dep(:ground_plane_persistence_policy, @repo_root, override: true)
     ]
   end
 end

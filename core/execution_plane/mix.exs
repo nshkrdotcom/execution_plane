@@ -1,3 +1,7 @@
+unless Code.ensure_loaded?(DependencySources) do
+  Code.require_file("../../build_support/dependency_sources.exs", __DIR__)
+end
+
 defmodule ExecutionPlane.MixProject do
   use Mix.Project
 
@@ -5,18 +9,7 @@ defmodule ExecutionPlane.MixProject do
   @source_url "https://github.com/nshkrdotcom/execution_plane"
   @homepage_url "https://hex.pm/packages/execution_plane"
   @docs_url "https://hexdocs.pm/execution_plane"
-  @ground_plane_contracts_version "~> 0.1.0"
-  @ground_plane_contracts_source [
-    github: "nshkrdotcom/ground_plane",
-    branch: "main",
-    subdir: "core/ground_plane_contracts"
-  ]
-  @ground_plane_persistence_policy_version "~> 0.1.0"
-  @ground_plane_persistence_policy_source [
-    github: "nshkrdotcom/ground_plane",
-    branch: "main",
-    subdir: "core/persistence_policy"
-  ]
+  @repo_root Path.expand("../..", __DIR__)
   @description """
   Execution Plane provides shared lower-runtime contracts, behaviours,
   codecs, placement descriptors, and pure helpers for Execution Plane lane
@@ -66,59 +59,14 @@ defmodule ExecutionPlane.MixProject do
 
   defp deps do
     [
-      ground_plane_contracts_dep(),
-      ground_plane_persistence_policy_dep(),
+      DependencySources.dep(:ground_plane_contracts, @repo_root),
+      DependencySources.dep(:ground_plane_persistence_policy, @repo_root),
       {:jason, "~> 1.4.5"},
       {:telemetry, "~> 1.4.2"},
       {:credo, "~> 1.7.19", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4.7", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.40.3", only: :dev, runtime: false}
     ]
-  end
-
-  defp ground_plane_contracts_dep do
-    case workspace_dep_path("../../../ground_plane/core/ground_plane_contracts") do
-      nil -> external_ground_plane_contracts_dep()
-      path -> {:ground_plane_contracts, path: path}
-    end
-  end
-
-  defp external_ground_plane_contracts_dep do
-    if hex_packaging_task?() do
-      {:ground_plane_contracts, @ground_plane_contracts_version}
-    else
-      {:ground_plane_contracts, @ground_plane_contracts_source}
-    end
-  end
-
-  defp ground_plane_persistence_policy_dep do
-    case workspace_dep_path("../../../ground_plane/core/persistence_policy") do
-      nil -> external_ground_plane_persistence_policy_dep()
-      path -> {:ground_plane_persistence_policy, path: path}
-    end
-  end
-
-  defp external_ground_plane_persistence_policy_dep do
-    if hex_packaging_task?() do
-      {:ground_plane_persistence_policy, @ground_plane_persistence_policy_version}
-    else
-      {:ground_plane_persistence_policy, @ground_plane_persistence_policy_source}
-    end
-  end
-
-  defp workspace_dep_path(relative_path) do
-    if local_workspace_deps?() do
-      path = Path.expand(relative_path, __DIR__)
-      if File.dir?(path), do: path
-    end
-  end
-
-  defp local_workspace_deps? do
-    not hex_packaging_task?() and not Enum.member?(Path.split(__DIR__), "deps")
-  end
-
-  defp hex_packaging_task? do
-    Enum.any?(System.argv(), &(&1 in ["hex.build", "hex.publish"]))
   end
 
   defp docs do

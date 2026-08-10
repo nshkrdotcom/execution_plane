@@ -1,3 +1,7 @@
+unless Code.ensure_loaded?(DependencySources) do
+  Code.require_file("../../build_support/dependency_sources.exs", __DIR__)
+end
+
 defmodule ExecutionPlaneProcess.MixProject do
   use Mix.Project
 
@@ -5,18 +9,7 @@ defmodule ExecutionPlaneProcess.MixProject do
   @source_url "https://github.com/nshkrdotcom/execution_plane"
   @homepage_url "https://hex.pm/packages/execution_plane_process"
   @docs_url "https://hexdocs.pm/execution_plane_process"
-  @ground_plane_contracts_version "~> 0.1.0"
-  @ground_plane_contracts_source [
-    github: "nshkrdotcom/ground_plane",
-    branch: "main",
-    subdir: "core/ground_plane_contracts"
-  ]
-  @execution_plane_version "~> 0.2.0"
-  @execution_plane_source [
-    github: "nshkrdotcom/execution_plane",
-    branch: "main",
-    subdir: "core/execution_plane"
-  ]
+  @repo_root Path.expand("../..", __DIR__)
 
   def project do
     [
@@ -49,8 +42,8 @@ defmodule ExecutionPlaneProcess.MixProject do
 
   defp deps do
     [
-      execution_plane_dep(),
-      ground_plane_contracts_dep(),
+      DependencySources.dep(:execution_plane, @repo_root),
+      DependencySources.dep(:ground_plane_contracts, @repo_root),
       {:erlexec, "~> 2.3.4"},
       {:jason, "~> 1.4.5"},
       {:telemetry, "~> 1.4.2"},
@@ -58,51 +51,6 @@ defmodule ExecutionPlaneProcess.MixProject do
       {:credo, "~> 1.7.19", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4.7", only: [:dev, :test], runtime: false}
     ]
-  end
-
-  defp ground_plane_contracts_dep do
-    case workspace_dep_path("../../../ground_plane/core/ground_plane_contracts") do
-      nil -> external_ground_plane_contracts_dep()
-      path -> {:ground_plane_contracts, path: path}
-    end
-  end
-
-  defp external_ground_plane_contracts_dep do
-    if hex_packaging_task?() do
-      {:ground_plane_contracts, @ground_plane_contracts_version}
-    else
-      {:ground_plane_contracts, @ground_plane_contracts_source}
-    end
-  end
-
-  defp execution_plane_dep do
-    case workspace_dep_path("../../core/execution_plane") do
-      nil -> external_execution_plane_dep()
-      path -> {:execution_plane, path: path}
-    end
-  end
-
-  defp external_execution_plane_dep do
-    if hex_packaging_task?() do
-      {:execution_plane, @execution_plane_version}
-    else
-      {:execution_plane, @execution_plane_source}
-    end
-  end
-
-  defp workspace_dep_path(relative_path) do
-    if local_workspace_deps?() do
-      path = Path.expand(relative_path, __DIR__)
-      if File.dir?(path), do: path
-    end
-  end
-
-  defp local_workspace_deps? do
-    not hex_packaging_task?() and not Enum.member?(Path.split(__DIR__), "deps")
-  end
-
-  defp hex_packaging_task? do
-    Enum.any?(System.argv(), &(&1 in ["hex.build", "hex.publish"]))
   end
 
   defp package do

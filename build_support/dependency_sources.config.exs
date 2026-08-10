@@ -1,10 +1,8 @@
 %{
   deps: %{
     blitz: %{
-      path: "../blitz",
-      github: %{repo: "nshkrdotcom/blitz", branch: "main"},
       hex: "~> 0.3.0",
-      default_order: [:path, :github, :hex],
+      default_order: [:hex],
       publish_order: [:hex]
     },
     execution_plane: %{
@@ -95,6 +93,17 @@
       default_order: [:path, :github, :hex],
       publish_order: [:hex]
     },
+    ground_plane_contracts: %{
+      path: "../ground_plane/core/ground_plane_contracts",
+      github: %{
+        repo: "nshkrdotcom/ground_plane",
+        branch: "main",
+        subdir: "core/ground_plane_contracts"
+      },
+      hex: "~> 0.1.0",
+      default_order: [:path, :github, :hex],
+      publish_order: [:hex]
+    },
     ground_plane_persistence_policy: %{
       path: "../ground_plane/core/persistence_policy",
       github: %{
@@ -104,6 +113,11 @@
       },
       hex: "~> 0.1.0",
       default_order: [:path, :github, :hex],
+      publish_order: [:hex]
+    },
+    weld: %{
+      hex: "~> 0.8.4",
+      default_order: [:hex],
       publish_order: [:hex]
     }
   }
