@@ -121,7 +121,6 @@ defmodule ExecutionPlane.Command do
 
   defp normalize_env_value(value) when is_binary(value), do: value
   defp normalize_env_value(value) when is_atom(value), do: Atom.to_string(value)
-  defp normalize_env_value(value) when is_boolean(value), do: to_string(value)
   defp normalize_env_value(value) when is_integer(value), do: Integer.to_string(value)
   defp normalize_env_value(value) when is_float(value), do: Float.to_string(value)
 
@@ -164,6 +163,7 @@ defmodule ExecutionPlane.Command do
   defp normalize_user(user) when is_atom(user), do: Atom.to_string(user)
   defp normalize_user(user), do: to_string(user)
 
+  # Every caller guards on is_list/1 already, so a catch-all head here is
+  # unreachable rather than defensive.
   defp keyword_list?(list) when is_list(list), do: Keyword.keyword?(list)
-  defp keyword_list?(_other), do: false
 end

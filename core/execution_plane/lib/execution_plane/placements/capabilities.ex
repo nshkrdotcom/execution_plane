@@ -112,11 +112,10 @@ defmodule ExecutionPlane.Placements.Capabilities do
     end
   end
 
-  defp normalize_atomish(value) when is_atom(value), do: value
-
+  # Only ever reached from the `is_binary` branch of fetch_member/4: a value
+  # that is already an allowed atom matches the clause above it, so atom and
+  # catch-all heads here were unreachable.
   defp normalize_atomish(value) when is_binary(value) do
     Map.get(@atomish_values, value)
   end
-
-  defp normalize_atomish(_other), do: nil
 end

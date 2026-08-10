@@ -912,7 +912,7 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
   defp handle_frame(%{"kind" => "event", "event" => "stdout", "payload" => payload}, state) do
     with {:ok, encoded} <- fetch_binary(payload, "data"),
          {:ok, chunk} <- Protocol.decode_bytes(encoded) do
-      append_stdout_chunk(state, chunk || "")
+      append_stdout_chunk(state, chunk)
     else
       _other ->
         state
@@ -923,7 +923,7 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge do
   defp handle_frame(%{"kind" => "event", "event" => "stderr", "payload" => payload}, state) do
     with {:ok, encoded} <- fetch_binary(payload, "data"),
          {:ok, chunk} <- Protocol.decode_bytes(encoded) do
-      append_stderr_chunk(state, chunk || "")
+      append_stderr_chunk(state, chunk)
     else
       _other ->
         state

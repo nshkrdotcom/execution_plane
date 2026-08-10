@@ -166,8 +166,13 @@ defmodule ExecutionPlane.Process.Transport.Surface do
     do: adapter_capabilities(surface_kind)
 
   def capabilities(opts) when is_list(opts) do
+    # `nil` is an atom, so an `is_atom` guard alone accepts a missing
+    # surface_kind and forwards it to adapter_capabilities/1 instead of
+    # reporting an invalid surface -- which also made the `nil ->` clause below
+    # unreachable. Reject it explicitly so the error path is the one taken.
     with {:ok, attrs} <- execution_surface_attrs(opts),
-         surface_kind when is_atom(surface_kind) <- Keyword.get(attrs, :surface_kind) do
+         surface_kind when is_atom(surface_kind) and not is_nil(surface_kind) <-
+           Keyword.get(attrs, :surface_kind) do
       capabilities(surface_kind)
     else
       nil -> {:error, {:invalid_execution_surface, opts}}

@@ -206,7 +206,7 @@ defmodule ExecutionPlane.Process.Transport.GuestBridge.Protocol do
     if byte_size(rest) < length do
       {:ok, Enum.reverse(frames), buffer}
     else
-      <<json::binary-size(length), tail::binary>> = rest
+      <<json::binary-size(^length), tail::binary>> = rest
 
       case Jason.decode(json) do
         {:ok, %{} = frame} ->
