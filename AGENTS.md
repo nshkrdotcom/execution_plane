@@ -25,6 +25,44 @@ The repository root `./mix.exs` is a Mix project, but it is not a publishable
 package project. It owns Blitz orchestration and Weld 0.8.4 release tooling;
 neither dependency belongs in generated runtime manifests.
 
+### Which version to bump
+
+A package's next version is derived from **what Hex has published**, not from
+what `mix.exs` currently says. Those two disagree whenever a release was
+prepared and not published, and bumping off `mix.exs` in that state invents a
+version that skips a release which never happened.
+
+Check before bumping:
+
+```bash
+curl -s https://hex.pm/api/packages/<name> | python3 -c \
+  "import json,sys; print(json.load(sys.stdin)['releases'][0]['version'])"
+git tag --sort=-v:refname | head -3
+```
+
+Hex, the newest `v*` tag, and the top CHANGELOG entry should agree. Where they
+do not, Hex is the authority for what is released and the tag is the authority
+for what was cut.
+
+State as of 2026-08-10. Where the two columns differ, the checkout holds a
+prepared release that has not shipped — publish that version, do not bump past
+it:
+
+| package | on Hex | in this checkout |
+| --- | --- | --- |
+| `execution_plane` (`core/`) | 0.2.0 | 0.2.1 prepared |
+| `execution_plane_process` (`runtimes/`) | 0.1.0 | 0.1.1 prepared |
+| `execution_plane_jsonrpc` (`protocols/`) | 0.1.0 | 0.1.0 |
+| `execution_plane_http` (`protocols/`) | — | 0.1.0 |
+| `execution_plane_sse` (`streaming/`) | — | 0.1.0 |
+| `execution_plane_websocket` (`streaming/`) | — | 0.1.0 |
+| `execution_plane_node` (`runtimes/`) | — | 0.1.0 |
+| `execution_plane_operator_terminal` (`runtimes/`) | — | 0.1.0 |
+| `execution_plane_workspace` (root) | never published | 0.1.0 |
+
+Each publishable project owns its own `CHANGELOG.md`; the root `CHANGELOG.md`
+records workspace-level release shape, not per-package detail.
+
 ## Onboarding
 
 Read `ONBOARDING.md` first for the repo's one-screen ownership, first command,
@@ -259,3 +297,18 @@ Root workspace Blitz uses published Hex `~> 0.3.0` by default; `.blitz/` is comm
   evidence, not the 0.2.0+ publication source. Publish the core and lane
   packages from their package directories; never make canonical source edits
   on `projection/execution_plane`.
+
+## Static analysis
+
+Dialyzer and Credo findings are fixed at the **root cause**. No
+`.dialyzer_ignore.exs` entries, no `# credo:disable-for-*` comments, no specs
+widened purely to silence a warning, no checks skipped to make a gate pass.
+
+If a finding looks like a false positive, either the code or the type is wrong
+— fix it so the truth is expressible. A finding you do not have the design
+knowledge to fix is reported, not suppressed.
+
+These tools find real defects. `normalize_session_id/1` returning the string
+`"nil"` for `nil`, and `Surface.capabilities/1` accepting a `nil` surface kind
+through an `is_atom/1` guard, were both found this way.
+
