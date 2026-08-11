@@ -209,13 +209,17 @@ defmodule DependencySources do
   def publish_preflight(repo_root \\ Path.dirname(__DIR__), opts \\ []) do
     repo_root = Path.expand(repo_root)
     config = config!(repo_root)
-    dependencies = normalized_deps(config)
 
     package =
       case Keyword.fetch(opts, :package) do
         {:ok, package} -> package
         :error -> current_package(repo_root)
       end
+
+    dependencies =
+      config
+      |> normalized_deps()
+      |> preflight_dependencies(package)
 
     entries =
       dependencies
@@ -396,6 +400,34 @@ defmodule DependencySources do
     error -> {:unverified, error}
   catch
     :exit, reason -> {:unverified, reason}
+  end
+
+  # A workspace registry can describe many sibling packages even though the
+  # currently loaded package declares only a subset of them. Publication must
+  # preflight that package's actual dependency surface; treating every registry
+  # entry as a dependency makes one unpublished, unrelated lane block all other
+  # releases in the monorepo.
+  defp preflight_dependencies(dependencies, nil), do: dependencies
+
+  defp preflight_dependencies(dependencies, _package) do
+    declared =
+      if Code.ensure_loaded?(Mix.Project) and Mix.Project.get() do
+        Mix.Project.config()
+        |> Keyword.get(:deps, [])
+        |> Enum.map(fn
+          {app, _requirement} when is_atom(app) -> app
+          {app, _requirement, _opts} when is_atom(app) -> app
+        end)
+        |> MapSet.new()
+      else
+        MapSet.new()
+      end
+
+    if MapSet.size(declared) == 0 do
+      dependencies
+    else
+      Enum.filter(dependencies, fn {app, _config} -> MapSet.member?(declared, app) end)
+    end
   end
 
   defp missing_release_prerequisites(nil, _dependencies), do: []
