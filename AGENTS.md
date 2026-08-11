@@ -52,7 +52,7 @@ it:
 | --- | --- | --- |
 | `execution_plane` (`core/`) | 0.3.0 | 0.3.0 |
 | `execution_plane_process` (`runtimes/`) | 0.2.0 | 0.2.0 |
-| `execution_plane_jsonrpc` (`protocols/`) | 0.1.0 | 0.2.0 prepared |
+| `execution_plane_jsonrpc` (`protocols/`) | 0.2.0 | 0.2.0 |
 | `execution_plane_http` (`protocols/`) | — | 0.1.0 |
 | `execution_plane_sse` (`streaming/`) | — | 0.1.0 |
 | `execution_plane_websocket` (`streaming/`) | — | 0.1.0 |
