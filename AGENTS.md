@@ -50,9 +50,9 @@ it:
 
 | package | on Hex | in this checkout |
 | --- | --- | --- |
-| `execution_plane` (`core/`) | 0.2.3 | 0.3.0 prepared |
-| `execution_plane_process` (`runtimes/`) | 0.1.2 | 0.2.0 prepared |
-| `execution_plane_jsonrpc` (`protocols/`) | 0.1.0 | 0.1.0 |
+| `execution_plane` (`core/`) | 0.3.0 | 0.3.0 |
+| `execution_plane_process` (`runtimes/`) | 0.2.0 | 0.2.0 |
+| `execution_plane_jsonrpc` (`protocols/`) | 0.1.0 | 0.2.0 prepared |
 | `execution_plane_http` (`protocols/`) | — | 0.1.0 |
 | `execution_plane_sse` (`streaming/`) | — | 0.1.0 |
 | `execution_plane_websocket` (`streaming/`) | — | 0.1.0 |
@@ -75,7 +75,7 @@ and proof path.
 - The root `mix.exs` is workspace tooling only. Blitz belongs there and must
   not be added to generated package manifests. Weld is likewise root-only
   release tooling.
-- The public `execution_plane 0.2.0` package publishes directly from
+- The public `execution_plane 0.3.0` package publishes directly from
   `core/execution_plane`. It must publish before
   `execution_plane_process` or `execution_plane_jsonrpc`.
 - Never publish either component against `execution_plane 0.1.0`: that

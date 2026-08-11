@@ -192,7 +192,7 @@ descriptors, runtime-client behaviours, evidence envelopes, and pure helpers:
 ```elixir
 def deps do
   [
-    {:execution_plane, "~> 0.2.0"}
+    {:execution_plane, "~> 0.3.0"}
   ]
 end
 ```
@@ -202,9 +202,9 @@ Add only the lane and host packages the runtime uses:
 ```elixir
 def deps do
   [
-    {:execution_plane, "~> 0.2.0"},
-    {:execution_plane_process, "~> 0.1.0"},
-    {:execution_plane_jsonrpc, "~> 0.1.0"}
+    {:execution_plane, "~> 0.3.0"},
+    {:execution_plane_process, "~> 0.2.0"},
+    {:execution_plane_jsonrpc, "~> 0.2.0"}
   ]
 end
 ```
@@ -254,7 +254,7 @@ mix release.prepare --artifact execution_plane
 
 The historical package directory is `dist/monolith/execution_plane`, and its
 durable generated branch is `projection/execution_plane`. Publish
-`execution_plane 0.2.0` from `core/execution_plane` first:
+`execution_plane 0.3.0` from `core/execution_plane` first:
 
 ```bash
 cd core/execution_plane
@@ -265,8 +265,8 @@ mix hex.publish --yes
 
 Then prove each component from
 a clean standalone checkout/package extraction resolving the actual Hex
-`execution_plane 0.2.0`, publish `execution_plane_process 0.1.0` and
-`execution_plane_jsonrpc 0.1.0`, and only then publish their consumers. A
+`execution_plane 0.3.0`, publish `execution_plane_process 0.2.0` and
+`execution_plane_jsonrpc 0.2.0`, and only then publish their consumers. A
 workspace-path compile is necessary local evidence but is not publication
 evidence.
 

@@ -17,7 +17,7 @@ below provider semantics.
 ```elixir
 def deps do
   [
-    {:execution_plane_jsonrpc, "~> 0.1.0"}
+    {:execution_plane_jsonrpc, "~> 0.2.0"}
   ]
 end
 ```

@@ -1,5 +1,7 @@
 # JSON-RPC Guide Index
 
+This guide set targets `execution_plane_jsonrpc ~> 0.2.0`.
+
 `execution_plane_jsonrpc` publishes a small HexDocs navigation set for the
 package root.
 

@@ -1,5 +1,7 @@
 # Usage
 
+This guide targets `execution_plane_jsonrpc ~> 0.2.0`.
+
 The main helper is `ExecutionPlane.JsonRpc.call/2`.
 
 ```elixir
