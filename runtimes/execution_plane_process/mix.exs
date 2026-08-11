@@ -8,7 +8,7 @@ end
 defmodule ExecutionPlaneProcess.MixProject do
   use Mix.Project
 
-  @version "0.2.0"
+  @version "0.3.0"
   @source_url "https://github.com/nshkrdotcom/execution_plane"
   @homepage_url "https://hex.pm/packages/execution_plane_process"
   @docs_url "https://hexdocs.pm/execution_plane_process"

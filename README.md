@@ -203,7 +203,7 @@ Add only the lane and host packages the runtime uses:
 def deps do
   [
     {:execution_plane, "~> 0.3.0"},
-    {:execution_plane_process, "~> 0.2.0"},
+    {:execution_plane_process, "~> 0.3.0"},
     {:execution_plane_jsonrpc, "~> 0.2.0"}
   ]
 end
@@ -265,7 +265,7 @@ mix hex.publish --yes
 
 Then prove each component from
 a clean standalone checkout/package extraction resolving the actual Hex
-`execution_plane 0.3.0`, publish `execution_plane_process 0.2.0` and
+`execution_plane 0.3.0`, publish `execution_plane_process 0.3.0` and
 `execution_plane_jsonrpc 0.2.0`, and only then publish their consumers. A
 workspace-path compile is necessary local evidence but is not publication
 evidence.

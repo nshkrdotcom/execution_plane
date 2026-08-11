@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-08-10
+
+### Added
+
+- Add strict transient `systemd --user` service containment with
+  `KillMode=control-group`, structured argv, name-only environment inheritance,
+  observable cgroup identity, and prove-empty shutdown.
+- Treat commands that complete before the first status poll as successful
+  starts, while preserving typed startup failures.
+- Cover escaped `setsid` descendants and fast-completing services with real
+  systemd-user integration tests.
+
 ## [0.2.0] - 2026-08-10
 
 ### Fixed

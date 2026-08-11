@@ -14,12 +14,12 @@ Before publishing the package:
 5. Inspect the package manifest and confirm the `execution_plane` requirement
    is `~> 0.3.0`.
 6. In the authorized release phase, run `mix hex.publish --yes`.
-7. Create the lightweight tag `execution_plane_process-v0.2.0`, push it, and
+7. Create the lightweight tag `execution_plane_process-v0.3.0`, push it, and
    verify the remote tag.
 
 This monorepo already uses plain `v*` tags for the core package. Process tags
-therefore use the package-qualified `execution_plane_process-v0.2.0` form;
-the plain `v0.2.0` tag is already core history.
+therefore use the package-qualified `execution_plane_process-v0.3.0` form;
+the plain `v0.3.0` tag is already core history.
 
 The package manifest should include `README.md`, `CHANGELOG.md`, `LICENSE`,
 `assets/`, `guides/`, `lib/`, `.formatter.exs`, and `mix.exs`.

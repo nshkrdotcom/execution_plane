@@ -39,10 +39,19 @@ must be available before operating-system process launch.
 ```elixir
 def deps do
   [
-    {:execution_plane_process, "~> 0.2.0"}
+    {:execution_plane_process, "~> 0.3.0"}
   ]
 end
 ```
+
+## Strict process-tree containment
+
+`ExecutionPlane.Process.Containment.SystemdUser` launches long-running operator
+work as a transient user service with `KillMode=control-group`. Arguments stay
+as argv, environment values never appear in the launcher argv, and `stop/2`
+returns only after the service is inactive and its cgroup is unpopulated. This
+contains descendants that call `setsid(2)` or are reparented; PID matching and
+process-group cleanup are not used as substitutes.
 
 ## Guides
 
