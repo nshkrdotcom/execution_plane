@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.0 - 2026-08-10
+
 - Make dependency selection independent of whichever repository first loaded
   the shared `DependencySources` module. Source-workspace builds pass the
   Execution Plane repository root explicitly; published-package builds use the

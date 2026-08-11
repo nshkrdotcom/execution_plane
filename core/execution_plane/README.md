@@ -26,7 +26,7 @@ Add this package when you need the common substrate only:
 ```elixir
 def deps do
   [
-    {:execution_plane, "~> 0.2.0"}
+    {:execution_plane, "~> 0.3.0"}
   ]
 end
 ```
@@ -36,9 +36,9 @@ Lane hosts and family kits opt into the exact lane packages they run:
 ```elixir
 def deps do
   [
-    {:execution_plane, "~> 0.2.0"},
+    {:execution_plane, "~> 0.3.0"},
     {:execution_plane_node, "~> 0.1.0"},
-    {:execution_plane_process, "~> 0.1.0"}
+    {:execution_plane_process, "~> 0.2.0"}
   ]
 end
 ```

@@ -8,7 +8,7 @@ end
 defmodule ExecutionPlaneProcess.MixProject do
   use Mix.Project
 
-  @version "0.1.2"
+  @version "0.2.0"
   @source_url "https://github.com/nshkrdotcom/execution_plane"
   @homepage_url "https://hex.pm/packages/execution_plane_process"
   @docs_url "https://hexdocs.pm/execution_plane_process"
@@ -46,7 +46,7 @@ defmodule ExecutionPlaneProcess.MixProject do
 
   defp deps do
     [
-      workspace_dep(:execution_plane, "~> 0.2.3"),
+      workspace_dep(:execution_plane, "~> 0.3.0"),
       workspace_dep(:ground_plane_contracts, "~> 0.1.0"),
       {:erlexec, "~> 2.3.4"},
       {:jason, "~> 1.4.5"},

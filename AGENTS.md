@@ -50,8 +50,8 @@ it:
 
 | package | on Hex | in this checkout |
 | --- | --- | --- |
-| `execution_plane` (`core/`) | 0.2.0 | 0.2.1 prepared |
-| `execution_plane_process` (`runtimes/`) | 0.1.0 | 0.1.1 prepared |
+| `execution_plane` (`core/`) | 0.2.3 | 0.3.0 prepared |
+| `execution_plane_process` (`runtimes/`) | 0.1.2 | 0.2.0 prepared |
 | `execution_plane_jsonrpc` (`protocols/`) | 0.1.0 | 0.1.0 |
 | `execution_plane_http` (`protocols/`) | — | 0.1.0 |
 | `execution_plane_sse` (`streaming/`) | — | 0.1.0 |
@@ -311,4 +311,3 @@ knowledge to fix is reported, not suppressed.
 These tools find real defects. `normalize_session_id/1` returning the string
 `"nil"` for `nil`, and `Surface.capabilities/1` accepting a `nil` surface kind
 through an `is_atom/1` guard, were both found this way.
-

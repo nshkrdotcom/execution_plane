@@ -5,7 +5,7 @@ Add the package as a dependency:
 ```elixir
 def deps do
   [
-    {:execution_plane_process, "~> 0.1.0"}
+    {:execution_plane_process, "~> 0.2.0"}
   ]
 end
 ```
