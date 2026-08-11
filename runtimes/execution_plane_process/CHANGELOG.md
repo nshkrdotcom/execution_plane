@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- Make dependency selection collision-proof in parent Mix graphs: source
+  checkouts resolve against the Execution Plane registry explicitly, while a
+  packaged project uses its declared Hex requirements directly.
+
+## [0.1.2] - 2026-08-10
+
+### Fixed
+
+- Make the published package loadable by any consumer. 0.1.1 required
+  `build_support/dependency_sources.exs` from a path outside the tarball, so
+  `mix compile` in a consuming project died while Mix loaded this dependency's
+  project. 0.1.1 is retired.
+- `mix.exs` now detects whether it is running inside the workspace checkout: in
+  the workspace it resolves siblings through the dependency-source registry, and
+  anywhere else it declares plain Hex requirements.
+
 ## [0.1.1] - 2026-08-10
 
 ### Fixed

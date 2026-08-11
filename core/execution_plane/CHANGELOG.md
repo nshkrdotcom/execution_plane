@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased
+
+- Make dependency selection independent of whichever repository first loaded
+  the shared `DependencySources` module. Source-workspace builds pass the
+  Execution Plane repository root explicitly; published-package builds use the
+  call-site Hex requirements without reading a consumer's workspace registry.
+
+## 0.2.3 - 2026-08-10
+
+- Make the published package loadable by any consumer. 0.2.1 and 0.2.2 required
+  `build_support/dependency_sources.exs` from a path outside the tarball, so
+  `mix compile` in a consuming project died while Mix loaded this dependency's
+  project. Both are retired.
+- `mix.exs` now detects whether it is running inside the workspace checkout.
+  In the workspace it resolves siblings through the dependency-source registry
+  as before; anywhere else it declares plain Hex requirements and never touches
+  `build_support`.
+
 ## 0.2.2 - 2026-08-10
 
 - Make the published package self-describing. `mix.exs` resolved its
