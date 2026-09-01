@@ -7,7 +7,6 @@ defmodule ExecutionPlaneProcess.MixProject do
   @source_url "https://github.com/nshkrdotcom/execution_plane"
   @homepage_url "https://hex.pm/packages/execution_plane_process"
   @docs_url "https://hexdocs.pm/execution_plane_process"
-  @repo_root Path.expand("../..", __DIR__)
 
   def project do
     [
@@ -53,7 +52,7 @@ defmodule ExecutionPlaneProcess.MixProject do
 
   defp workspace_dep(committed) do
     if function_exported?(MixWorkspaceOpsBootstrap, :dep, 2),
-      do: apply(MixWorkspaceOpsBootstrap, :dep, [committed, @repo_root]),
+      do: apply(MixWorkspaceOpsBootstrap, :dep, [committed, __DIR__]),
       else: committed
   end
 
