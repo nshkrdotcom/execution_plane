@@ -284,11 +284,11 @@ Root workspace Blitz uses published Hex `~> 0.3.0` by default; `.blitz/` is comm
 
 ## Dependency Sources And Runtime Env
 
-- The repo-wide dependency-source manifest is
-  `build_support/dependency_sources.config.exs`; the shared helper is
-  `build_support/dependency_sources.exs`.
-- Local dependency-source overrides belong in `.dependency_sources.local.exs`,
-  which is intentionally gitignored.
+- Cross-repository source substitution uses MWO's tuple-first
+  `workspace_dep(committed_tuple)` seam. Committed tuples are standalone Hex defaults;
+  MWO activation substitutes only source coordinates.
+- Machine-local source preferences belong in MWO's XDG operator state. Do not install a
+  repository-local dependency-source helper or override file.
 - Dependency source selection must not use environment variables.
 - Runtime application code under `lib/**` must not call direct OS env APIs.
   Runtime env reads belong in `config/runtime.exs` or a `Config.Provider`.

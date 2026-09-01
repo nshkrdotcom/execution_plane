@@ -53,7 +53,7 @@ defmodule ExecutionPlaneNode.MixProject do
   defp execution_plane_dep do
     case workspace_dep_path("../../core/execution_plane") do
       nil -> external_execution_plane_dep()
-      path -> {:execution_plane, path: path}
+      path -> {:execution_plane, path: path, override: true}
     end
   end
 

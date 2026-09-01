@@ -24,7 +24,6 @@ execution_plane-*.tar
 /tmp/
 
 # Local dependency-source overrides.
-/.dependency_sources.local.exs
 
 # Nested workspace package artifacts
 **/_build/

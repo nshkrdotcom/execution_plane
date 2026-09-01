@@ -1,9 +1,4 @@
-workspace_root = Path.expand("../..", __DIR__)
-workspace_checkout = Path.expand("core/execution_plane", workspace_root) == __DIR__
-
-if workspace_checkout and not Code.ensure_loaded?(DependencySources) do
-  Code.require_file("../../build_support/dependency_sources.exs", __DIR__)
-end
+if bootstrap = System.get_env("MIX_WORKSPACE_OPS_BOOTSTRAP"), do: Code.require_file(bootstrap)
 
 defmodule ExecutionPlane.MixProject do
   use Mix.Project
@@ -13,7 +8,6 @@ defmodule ExecutionPlane.MixProject do
   @homepage_url "https://hex.pm/packages/execution_plane"
   @docs_url "https://hexdocs.pm/execution_plane"
   @repo_root Path.expand("../..", __DIR__)
-  @workspace_checkout Path.expand("core/execution_plane", @repo_root) == __DIR__
   @description """
   Execution Plane provides shared lower-runtime contracts, behaviours,
   codecs, placement descriptors, and pure helpers for Execution Plane lane
@@ -63,8 +57,8 @@ defmodule ExecutionPlane.MixProject do
 
   defp deps do
     [
-      workspace_dep(:ground_plane_contracts, "~> 0.1.0"),
-      workspace_dep(:ground_plane_persistence_policy, "~> 0.1.0"),
+      workspace_dep({:ground_plane_contracts, "~> 0.1.0"}),
+      workspace_dep({:ground_plane_persistence_policy, "~> 0.1.0"}),
       {:jason, "~> 1.4.5"},
       {:telemetry, "~> 1.4.2"},
       {:credo, "~> 1.7.19", only: [:dev, :test], runtime: false},
@@ -73,12 +67,10 @@ defmodule ExecutionPlane.MixProject do
     ]
   end
 
-  defp workspace_dep(app, hex_requirement) do
-    if @workspace_checkout do
-      apply(DependencySources, :dep, [app, @repo_root])
-    else
-      {app, hex_requirement}
-    end
+  defp workspace_dep(committed) do
+    if function_exported?(MixWorkspaceOpsBootstrap, :dep, 2),
+      do: apply(MixWorkspaceOpsBootstrap, :dep, [committed, @repo_root]),
+      else: committed
   end
 
   defp docs do
