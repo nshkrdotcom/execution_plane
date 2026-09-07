@@ -54,7 +54,16 @@ defmodule ExecutionPlane.NodeRuntimeFamiliesIntegrationTest do
   test "peer-backed Runtime Client observes process and HTTP effects on a second BEAM node" do
     ensure_distribution()
     peer_name = :"execution_plane_effect_#{System.unique_integer([:positive])}"
-    {:ok, peer, peer_node} = :peer.start_link(%{name: peer_name, wait_boot: 10_000})
+
+    {:ok, peer, peer_node} =
+      :peer.start_link(%{
+        name: peer_name,
+        host: ~c"127.0.0.1",
+        longnames: true,
+        connection: :standard_io,
+        args: [~c"+S", ~c"2:2"],
+        wait_boot: 10_000
+      })
 
     try do
       :ok = :rpc.call(peer_node, :code, :add_paths, [:code.get_path()])
@@ -391,8 +400,9 @@ defmodule ExecutionPlane.NodeRuntimeFamiliesIntegrationTest do
 
   defp ensure_distribution do
     unless Node.alive?() do
-      name = :"execution_plane_controller_#{System.unique_integer([:positive])}"
-      assert {:ok, _pid} = :net_kernel.start([name, :shortnames])
+      assert {_output, 0} = System.cmd("epmd", ["-daemon", "-address", "127.0.0.1"])
+      name = :"execution_plane_controller_#{System.unique_integer([:positive])}@127.0.0.1"
+      assert {:ok, _pid} = :net_kernel.start([name, :longnames])
     end
   end
 

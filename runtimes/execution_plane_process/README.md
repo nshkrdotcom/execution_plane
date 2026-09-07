@@ -39,7 +39,7 @@ must be available before operating-system process launch.
 ```elixir
 def deps do
   [
-    {:execution_plane_process, "~> 0.3.0"}
+    {:execution_plane_process, "~> 0.3.1"}
   ]
 end
 ```

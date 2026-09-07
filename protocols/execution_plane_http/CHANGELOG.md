@@ -1,0 +1,1 @@
+- 2026-09-07: Pin the existing chunk size in bitstring matches for warning-free Elixir 1.20 compilation. This lane remains an unpublished 0.1.0 candidate.

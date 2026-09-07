@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-09-07
+
+### Changed
+
+- Require `ground_plane_contracts ~> 0.1.1` and refresh locked dependencies for warning-free current-toolchain builds.
+
+- Updated `erlexec` dependency to `~> 2.4` (`2.4.0`) to replace the retired `2.3.4` release and incorporate upstream bugfix for exec-port EOF high-CPU loop.
+
 ## [0.3.0] - 2026-08-10
 
 ### Added

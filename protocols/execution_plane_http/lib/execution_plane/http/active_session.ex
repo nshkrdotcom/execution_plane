@@ -218,7 +218,7 @@ defmodule ExecutionPlane.HTTP.ActiveSession do
        do: [binary | acc]
 
   defp chunk_binary(binary, size, acc) when is_integer(size) and size > 0 do
-    <<chunk::binary-size(size), rest::binary>> = binary
+    <<chunk::binary-size(^size), rest::binary>> = binary
     chunk_binary(rest, size, [chunk | acc])
   end
 

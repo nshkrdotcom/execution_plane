@@ -3,7 +3,7 @@ if bootstrap = System.get_env("MIX_WORKSPACE_OPS_BOOTSTRAP"), do: Code.require_f
 defmodule ExecutionPlaneProcess.MixProject do
   use Mix.Project
 
-  @version "0.3.0"
+  @version "0.3.1"
   @source_url "https://github.com/nshkrdotcom/execution_plane"
   @homepage_url "https://hex.pm/packages/execution_plane_process"
   @docs_url "https://hexdocs.pm/execution_plane_process"
@@ -40,8 +40,8 @@ defmodule ExecutionPlaneProcess.MixProject do
   defp deps do
     [
       workspace_dep({:execution_plane, "~> 0.3.0"}),
-      workspace_dep({:ground_plane_contracts, "~> 0.1.0"}),
-      {:erlexec, "~> 2.3.4"},
+      workspace_dep({:ground_plane_contracts, "~> 0.1.1"}),
+      {:erlexec, "~> 2.4"},
       {:jason, "~> 1.4.5"},
       {:telemetry, "~> 1.4.2"},
       {:ex_doc, "~> 0.40.3", only: :dev, runtime: false},
@@ -75,10 +75,10 @@ defmodule ExecutionPlaneProcess.MixProject do
   defp docs do
     [
       main: "readme",
-      source_ref: "execution_plane_process-v#{@version}",
+      source_ref: "v#{@version}",
       source_url: @source_url,
       source_url_pattern:
-        "#{@source_url}/blob/execution_plane_process-v#{@version}/runtimes/execution_plane_process/%{path}#L%{line}",
+        "#{@source_url}/blob/v#{@version}/runtimes/execution_plane_process/%{path}#L%{line}",
       homepage_url: @docs_url,
       logo: "assets/execution_plane_process.svg",
       assets: %{"assets" => "assets"},

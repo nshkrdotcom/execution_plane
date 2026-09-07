@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-07 release preparation
+
+- Prepare Process 0.3.1 with erlexec 2.4 and GroundPlane Contracts 0.1.1.
+- Resolve the HTTP lane's Elixir 1.20 bitstring warning and revalidate all eight components.
+- Make the node peer test start loopback distribution explicitly instead of depending on a pre-existing epmd daemon or external hostname resolution.
+- Process 0.3.1 uses plain `v0.3.1`; core 0.3.0 and JSON-RPC 0.2.0 do not require new publication.
+
 ## 0.2.0 - 2026-07-27
 
 - Correct the public package topology: `execution_plane` is now the core-only
