@@ -62,7 +62,7 @@ defmodule ExecutionPlaneHttp.MixProject do
   defp docs do
     [
       main: "readme",
-      source_ref: "main",
+      source_ref: "execution_plane_http-v#{@version}",
       source_url: @source_url,
       logo: "assets/execution_plane_http.svg",
       assets: %{"assets" => "assets"},

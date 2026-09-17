@@ -24,13 +24,11 @@ mix ci
 Normal commands and publication default to Hex dependencies. The optional
 workspace bootstrap can select local sources explicitly; it is not required.
 
-Version 0.2.0 adds public cancelable unary APIs. Before publishing, re-check the
-actual Hex package state as required by the repository `AGENTS.md`. The package
-changelog in this snapshot records `0.1.0` on 2026-09-16, while older repository
-release notes predate that state, so publication history must be confirmed rather
-than inferred from either file. Do not publish 0.2.0 until the preceding release
-state is reconciled. In all cases, require the real socket-cancellation test and
-package/root gates to be green first.
+Hex release state checked on 2026-09-17: the latest published HTTP package is
+0.1.0; 0.2.0 is the next release. Publish this package before Pristine 0.4.0.
+Use the package-qualified tag `execution_plane_http-v0.2.0` when cutting the
+release; repository-wide `v*` tags do not identify this poncho package.
+Publication and tagging are separate release actions after QC.
 
 Package contents include README, changelog, license, assets, guides, library
 source, formatter configuration, and `mix.exs`.

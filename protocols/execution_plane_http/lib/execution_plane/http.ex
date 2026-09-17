@@ -25,8 +25,6 @@ defmodule ExecutionPlane.HTTP do
 
   @behaviour ExecutionPlane.Lane.Adapter
 
-  @cancel_ack_timeout_ms 5_000
-
   @impl true
   def lane_id, do: :http
 
@@ -111,21 +109,9 @@ defmodule ExecutionPlane.HTTP do
   @spec start_unary(map() | keyword(), keyword()) ::
           {:ok, UnarySession.t()} | {:error, KernelExecutionResult.t() | term()}
   def start_unary(request, opts \\ []) do
-    owner = self()
-    session_ref = make_ref()
-
-    {worker, monitor} =
-      spawn_monitor(fn ->
-        result = execute_unary(request, opts, {owner, session_ref})
-        send(owner, {:execution_plane_http_unary_finished, session_ref, self(), result})
-      end)
-
-    await_session_start(%UnarySession{
-      ref: session_ref,
-      owner: owner,
-      worker: worker,
-      monitor: monitor
-    })
+    UnarySession.start(fn owner, session_ref ->
+      execute_unary(request, opts, {owner, session_ref})
+    end)
   end
 
   @doc """
@@ -136,30 +122,7 @@ defmodule ExecutionPlane.HTTP do
   """
   @spec await_unary(UnarySession.t(), timeout()) ::
           {:ok, KernelExecutionResult.t()} | {:error, KernelExecutionResult.t() | term()}
-  def await_unary(session, timeout \\ :infinity)
-
-  def await_unary(%UnarySession{completed_result: result}, _timeout) when not is_nil(result),
-    do: result
-
-  def await_unary(%UnarySession{owner: owner}, _timeout) when owner != self(),
-    do: {:error, :not_session_owner}
-
-  def await_unary(%UnarySession{} = session, timeout) do
-    receive do
-      {:execution_plane_http_unary_finished, ref, worker, result}
-      when ref == session.ref and worker == session.worker ->
-        demonitor_session(session)
-        result
-
-      {:DOWN, monitor, :process, worker, reason}
-      when monitor == session.monitor and worker == session.worker ->
-        {:error, {:unary_worker_exit, reason}}
-    after
-      timeout ->
-        _ = cancel_unary(session, :await_timeout)
-        {:error, :timeout}
-    end
-  end
+  defdelegate await_unary(session, timeout \\ :infinity), to: UnarySession, as: :await
 
   @doc """
   Cancels an active unary session.
@@ -172,40 +135,7 @@ defmodule ExecutionPlane.HTTP do
   and is not copied into the execution outcome.
   """
   @spec cancel_unary(UnarySession.t(), term()) :: :ok | {:error, term()}
-  def cancel_unary(%UnarySession{completed_result: result}, _reason) when not is_nil(result),
-    do: :ok
-
-  def cancel_unary(%UnarySession{worker: nil}, _reason), do: :ok
-
-  def cancel_unary(%UnarySession{worker: worker, ref: session_ref}, reason) when is_pid(worker) do
-    if Process.alive?(worker) do
-      ack_ref = make_ref()
-      monitor = Process.monitor(worker)
-
-      send(
-        worker,
-        {:execution_plane_http_unary_cancel, session_ref, reason, self(), ack_ref}
-      )
-
-      receive do
-        {:execution_plane_http_unary_cancel_ack, ^ack_ref, :ok} ->
-          Process.demonitor(monitor, [:flush])
-          :ok
-
-        {:DOWN, ^monitor, :process, ^worker, :normal} ->
-          :ok
-
-        {:DOWN, ^monitor, :process, ^worker, exit_reason} ->
-          {:error, {:cancellation_worker_exit, exit_reason}}
-      after
-        @cancel_ack_timeout_ms ->
-          Process.demonitor(monitor, [:flush])
-          {:error, :cancellation_ack_timeout}
-      end
-    else
-      :ok
-    end
-  end
+  defdelegate cancel_unary(session, reason), to: UnarySession, as: :cancel
 
   @spec unary(map() | keyword(), keyword()) ::
           {:ok, KernelExecutionResult.t()} | {:error, KernelExecutionResult.t()}
@@ -264,35 +194,6 @@ defmodule ExecutionPlane.HTTP do
 
     Kernel.execute(intent, route, kernel_opts)
   end
-
-  defp await_session_start(%UnarySession{} = session) do
-    receive do
-      {:execution_plane_http_unary_started, ref, request_id, worker}
-      when ref == session.ref and worker == session.worker ->
-        {:ok, %{session | request_id: request_id}}
-
-      {:execution_plane_http_unary_finished, ref, worker, {:ok, _result} = result}
-      when ref == session.ref and worker == session.worker ->
-        demonitor_session(session)
-        {:ok, %{session | worker: nil, monitor: nil, completed_result: result}}
-
-      {:execution_plane_http_unary_finished, ref, worker, {:error, result}}
-      when ref == session.ref and worker == session.worker ->
-        demonitor_session(session)
-        {:error, result}
-
-      {:DOWN, monitor, :process, worker, reason}
-      when monitor == session.monitor and worker == session.worker ->
-        {:error, {:unary_worker_exit, reason}}
-    end
-  end
-
-  defp demonitor_session(%UnarySession{monitor: monitor}) when is_reference(monitor) do
-    Process.demonitor(monitor, [:flush])
-    :ok
-  end
-
-  defp demonitor_session(_session), do: :ok
 
   defp maybe_put_unary_session(opts, {owner, session_ref})
        when is_pid(owner) and is_reference(session_ref) do

@@ -134,8 +134,7 @@ defmodule ExecutionPlane.Protocols.HTTP do
           body,
           timeout_ms,
           start_ms,
-          owner,
-          session_ref
+          {owner, session_ref}
         )
 
       _other ->
@@ -163,8 +162,7 @@ defmodule ExecutionPlane.Protocols.HTTP do
          body,
          timeout_ms,
          start_ms,
-         owner,
-         session_ref
+         {owner, session_ref}
        ) do
     case start_request(method, url, headers, content_type, body, timeout_ms) do
       {:ok, request_id} ->

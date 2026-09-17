@@ -50,6 +50,8 @@ defmodule ExecutionPlane.HTTP.UnaryCancellationTest do
     assert_receive {:http_server_late_send_result, ^server, {:error, _reason}}, 1_000
 
     assert {:error, result} = HTTP.await_unary(session, 1_000)
+    refute Process.alive?(session.worker)
+    refute_received {:execution_plane_http_unary_finished, _, _, _}
     assert result.outcome.status == "failed"
     assert Enum.map(result.events, & &1.event_type) == ["dispatch.started", "dispatch.failed"]
     assert result.outcome.failure.failure_class == :cancellation
@@ -93,6 +95,23 @@ defmodule ExecutionPlane.HTTP.UnaryCancellationTest do
     assert_receive {:http_server_late_send_result, ^server, {:error, _reason}}, 1_000
     assert_receive {:DOWN, ^worker_monitor, :process, _worker, :normal}, 1_000
 
+    stop_http_server(server)
+  end
+
+  test "a wait timeout cancels the socket and drains terminal messages and monitors" do
+    {server, endpoint} = start_http_server(:hold)
+
+    assert {:ok, session} =
+             HTTP.start_unary(%{url: endpoint, method: "GET", timeout_ms: 10_000},
+               lineage: lineage("wait-timeout")
+             )
+
+    assert_receive {:http_server_request, ^server}, 1_000
+    assert {:error, :timeout} = HTTP.await_unary(session, 0)
+    refute Process.alive?(session.worker)
+    assert_receive {:http_server_socket_closed, ^server, {:error, :closed}}, 1_000
+    refute_received {:execution_plane_http_unary_finished, _, _, _}
+    refute_received {:DOWN, _, :process, _, _}
     stop_http_server(server)
   end
 
