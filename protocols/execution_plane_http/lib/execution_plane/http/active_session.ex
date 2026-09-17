@@ -5,6 +5,7 @@ defmodule ExecutionPlane.HTTP.ActiveSession do
 
   alias ExecutionPlane.ExecutionResult
   alias ExecutionPlane.HTTP.RuntimeClientGateway
+  alias ExecutionPlane.Protocols.HTTP, as: ProtocolHTTP
 
   @max_demand 1_024
   @default_chunk_bytes 1_024
@@ -313,6 +314,6 @@ defmodule ExecutionPlane.HTTP.ActiveSession do
   defp cancel_http_request(nil), do: :ok
 
   defp cancel_http_request(request_id) do
-    :ok = :httpc.cancel_request(request_id)
+    :ok = ProtocolHTTP.cancel_request(request_id)
   end
 end

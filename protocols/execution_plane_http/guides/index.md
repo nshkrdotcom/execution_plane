@@ -7,5 +7,6 @@ root.
 - [Usage](usage.md)
 - [Publishing](publishing.md)
 
-This package owns lower unary HTTP execution only. Provider or product
-semantics stay above this lane.
+This package owns lower unary HTTP execution, including physical cancellation
+of active unary `:httpc` requests. Provider or product semantics stay above
+this lane.
