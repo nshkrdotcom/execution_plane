@@ -22,8 +22,9 @@ def deps do
 end
 ```
 
-For workspace development, the package can use a sibling path dependency. For
-Hex publishing, the release should resolve from Hex as usual.
+All commands default to the published `execution_plane ~> 0.3.0` core package.
+Workspace development can select a local source through the standard
+`MIX_WORKSPACE_OPS_BOOTSTRAP` hook. No registry tooling is required.
 
 ## Guides
 
