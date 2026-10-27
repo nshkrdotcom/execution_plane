@@ -3,7 +3,7 @@ if bootstrap = System.get_env("MIX_WORKSPACE_OPS_BOOTSTRAP"), do: Code.require_f
 defmodule ExecutionPlane.MixProject do
   use Mix.Project
 
-  @version "0.3.0"
+  @version "0.3.1"
   @source_url "https://github.com/nshkrdotcom/execution_plane"
   @homepage_url "https://hex.pm/packages/execution_plane"
   @docs_url "https://hexdocs.pm/execution_plane"
@@ -56,13 +56,13 @@ defmodule ExecutionPlane.MixProject do
 
   defp deps do
     [
-      workspace_dep({:ground_plane_contracts, "~> 0.1.0"}),
+      workspace_dep({:ground_plane_contracts, "~> 0.1.1"}),
       workspace_dep({:ground_plane_persistence_policy, "~> 0.1.0"}),
       {:jason, "~> 1.4.5"},
       {:telemetry, "~> 1.4.2"},
       {:credo, "~> 1.7.19", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.4.7", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.40.3", only: :dev, runtime: false}
+      {:dialyxir, "~> 1.4.8", only: [:dev, :test], runtime: false},
+      {:ex_doc, "~> 0.40.4", only: :dev, runtime: false}
     ]
   end
 
@@ -107,10 +107,10 @@ defmodule ExecutionPlane.MixProject do
       ],
       assets: %{"assets" => "assets"},
       logo: "assets/execution_plane.svg",
-      source_ref: "v#{@version}",
+      source_ref: "execution_plane-v#{@version}",
       source_url: @source_url,
       source_url_pattern:
-        "#{@source_url}/blob/v#{@version}/core/execution_plane/%{path}#L%{line}",
+        "#{@source_url}/blob/execution_plane-v#{@version}/core/execution_plane/%{path}#L%{line}",
       homepage_url: @docs_url
     ]
   end

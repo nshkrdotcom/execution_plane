@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## [0.3.1] - 2026-10-26
+
+### Changed
+
+- Update all dependency requirements and the complete Hex lockfile to current stable releases.
+- Require GroundPlane Contracts 0.1.1 and use a package-specific source tag for documentation.
+
 ## 0.3.0 - 2026-08-10
 
 - Make dependency selection independent of whichever repository first loaded

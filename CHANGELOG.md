@@ -1,5 +1,10 @@
 # Changelog
 
+## Dependency refresh - 2026-10-26
+
+- Release Execution Plane 0.3.1, Process 0.3.2, and JSON-RPC 0.2.1 with current stable dependencies and Hex-only published requirements.
+- Publish the core package first, then Process and JSON-RPC, before CLI Core and provider consumers.
+
 ## 2026-09-07 release preparation
 
 - Prepare Process 0.3.1 with erlexec 2.4 and GroundPlane Contracts 0.1.1.

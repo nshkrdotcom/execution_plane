@@ -254,7 +254,7 @@ mix release.prepare --artifact execution_plane
 
 The historical package directory is `dist/monolith/execution_plane`, and its
 durable generated branch is `projection/execution_plane`. Publish
-`execution_plane 0.3.0` from `core/execution_plane` first:
+`execution_plane 0.3.1` from `core/execution_plane` first:
 
 ```bash
 cd core/execution_plane
@@ -265,8 +265,8 @@ mix hex.publish --yes
 
 Then prove each component from
 a clean standalone checkout/package extraction resolving the actual Hex
-`execution_plane 0.3.0`, publish `execution_plane_process 0.3.0` and
-`execution_plane_jsonrpc 0.2.0`, and only then publish their consumers. A
+`execution_plane 0.3.1`, publish `execution_plane_process 0.3.2` and
+`execution_plane_jsonrpc 0.2.1`, and only then publish their consumers. A
 workspace-path compile is necessary local evidence but is not publication
 evidence.
 
