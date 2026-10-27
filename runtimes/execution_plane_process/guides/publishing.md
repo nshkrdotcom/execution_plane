@@ -1,26 +1,14 @@
 # Publishing
 
-Publish `ground_plane_contracts 0.1.1` first and verify the already-published
-`execution_plane 0.3.0`. The historical `execution_plane 0.1.0`
-package is a monolith containing these same process modules and will fail a
-warnings-as-errors consumer compile with module redefinitions.
+This checklist publishes `execution_plane_process 0.3.2` after `execution_plane 0.3.1`.
+The historical `execution_plane 0.1.0` monolith must never appear in this graph.
 
-Before publishing the package:
+1. Resolve dependencies in ordinary Hex mode with the MWO bootstrap unset.
+2. Run `mix deps.update --all`, `mix ci`, and `mix hex.build`.
+3. Verify a clean standalone package compiles against Hex `execution_plane 0.3.1`.
+4. Confirm the package metadata requires `execution_plane ~> 0.3.1` and contains no path or Git dependencies.
+5. Commit the reviewed source, then run `mix hex.publish`.
+6. Verify the published package and documentation, then tag the exact commit
+   `execution_plane_process-v0.3.2` and push the release commit and tag.
 
-1. Verify Hex resolves `execution_plane 0.3.0`, never `0.1.0`.
-2. From a clean standalone checkout/package extraction with no sibling core
-   path, run `mix deps.get` and `mix compile --warnings-as-errors`.
-3. Run `mix ci`.
-4. Run `mix hex.build`.
-5. Inspect the package manifest and confirm the `execution_plane` requirement
-   is `~> 0.3.0`.
-6. In the authorized release phase, run `mix hex.publish --yes`.
-7. Create the lightweight tag `v0.3.1`, push it, and
-   verify the remote tag.
-
-This release uses the unoccupied plain `v0.3.1` tag. The monorepo's existing
-plain `v0.3.0` tag belongs to core history and must not be moved. Recheck tag
-availability immediately before publication; never overwrite a remote tag.
-
-The package manifest should include `README.md`, `CHANGELOG.md`, `LICENSE`,
-`assets/`, `guides/`, `lib/`, `.formatter.exs`, and `mix.exs`.
+Package-specific tags avoid collisions between independent releases in this monorepo.

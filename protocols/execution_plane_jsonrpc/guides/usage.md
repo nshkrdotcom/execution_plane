@@ -1,6 +1,6 @@
 # Usage
 
-This guide targets `execution_plane_jsonrpc ~> 0.2.0`.
+This guide targets `execution_plane_jsonrpc ~> 0.2.1`.
 
 The main helper is `ExecutionPlane.JsonRpc.call/2`.
 

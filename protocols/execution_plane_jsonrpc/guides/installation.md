@@ -1,13 +1,13 @@
 # Installation
 
-This guide targets `execution_plane_jsonrpc ~> 0.2.0`.
+This guide targets `execution_plane_jsonrpc ~> 0.2.1`.
 
 Add the package as a dependency:
 
 ```elixir
 def deps do
   [
-    {:execution_plane_jsonrpc, "~> 0.2.0"}
+    {:execution_plane_jsonrpc, "~> 0.2.1"}
   ]
 end
 ```

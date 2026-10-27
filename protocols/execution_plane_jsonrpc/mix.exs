@@ -1,16 +1,12 @@
+if bootstrap = System.get_env("MIX_WORKSPACE_OPS_BOOTSTRAP"), do: Code.require_file(bootstrap)
+
 defmodule ExecutionPlaneJsonRpc.MixProject do
   use Mix.Project
 
-  @version "0.2.0"
+  @version "0.2.1"
   @source_url "https://github.com/nshkrdotcom/execution_plane"
   @homepage_url "https://hex.pm/packages/execution_plane_jsonrpc"
   @docs_url "https://hexdocs.pm/execution_plane_jsonrpc"
-  @execution_plane_version "~> 0.3.0"
-  @execution_plane_source [
-    github: "nshkrdotcom/execution_plane",
-    branch: "main",
-    subdir: "core/execution_plane"
-  ]
 
   def project do
     [
@@ -40,40 +36,18 @@ defmodule ExecutionPlaneJsonRpc.MixProject do
     [
       execution_plane_dep(),
       {:jason, "~> 1.4.5"},
-      {:ex_doc, "~> 0.40.3", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.40.4", only: :dev, runtime: false},
       {:credo, "~> 1.7.19", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.4.7", only: [:dev, :test], runtime: false}
+      {:dialyxir, "~> 1.4.8", only: [:dev, :test], runtime: false}
     ]
   end
 
-  defp execution_plane_dep do
-    case workspace_dep_path("../../core/execution_plane") do
-      nil -> external_execution_plane_dep()
-      path -> {:execution_plane, path: path}
-    end
-  end
+  defp execution_plane_dep, do: workspace_dep({:execution_plane, "~> 0.3.1"})
 
-  defp external_execution_plane_dep do
-    if hex_packaging_task?() do
-      {:execution_plane, @execution_plane_version}
-    else
-      {:execution_plane, @execution_plane_source}
-    end
-  end
-
-  defp workspace_dep_path(relative_path) do
-    if local_workspace_deps?() do
-      path = Path.expand(relative_path, __DIR__)
-      if File.dir?(path), do: path
-    end
-  end
-
-  defp local_workspace_deps? do
-    not hex_packaging_task?() and not Enum.member?(Path.split(__DIR__), "deps")
-  end
-
-  defp hex_packaging_task? do
-    Enum.any?(System.argv(), &(&1 in ["hex.build", "hex.publish"]))
+  defp workspace_dep(committed) do
+    if function_exported?(MixWorkspaceOpsBootstrap, :dep, 2),
+      do: apply(MixWorkspaceOpsBootstrap, :dep, [committed, __DIR__]),
+      else: committed
   end
 
   defp package do
