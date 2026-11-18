@@ -3,7 +3,7 @@ if bootstrap = System.get_env("MIX_WORKSPACE_OPS_BOOTSTRAP"), do: Code.require_f
 defmodule ExecutionPlaneJsonRpc.MixProject do
   use Mix.Project
 
-  @version "0.2.1"
+  @version "0.2.2"
   @source_url "https://github.com/nshkrdotcom/execution_plane"
   @homepage_url "https://hex.pm/packages/execution_plane_jsonrpc"
   @docs_url "https://hexdocs.pm/execution_plane_jsonrpc"
@@ -38,11 +38,11 @@ defmodule ExecutionPlaneJsonRpc.MixProject do
       {:jason, "~> 1.4.5"},
       {:ex_doc, "~> 0.40.4", only: :dev, runtime: false},
       {:credo, "~> 1.7.19", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.4.8", only: [:dev, :test], runtime: false}
+      {:dialyxir, "~> 1.4.9", only: [:dev, :test], runtime: false}
     ]
   end
 
-  defp execution_plane_dep, do: workspace_dep({:execution_plane, "~> 0.3.1"})
+  defp execution_plane_dep, do: workspace_dep({:execution_plane, "~> 0.3.2"})
 
   defp workspace_dep(committed) do
     if function_exported?(MixWorkspaceOpsBootstrap, :dep, 2),
