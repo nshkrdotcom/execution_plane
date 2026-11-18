@@ -1,8 +1,8 @@
 # Publishing
 
-This directory publishes `execution_plane_http 0.2.0`; the repository root is
+This directory publishes `execution_plane_http 0.2.1`; the repository root is
 not a package. The package continues to depend on the published
-`execution_plane ~> 0.3.0` core and does not require a core API change for the
+`execution_plane ~> 0.3.2` core and does not require a core API change for the
 cancelable unary lifecycle.
 
 Before publication, prove the physical-cancellation acceptance test and the
@@ -24,9 +24,9 @@ mix ci
 Normal commands and publication default to Hex dependencies. The optional
 workspace bootstrap can select local sources explicitly; it is not required.
 
-Hex release state checked on 2026-09-17: the latest published HTTP package is
-0.1.0; 0.2.0 is the next release. Publish this package before Pristine 0.4.0.
-Use the package-qualified tag `execution_plane_http-v0.2.0` when cutting the
+Verify that Execution Plane core 0.3.2 is available on Hex before publishing
+HTTP 0.2.1, then verify the HTTP release before updating consumers.
+Use the package-qualified tag `execution_plane_http-v0.2.1` when cutting the
 release; repository-wide `v*` tags do not identify this poncho package.
 Publication and tagging are separate release actions after QC.
 

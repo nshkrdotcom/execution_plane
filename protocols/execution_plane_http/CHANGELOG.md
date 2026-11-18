@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1 - 2026-11-11
+
+- Refresh dependency requirements and the Hex lockfile.
+
 ## 0.2.0 - 2026-09-17
 
 - Add cancelable unary HTTP sessions with `ExecutionPlane.HTTP.start_unary/2`,

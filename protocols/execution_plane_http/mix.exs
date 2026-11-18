@@ -3,9 +3,9 @@ if bootstrap = System.get_env("MIX_WORKSPACE_OPS_BOOTSTRAP"), do: Code.require_f
 defmodule ExecutionPlaneHttp.MixProject do
   use Mix.Project
 
-  @version "0.2.0"
+  @version "0.2.1"
   @source_url "https://github.com/nshkrdotcom/execution_plane"
-  @execution_plane_version "~> 0.3.0"
+  @execution_plane_version "~> 0.3.2"
 
   def project do
     [
@@ -35,7 +35,7 @@ defmodule ExecutionPlaneHttp.MixProject do
       {:jason, "~> 1.4.5"},
       {:ex_doc, "~> 0.40.4", only: :dev, runtime: false},
       {:credo, "~> 1.7.19", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.4.8", only: [:dev, :test], runtime: false}
+      {:dialyxir, "~> 1.4.9", only: [:dev, :test], runtime: false}
     ]
   end
 

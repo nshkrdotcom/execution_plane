@@ -19,7 +19,7 @@ session lifecycle backed by Erlang/OTP `:httpc` asynchronous request IDs and
 ```elixir
 def deps do
   [
-    {:execution_plane_http, "~> 0.2.0"}
+    {:execution_plane_http, "~> 0.2.1"}
   ]
 end
 ```
