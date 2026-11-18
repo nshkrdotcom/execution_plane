@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.3.2 - 2026-11-11
+
+- Refresh dependency requirements and the Hex lockfile.
+
 ## [0.3.1] - 2026-10-26
 
 ### Changed

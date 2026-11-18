@@ -1,5 +1,9 @@
 # Changelog
 
+## Dependency refresh - 2026-11-11
+
+- Refresh dependencies across the workspace. Release the core package before the dependent Process, JSON-RPC, and HTTP packages.
+
 ## Dependency refresh - 2026-10-26
 
 - Release Execution Plane 0.3.1, Process 0.3.2, and JSON-RPC 0.2.1 with current stable dependencies and Hex-only published requirements.

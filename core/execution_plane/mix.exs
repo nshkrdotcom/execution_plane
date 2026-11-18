@@ -3,7 +3,7 @@ if bootstrap = System.get_env("MIX_WORKSPACE_OPS_BOOTSTRAP"), do: Code.require_f
 defmodule ExecutionPlane.MixProject do
   use Mix.Project
 
-  @version "0.3.1"
+  @version "0.3.2"
   @source_url "https://github.com/nshkrdotcom/execution_plane"
   @homepage_url "https://hex.pm/packages/execution_plane"
   @docs_url "https://hexdocs.pm/execution_plane"
@@ -59,9 +59,9 @@ defmodule ExecutionPlane.MixProject do
       workspace_dep({:ground_plane_contracts, "~> 0.1.1"}),
       workspace_dep({:ground_plane_persistence_policy, "~> 0.1.0"}),
       {:jason, "~> 1.4.5"},
-      {:telemetry, "~> 1.4.2"},
+      {:telemetry, "~> 1.4.3"},
       {:credo, "~> 1.7.19", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.4.8", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4.9", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.40.4", only: :dev, runtime: false}
     ]
   end

@@ -38,9 +38,9 @@ defmodule ExecutionPlane.Workspace.MixProject do
 
   defp deps do
     [
-      {:blitz, "~> 0.3.0", runtime: false},
-      {:weld, "~> 0.8.4", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.40.3", only: :dev, runtime: false}
+      {:blitz, "~> 0.4.1", runtime: false},
+      {:weld, "~> 0.10.0", only: [:dev, :test], runtime: false},
+      {:ex_doc, "~> 0.40.4", only: :dev, runtime: false}
     ]
   end
 

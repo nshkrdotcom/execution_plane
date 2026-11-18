@@ -22,7 +22,7 @@ package plus separately published lane packages:
   add-on package for local, SSH, and distributed TUIs.
 
 The repository root `./mix.exs` is a Mix project, but it is not a publishable
-package project. It owns Blitz orchestration and Weld 0.8.4 release tooling;
+package project. It owns Blitz orchestration and Weld 0.10.0 release tooling;
 neither dependency belongs in generated runtime manifests.
 
 ### Which version to bump
@@ -278,9 +278,9 @@ If a caller asks Execution Plane to infer meaning or policy, reject the change
 and move that behavior to Jido Integration, Citadel, or Mezzanine.
 <!-- gn-ten:repo-agent:end -->
 
-## Blitz 0.3.0 operational note
+## Blitz workspace checks
 
-Root workspace Blitz uses published Hex `~> 0.3.0` by default; `.blitz/` is committed compact impact state after green QC. Source and `mix.exs` changes cascade through reverse workspace dependencies; docs-only changes should stay owner-local.
+Root workspace Blitz uses published Hex `~> 0.4.1` by default; `.blitz/` is committed compact impact state after green QC. Source and `mix.exs` changes cascade through reverse workspace dependencies; docs-only changes should stay owner-local.
 
 ## Dependency Sources And Runtime Env
 
@@ -292,7 +292,7 @@ Root workspace Blitz uses published Hex `~> 0.3.0` by default; `.blitz/` is comm
 - Dependency source selection must not use environment variables.
 - Runtime application code under `lib/**` must not call direct OS env APIs.
   Runtime env reads belong in `config/runtime.exs` or a `Config.Provider`.
-- Released Weld `~> 0.8.4` remains root-only tooling for reproducing the
+- Released Weld `~> 0.10.0` remains root-only tooling for reproducing the
   historical 0.1.0 monolith. `build_support/weld.exs` is historical release
   evidence, not the 0.2.0+ publication source. Publish the core and lane
   packages from their package directories; never make canonical source edits
