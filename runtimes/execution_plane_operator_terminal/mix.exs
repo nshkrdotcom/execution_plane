@@ -38,10 +38,10 @@ defmodule ExecutionPlane.OperatorTerminal.MixProject do
 
   defp deps do
     [
-      {:ex_ratatui, "~> 0.11.1"},
+      {:ex_ratatui, "~> 0.21.0"},
       {:credo, "~> 1.7.19", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.4.7", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.40.3", only: :dev, runtime: false}
+      {:dialyxir, "~> 1.4.9", only: [:dev, :test], runtime: false},
+      {:ex_doc, "~> 0.40.4", only: :dev, runtime: false}
     ]
   end
 
